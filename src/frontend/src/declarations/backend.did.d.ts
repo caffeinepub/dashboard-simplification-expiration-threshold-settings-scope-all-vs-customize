@@ -14,6 +14,8 @@ export interface Component {
   'status' : Status,
   'validityDate' : string,
   'expirationDate' : string,
+  'associatedBenchId' : string,
+  'manufacturerReference' : string,
   'componentName' : string,
 }
 export interface Document {
@@ -30,6 +32,15 @@ export interface Document {
 }
 export type ExpirationThresholdMode = { 'allBenches' : null } |
   { 'customizedBenches' : null };
+export interface ExpiredComponentSummary {
+  'aml' : string,
+  'status' : Status,
+  'component' : Component,
+  'dueDate' : string,
+  'currentDate' : string,
+  'benchSerialNumber' : string,
+  'associatedBench' : string,
+}
 export type ExternalBlob = Uint8Array;
 export interface HistoryEntry {
   'action' : string,
@@ -39,6 +50,10 @@ export interface HistoryEntry {
 }
 export type ProfilePicture = { 'custom' : ExternalBlob } |
   { 'avatar' : string };
+export interface PublicUserInfo {
+  'name' : string,
+  'profilePicture' : ProfilePicture,
+}
 export type Status = { 'ok' : null } |
   { 'expiringSoon' : null } |
   { 'expired' : null };
@@ -48,10 +63,13 @@ export interface TestBench {
   'plmAgileUrl' : string,
   'creator' : [] | [Principal],
   'documents' : Array<[string, Version]>,
+  'decawebUrl' : string,
   'name' : string,
   'tags' : Array<Tag>,
   'description' : string,
+  'photoUrl' : [] | [string],
   'agileCode' : string,
+  'serialNumber' : string,
   'photo' : ExternalBlob,
 }
 export type Time = bigint;
@@ -115,7 +133,18 @@ export interface _SERVICE {
     undefined
   >,
   'createTestBench' : ActorMethod<
-    [string, string, string, string, string, ExternalBlob, Array<Tag>],
+    [
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      ExternalBlob,
+      [] | [string],
+      Array<Tag>,
+    ],
     undefined
   >,
   'documentExists' : ActorMethod<[string], boolean>,
@@ -129,7 +158,12 @@ export interface _SERVICE {
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getComponents' : ActorMethod<[string], Array<Component>>,
+  'getExpiredComponentsSummary' : ActorMethod<
+    [],
+    Array<ExpiredComponentSummary>
+  >,
   'getProfilePicture' : ActorMethod<[Principal], [] | [ProfilePicture]>,
+  'getPublicUserInfo' : ActorMethod<[Principal], [] | [PublicUserInfo]>,
   'getTestBench' : ActorMethod<[string], [] | [TestBench]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'getUsersByEntity' : ActorMethod<[string], Array<UserProfile>>,
@@ -148,7 +182,18 @@ export interface _SERVICE {
   >,
   'updateLastSeen' : ActorMethod<[], undefined>,
   'updateTestBench' : ActorMethod<
-    [string, string, string, string, string, ExternalBlob, Array<Tag>],
+    [
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      ExternalBlob,
+      [] | [string],
+      Array<Tag>,
+    ],
     undefined
   >,
   'uploadProfilePicture' : ActorMethod<[ExternalBlob], ExternalBlob>,

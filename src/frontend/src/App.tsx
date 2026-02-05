@@ -8,9 +8,9 @@ import BenchDetailPage from './pages/Benches/BenchDetailPage';
 import NewBenchPage from './pages/Benches/NewBenchPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
-import AdminPage from './pages/Admin/AdminPage';
 import AppShell from './components/layout/AppShell';
 import AuthGate from './components/auth/AuthGate';
+import ActorGate from './components/auth/ActorGate';
 import AppErrorBoundary from './components/AppErrorBoundary';
 
 // Root layout component
@@ -34,13 +34,15 @@ const rootRoute = createRootRoute({
   component: RootLayout,
 });
 
-// Protected routes
+// Protected routes with both AuthGate and ActorGate
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: () => (
     <AuthGate>
-      <DashboardPage />
+      <ActorGate>
+        <DashboardPage />
+      </ActorGate>
     </AuthGate>
   ),
 });
@@ -50,7 +52,9 @@ const benchesRoute = createRoute({
   path: '/benches',
   component: () => (
     <AuthGate>
-      <BenchListPage />
+      <ActorGate>
+        <BenchListPage />
+      </ActorGate>
     </AuthGate>
   ),
 });
@@ -60,7 +64,9 @@ const newBenchRoute = createRoute({
   path: '/benches/new',
   component: () => (
     <AuthGate>
-      <NewBenchPage />
+      <ActorGate>
+        <NewBenchPage />
+      </ActorGate>
     </AuthGate>
   ),
 });
@@ -70,7 +76,9 @@ const benchDetailRoute = createRoute({
   path: '/benches/$benchId',
   component: () => (
     <AuthGate>
-      <BenchDetailPage />
+      <ActorGate>
+        <BenchDetailPage />
+      </ActorGate>
     </AuthGate>
   ),
 });
@@ -80,17 +88,9 @@ const profileRoute = createRoute({
   path: '/profile',
   component: () => (
     <AuthGate>
-      <ProfilePage />
-    </AuthGate>
-  ),
-});
-
-const adminRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/admin',
-  component: () => (
-    <AuthGate>
-      <AdminPage />
+      <ActorGate>
+        <ProfilePage />
+      </ActorGate>
     </AuthGate>
   ),
 });
@@ -101,7 +101,6 @@ const routeTree = rootRoute.addChildren([
   newBenchRoute,
   benchDetailRoute,
   profileRoute,
-  adminRoute,
 ]);
 
 const router = createRouter({ routeTree });

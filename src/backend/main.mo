@@ -1,20 +1,18 @@
 import Array "mo:core/Array";
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
-import Principal "mo:core/Principal";
 import Order "mo:core/Order";
+import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import Text "mo:core/Text";
 import Iter "mo:core/Iter";
 import Time "mo:core/Time";
+import List "mo:core/List";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Migration "migration";
-import List "mo:core/List";
 
-(with migration = Migration.run)
 actor {
   // Initialize the user system state
   let accessControlState = AccessControl.initState();
@@ -66,10 +64,13 @@ actor {
   type TestBench = {
     id : Text;
     name : Text;
+    serialNumber : Text;
     agileCode : Text;
     plmAgileUrl : Text;
+    decawebUrl : Text;
     description : Text;
     photo : Storage.ExternalBlob;
+    photoUrl : ?Text;
     tags : [Tag];
     documents : [(Text, Version)];
     creator : ?Principal;
@@ -83,15 +84,27 @@ actor {
 
   type Component = {
     componentName : Text;
+    manufacturerReference : Text;
     validityDate : Text;
     expirationDate : Text;
     status : Status;
+    associatedBenchId : Text;
   };
 
   module Component {
     public func compare(component1 : Component, component2 : Component) : Order.Order {
       Text.compare(component1.componentName, component2.componentName);
     };
+  };
+
+  type ExpiredComponentSummary = {
+    component : Component;
+    dueDate : Text;
+    currentDate : Text;
+    aml : Text;
+    associatedBench : Text;
+    benchSerialNumber : Text;
+    status : Status;
   };
 
   type HistoryEntry = {
@@ -104,6 +117,11 @@ actor {
   type ProfilePicture = {
     #avatar : Text;
     #custom : Storage.ExternalBlob;
+  };
+
+  type PublicUserInfo = {
+    name : Text;
+    profilePicture : ProfilePicture;
   };
 
   type UserProfile = {
@@ -444,10 +462,13 @@ actor {
   public shared ({ caller }) func createTestBench(
     id : Text,
     name : Text,
+    serialNumber : Text,
     agileCode : Text,
     plmAgileUrl : Text,
+    decawebUrl : Text,
     description : Text,
     photo : Storage.ExternalBlob,
+    photoUrl : ?Text,
     tags : [Tag],
   ) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -460,10 +481,13 @@ actor {
     let newBench : TestBench = {
       id;
       name;
+      serialNumber;
       agileCode;
       plmAgileUrl;
+      decawebUrl;
       description;
       photo;
+      photoUrl;
       tags;
       documents = [];
       creator = ?caller;
@@ -482,10 +506,13 @@ actor {
   public shared ({ caller }) func updateTestBench(
     benchId : Text,
     name : Text,
+    serialNumber : Text,
     agileCode : Text,
     plmAgileUrl : Text,
+    decawebUrl : Text,
     description : Text,
     photo : Storage.ExternalBlob,
+    photoUrl : ?Text,
     tags : [Tag],
   ) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -500,10 +527,13 @@ actor {
     let updatedBench : TestBench = {
       id = bench.id;
       name;
+      serialNumber;
       agileCode;
       plmAgileUrl;
+      decawebUrl;
       description;
       photo;
+      photoUrl;
       tags;
       documents = bench.documents;
       creator = bench.creator;
@@ -620,10 +650,13 @@ actor {
     let updatedBench : TestBench = {
       id = bench.id;
       name = bench.name;
+      serialNumber = bench.serialNumber;
       agileCode = bench.agileCode;
       plmAgileUrl = bench.plmAgileUrl;
+      decawebUrl = bench.decawebUrl;
       description = bench.description;
       photo = bench.photo;
+      photoUrl = bench.photoUrl;
       tags = bench.tags;
       documents = bench.documents.concat([(documentId, document.version)]);
       creator = bench.creator;
@@ -683,10 +716,13 @@ actor {
     let updatedBench : TestBench = {
       id = bench.id;
       name = bench.name;
+      serialNumber = bench.serialNumber;
       agileCode = bench.agileCode;
       plmAgileUrl = bench.plmAgileUrl;
+      decawebUrl = bench.decawebUrl;
       description = bench.description;
       photo = bench.photo;
+      photoUrl = bench.photoUrl;
       tags = bench.tags;
       documents = updatedDocuments;
       creator = bench.creator;
@@ -734,6 +770,37 @@ actor {
     };
   };
 
+  public query ({ caller }) func getExpiredComponentsSummary() : async [ExpiredComponentSummary] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access expired components summary");
+    };
+
+    let expiredComponents = List.empty<ExpiredComponentSummary>();
+
+    for ((benchId, components) in componentMap.entries()) {
+      let bench = switch (testBenchMap.get(benchId)) {
+        case (null) { Runtime.trap("Bench does not exist") };
+        case (?b) { b };
+      };
+
+      for (component in components.values()) {
+        if (component.status == #expired) {
+          expiredComponents.add({
+            component;
+            dueDate = component.expirationDate;
+            currentDate = Time.now().toText();
+            aml = component.manufacturerReference;
+            associatedBench = bench.agileCode;
+            benchSerialNumber = bench.serialNumber;
+            status = #expired;
+          });
+        };
+      };
+    };
+
+    expiredComponents.toArray();
+  };
+
   // History Management
   private func addHistoryEntry(benchId : Text, entry : HistoryEntry) {
     let currentHistory = switch (historyMap.get(benchId)) {
@@ -753,4 +820,21 @@ actor {
       case (?history) { history };
     };
   };
+
+  public query ({ caller }) func getPublicUserInfo(user : Principal) : async ?PublicUserInfo {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access public user info");
+    };
+
+    switch (userProfileMap.get(user)) {
+      case (null) { null };
+      case (?profile) {
+        ?{
+          name = profile.name;
+          profilePicture = profile.profilePicture;
+        };
+      };
+    };
+  };
 };
+

@@ -1,13 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, User, Clock } from 'lucide-react';
+import { Activity, Clock } from 'lucide-react';
 import type { HistoryEntry } from '../../../backend';
+import { UserAvatar } from '../../../components/profile/UserAvatar';
+import { useGetPublicUserInfo } from '../../../hooks/useQueries';
+import { getAvatarPath } from '../../../utils/avatars';
 
 interface BenchHistoryListProps {
   history: HistoryEntry[];
 }
 
-export function BenchHistoryList({ history }: BenchHistoryListProps) {
-  const sortedHistory = [...history].sort((a, b) => Number(b.timestamp - a.timestamp));
+function HistoryEntryCard({ entry }: { entry: HistoryEntry }) {
+  const { data: userInfo } = useGetPublicUserInfo(entry.user);
 
   const formatTimestamp = (timestamp: bigint) => {
     const date = new Date(Number(timestamp) / 1000000);
@@ -18,6 +21,47 @@ export function BenchHistoryList({ history }: BenchHistoryListProps) {
     if (principal.length <= 12) return principal;
     return `${principal.slice(0, 6)}...${principal.slice(-6)}`;
   };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Activity className="h-4 w-4" />
+          {entry.action}
+        </CardTitle>
+        <CardDescription className="flex items-center gap-4 text-xs">
+          <span className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {formatTimestamp(entry.timestamp)}
+          </span>
+          <span className="flex items-center gap-2">
+            {userInfo ? (
+              <>
+                <UserAvatar
+                  profilePicture={userInfo.profilePicture}
+                  name={userInfo.name}
+                  size="sm"
+                  className="h-6 w-6"
+                />
+                <span>{userInfo.name}</span>
+              </>
+            ) : (
+              <span>{formatPrincipal(entry.user.toString())}</span>
+            )}
+          </span>
+        </CardDescription>
+      </CardHeader>
+      {entry.details && (
+        <CardContent>
+          <p className="text-sm text-muted-foreground">{entry.details}</p>
+        </CardContent>
+      )}
+    </Card>
+  );
+}
+
+export function BenchHistoryList({ history }: BenchHistoryListProps) {
+  const sortedHistory = [...history].sort((a, b) => Number(b.timestamp - a.timestamp));
 
   if (sortedHistory.length === 0) {
     return (
@@ -33,29 +77,7 @@ export function BenchHistoryList({ history }: BenchHistoryListProps) {
   return (
     <div className="space-y-4">
       {sortedHistory.map((entry, index) => (
-        <Card key={index}>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Activity className="h-4 w-4" />
-              {entry.action}
-            </CardTitle>
-            <CardDescription className="flex items-center gap-4 text-xs">
-              <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {formatTimestamp(entry.timestamp)}
-              </span>
-              <span className="flex items-center gap-1">
-                <User className="h-3 w-3" />
-                {formatPrincipal(entry.user.toString())}
-              </span>
-            </CardDescription>
-          </CardHeader>
-          {entry.details && (
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{entry.details}</p>
-            </CardContent>
-          )}
-        </Card>
+        <HistoryEntryCard key={index} entry={entry} />
       ))}
     </div>
   );

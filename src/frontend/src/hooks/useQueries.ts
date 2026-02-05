@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { TestBench, UserProfile, UserRole, Tag, ExternalBlob, ExpirationThresholdMode, Component, Document, HistoryEntry, ProfilePicture } from '../backend';
+import type { TestBench, UserProfile, UserRole, Tag, ExternalBlob, ExpirationThresholdMode, Component, Document, HistoryEntry, ProfilePicture, PublicUserInfo, ExpiredComponentSummary } from '../backend';
 import { Principal } from '@dfinity/principal';
 
 export function useGetAllTestBenches() {
@@ -181,7 +181,22 @@ export function useSetProfilePicture() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['publicUserInfo'] });
     },
+  });
+}
+
+export function useGetPublicUserInfo(userPrincipal: Principal | null) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<PublicUserInfo | null>({
+    queryKey: ['publicUserInfo', userPrincipal?.toString()],
+    queryFn: async () => {
+      if (!actor || !userPrincipal) return null;
+      return actor.getPublicUserInfo(userPrincipal);
+    },
+    enabled: !!actor && !isFetching && !!userPrincipal,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 }
 
@@ -248,8 +263,10 @@ export function useGetBenchTagSuggestions() {
 interface CreateBenchInput {
   id: string;
   name: string;
+  serialNumber: string;
   agileCode: string;
   plmAgileUrl: string;
+  decawebUrl: string;
   description: string;
   photo: ExternalBlob;
   tags: Tag[];
@@ -277,10 +294,13 @@ export function useCreateTestBench() {
       await actor.createTestBench(
         input.id,
         input.name,
+        input.serialNumber,
         input.agileCode,
         input.plmAgileUrl,
+        input.decawebUrl,
         input.description,
         input.photo,
+        null, // photoUrl
         input.tags
       );
 
@@ -309,6 +329,7 @@ export function useCreateTestBench() {
       queryClient.invalidateQueries({ queryKey: ['benchTagSuggestions'] });
       queryClient.invalidateQueries({ queryKey: ['benchComponents'] });
       queryClient.invalidateQueries({ queryKey: ['allDocuments'] });
+      queryClient.invalidateQueries({ queryKey: ['expiredComponentsSummary'] });
     },
   });
 }
@@ -321,8 +342,10 @@ export function useUpdateTestBench() {
     mutationFn: async (params: {
       benchId: string;
       name: string;
+      serialNumber: string;
       agileCode: string;
       plmAgileUrl: string;
+      decawebUrl: string;
       description: string;
       photo: ExternalBlob;
       tags: Tag[];
@@ -331,10 +354,13 @@ export function useUpdateTestBench() {
       return actor.updateTestBench(
         params.benchId,
         params.name,
+        params.serialNumber,
         params.agileCode,
         params.plmAgileUrl,
+        params.decawebUrl,
         params.description,
         params.photo,
+        null, // photoUrl
         params.tags
       );
     },
@@ -361,6 +387,7 @@ export function useRemoveTestBench() {
       queryClient.invalidateQueries({ queryKey: ['benchTagSuggestions'] });
       queryClient.invalidateQueries({ queryKey: ['benchComponents'] });
       queryClient.invalidateQueries({ queryKey: ['allDocuments'] });
+      queryClient.invalidateQueries({ queryKey: ['expiredComponentsSummary'] });
     },
   });
 }
@@ -391,6 +418,7 @@ export function useSetBenchComponents() {
       queryClient.invalidateQueries({ queryKey: ['benchComponents', variables.benchId] });
       queryClient.invalidateQueries({ queryKey: ['benchComponents'] });
       queryClient.invalidateQueries({ queryKey: ['benchHistory', variables.benchId] });
+      queryClient.invalidateQueries({ queryKey: ['expiredComponentsSummary'] });
     },
   });
 }
@@ -399,7 +427,7 @@ export function useGetAllBenchComponents() {
   const { actor, isFetching } = useActor();
   const { data: benches = [] } = useGetAllTestBenches();
 
-  return useQuery<Array<{ benchId: string; benchName: string; agileCode: string; components: Component[] }>>({
+  return useQuery<Array<{ benchId: string; benchName: string; agileCode: string; serialNumber: string; components: Component[] }>>({
     queryKey: ['benchComponents', 'all', benches.map(b => b.id).join(',')],
     queryFn: async () => {
       if (!actor || benches.length === 0) return [];
@@ -411,6 +439,7 @@ export function useGetAllBenchComponents() {
             benchId: bench.id,
             benchName: bench.name,
             agileCode: bench.agileCode || '—',
+            serialNumber: bench.serialNumber || '—',
             components,
           };
         })
@@ -419,6 +448,19 @@ export function useGetAllBenchComponents() {
       return results;
     },
     enabled: !!actor && !isFetching && benches.length > 0,
+  });
+}
+
+export function useGetExpiredComponentsSummary() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<ExpiredComponentSummary[]>({
+    queryKey: ['expiredComponentsSummary'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getExpiredComponentsSummary();
+    },
+    enabled: !!actor && !isFetching,
   });
 }
 

@@ -27,6 +27,7 @@ export function BenchPhoto({ photo, alt, className = '' }: BenchPhotoProps) {
         src="/assets/generated/test-bench-placeholder.dim_1400x800.png"
         alt={alt}
         className={className}
+        style={{ objectFit: 'cover' }}
       />
     );
   }

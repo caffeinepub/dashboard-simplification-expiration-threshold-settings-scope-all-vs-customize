@@ -20,6 +20,7 @@ interface BenchComponentsTableEditorProps {
   components: Component[];
   onChange: (components: Component[]) => void;
   effectiveThreshold: number;
+  benchId?: string;
   readOnly?: boolean;
 }
 
@@ -27,15 +28,18 @@ export function BenchComponentsTableEditor({
   components,
   onChange,
   effectiveThreshold,
+  benchId = '',
   readOnly = false,
 }: BenchComponentsTableEditorProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<{
     componentName: string;
+    manufacturerReference: string;
     validityDate: string;
     expirationDate: string;
   }>({
     componentName: '',
+    manufacturerReference: '',
     validityDate: '',
     expirationDate: '',
   });
@@ -44,6 +48,7 @@ export function BenchComponentsTableEditor({
     setEditingIndex(-1);
     setEditForm({
       componentName: '',
+      manufacturerReference: '',
       validityDate: '',
       expirationDate: '',
     });
@@ -54,6 +59,7 @@ export function BenchComponentsTableEditor({
     const comp = components[index];
     setEditForm({
       componentName: comp.componentName,
+      manufacturerReference: comp.manufacturerReference || '',
       validityDate: comp.validityDate,
       expirationDate: comp.expirationDate,
     });
@@ -63,6 +69,7 @@ export function BenchComponentsTableEditor({
     setEditingIndex(null);
     setEditForm({
       componentName: '',
+      manufacturerReference: '',
       validityDate: '',
       expirationDate: '',
     });
@@ -77,9 +84,11 @@ export function BenchComponentsTableEditor({
 
     const newComponent: Component = {
       componentName: editForm.componentName.trim(),
+      manufacturerReference: editForm.manufacturerReference.trim(),
       validityDate: editForm.validityDate,
       expirationDate: editForm.expirationDate,
       status: status === 'ok' ? Status.ok : status === 'expiringSoon' ? Status.expiringSoon : Status.expired,
+      associatedBenchId: benchId,
     };
 
     if (editingIndex === -1) {
@@ -115,6 +124,7 @@ export function BenchComponentsTableEditor({
         <TableHeader>
           <TableRow>
             <TableHead>Equipment Name</TableHead>
+            <TableHead>AML (Manufacturer Ref)</TableHead>
             <TableHead>Validity Date</TableHead>
             <TableHead>Expiration Date</TableHead>
             <TableHead>Status</TableHead>
@@ -131,6 +141,13 @@ export function BenchComponentsTableEditor({
                       value={editForm.componentName}
                       onChange={(e) => setEditForm({ ...editForm, componentName: e.target.value })}
                       placeholder="Equipment name"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      value={editForm.manufacturerReference}
+                      onChange={(e) => setEditForm({ ...editForm, manufacturerReference: e.target.value })}
+                      placeholder="AML reference"
                     />
                   </TableCell>
                   <TableCell>
@@ -164,6 +181,7 @@ export function BenchComponentsTableEditor({
               ) : (
                 <>
                   <TableCell className="font-medium">{component.componentName}</TableCell>
+                  <TableCell>{component.manufacturerReference || '—'}</TableCell>
                   <TableCell>{component.validityDate}</TableCell>
                   <TableCell>{component.expirationDate}</TableCell>
                   <TableCell>{getStatusBadge(component)}</TableCell>
@@ -200,6 +218,13 @@ export function BenchComponentsTableEditor({
                   value={editForm.componentName}
                   onChange={(e) => setEditForm({ ...editForm, componentName: e.target.value })}
                   placeholder="Equipment name"
+                />
+              </TableCell>
+              <TableCell>
+                <Input
+                  value={editForm.manufacturerReference}
+                  onChange={(e) => setEditForm({ ...editForm, manufacturerReference: e.target.value })}
+                  placeholder="AML reference"
                 />
               </TableCell>
               <TableCell>

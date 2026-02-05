@@ -28,8 +28,10 @@ interface EditBenchModalProps {
 
 export function EditBenchModal({ open, onOpenChange, bench }: EditBenchModalProps) {
   const [name, setName] = useState('');
+  const [serialNumber, setSerialNumber] = useState('');
   const [agileCode, setAgileCode] = useState('');
   const [plmAgileUrl, setPlmAgileUrl] = useState('');
+  const [decawebUrl, setDecawebUrl] = useState('');
   const [description, setDescription] = useState('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -42,8 +44,10 @@ export function EditBenchModal({ open, onOpenChange, bench }: EditBenchModalProp
   useEffect(() => {
     if (bench) {
       setName(bench.name);
+      setSerialNumber(bench.serialNumber || '');
       setAgileCode(bench.agileCode || '');
       setPlmAgileUrl(bench.plmAgileUrl || '');
+      setDecawebUrl(bench.decawebUrl || '');
       setDescription(bench.description);
       setTags(bench.tags);
       setPhotoPreview(bench.photo.getDirectURL());
@@ -70,6 +74,10 @@ export function EditBenchModal({ open, onOpenChange, bench }: EditBenchModalProp
       newErrors.name = 'Bench name is required';
     }
 
+    if (!serialNumber.trim()) {
+      newErrors.serialNumber = 'Bench S/N is required';
+    }
+
     if (agileCode.trim()) {
       const agileError = validateAgileCode(agileCode);
       if (agileError) {
@@ -81,6 +89,13 @@ export function EditBenchModal({ open, onOpenChange, bench }: EditBenchModalProp
       const urlError = validateUrl(plmAgileUrl);
       if (urlError) {
         newErrors.plmAgileUrl = urlError;
+      }
+    }
+
+    if (decawebUrl.trim()) {
+      const urlError = validateUrl(decawebUrl);
+      if (urlError) {
+        newErrors.decawebUrl = urlError;
       }
     }
 
@@ -110,8 +125,10 @@ export function EditBenchModal({ open, onOpenChange, bench }: EditBenchModalProp
       await updateBench.mutateAsync({
         benchId: bench.id,
         name: name.trim(),
+        serialNumber: serialNumber.trim(),
         agileCode: agileCode.trim() || '',
         plmAgileUrl: plmAgileUrl.trim() || '',
+        decawebUrl: decawebUrl.trim() || '',
         description: description.trim(),
         photo: photoBlob,
         tags,
@@ -184,6 +201,21 @@ export function EditBenchModal({ open, onOpenChange, bench }: EditBenchModalProp
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="serialNumber">Bench S/N *</Label>
+              <Input
+                id="serialNumber"
+                type="text"
+                placeholder="e.g., SN-2024-001"
+                value={serialNumber}
+                onChange={(e) => {
+                  setSerialNumber(e.target.value);
+                  setErrors((prev) => ({ ...prev, serialNumber: '' }));
+                }}
+              />
+              {errors.serialNumber && <p className="text-sm text-destructive">{errors.serialNumber}</p>}
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="agileCode">AGILE Code</Label>
               <Input
                 id="agileCode"
@@ -212,6 +244,23 @@ export function EditBenchModal({ open, onOpenChange, bench }: EditBenchModalProp
               />
               {errors.plmAgileUrl && (
                 <p className="text-sm text-destructive">{errors.plmAgileUrl}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="decawebUrl">Decaweb URL</Label>
+              <Input
+                id="decawebUrl"
+                type="url"
+                placeholder="https://decaweb.example.com/bench/... (optional)"
+                value={decawebUrl}
+                onChange={(e) => {
+                  setDecawebUrl(e.target.value);
+                  setErrors((prev) => ({ ...prev, decawebUrl: '' }));
+                }}
+              />
+              {errors.decawebUrl && (
+                <p className="text-sm text-destructive">{errors.decawebUrl}</p>
               )}
             </div>
 

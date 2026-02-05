@@ -44,10 +44,13 @@ export const TestBench = IDL.Record({
   'plmAgileUrl' : IDL.Text,
   'creator' : IDL.Opt(IDL.Principal),
   'documents' : IDL.Vec(IDL.Tuple(IDL.Text, Version)),
+  'decawebUrl' : IDL.Text,
   'name' : IDL.Text,
   'tags' : IDL.Vec(Tag),
   'description' : IDL.Text,
+  'photoUrl' : IDL.Opt(IDL.Text),
   'agileCode' : IDL.Text,
+  'serialNumber' : IDL.Text,
   'photo' : ExternalBlob,
 });
 export const Time = IDL.Int;
@@ -86,7 +89,22 @@ export const Component = IDL.Record({
   'status' : Status,
   'validityDate' : IDL.Text,
   'expirationDate' : IDL.Text,
+  'associatedBenchId' : IDL.Text,
+  'manufacturerReference' : IDL.Text,
   'componentName' : IDL.Text,
+});
+export const ExpiredComponentSummary = IDL.Record({
+  'aml' : IDL.Text,
+  'status' : Status,
+  'component' : Component,
+  'dueDate' : IDL.Text,
+  'currentDate' : IDL.Text,
+  'benchSerialNumber' : IDL.Text,
+  'associatedBench' : IDL.Text,
+});
+export const PublicUserInfo = IDL.Record({
+  'name' : IDL.Text,
+  'profilePicture' : ProfilePicture,
 });
 
 export const idlService = IDL.Service({
@@ -140,7 +158,10 @@ export const idlService = IDL.Service({
         IDL.Text,
         IDL.Text,
         IDL.Text,
+        IDL.Text,
+        IDL.Text,
         ExternalBlob,
+        IDL.Opt(IDL.Text),
         IDL.Vec(Tag),
       ],
       [],
@@ -165,9 +186,19 @@ export const idlService = IDL.Service({
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getComponents' : IDL.Func([IDL.Text], [IDL.Vec(Component)], ['query']),
+  'getExpiredComponentsSummary' : IDL.Func(
+      [],
+      [IDL.Vec(ExpiredComponentSummary)],
+      ['query'],
+    ),
   'getProfilePicture' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(ProfilePicture)],
+      ['query'],
+    ),
+  'getPublicUserInfo' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(PublicUserInfo)],
       ['query'],
     ),
   'getTestBench' : IDL.Func([IDL.Text], [IDL.Opt(TestBench)], ['query']),
@@ -199,7 +230,10 @@ export const idlService = IDL.Service({
         IDL.Text,
         IDL.Text,
         IDL.Text,
+        IDL.Text,
+        IDL.Text,
         ExternalBlob,
+        IDL.Opt(IDL.Text),
         IDL.Vec(Tag),
       ],
       [],
@@ -247,10 +281,13 @@ export const idlFactory = ({ IDL }) => {
     'plmAgileUrl' : IDL.Text,
     'creator' : IDL.Opt(IDL.Principal),
     'documents' : IDL.Vec(IDL.Tuple(IDL.Text, Version)),
+    'decawebUrl' : IDL.Text,
     'name' : IDL.Text,
     'tags' : IDL.Vec(Tag),
     'description' : IDL.Text,
+    'photoUrl' : IDL.Opt(IDL.Text),
     'agileCode' : IDL.Text,
+    'serialNumber' : IDL.Text,
     'photo' : ExternalBlob,
   });
   const Time = IDL.Int;
@@ -289,7 +326,22 @@ export const idlFactory = ({ IDL }) => {
     'status' : Status,
     'validityDate' : IDL.Text,
     'expirationDate' : IDL.Text,
+    'associatedBenchId' : IDL.Text,
+    'manufacturerReference' : IDL.Text,
     'componentName' : IDL.Text,
+  });
+  const ExpiredComponentSummary = IDL.Record({
+    'aml' : IDL.Text,
+    'status' : Status,
+    'component' : Component,
+    'dueDate' : IDL.Text,
+    'currentDate' : IDL.Text,
+    'benchSerialNumber' : IDL.Text,
+    'associatedBench' : IDL.Text,
+  });
+  const PublicUserInfo = IDL.Record({
+    'name' : IDL.Text,
+    'profilePicture' : ProfilePicture,
   });
   
   return IDL.Service({
@@ -343,7 +395,10 @@ export const idlFactory = ({ IDL }) => {
           IDL.Text,
           IDL.Text,
           IDL.Text,
+          IDL.Text,
+          IDL.Text,
           ExternalBlob,
+          IDL.Opt(IDL.Text),
           IDL.Vec(Tag),
         ],
         [],
@@ -372,9 +427,19 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getComponents' : IDL.Func([IDL.Text], [IDL.Vec(Component)], ['query']),
+    'getExpiredComponentsSummary' : IDL.Func(
+        [],
+        [IDL.Vec(ExpiredComponentSummary)],
+        ['query'],
+      ),
     'getProfilePicture' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(ProfilePicture)],
+        ['query'],
+      ),
+    'getPublicUserInfo' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(PublicUserInfo)],
         ['query'],
       ),
     'getTestBench' : IDL.Func([IDL.Text], [IDL.Opt(TestBench)], ['query']),
@@ -414,7 +479,10 @@ export const idlFactory = ({ IDL }) => {
           IDL.Text,
           IDL.Text,
           IDL.Text,
+          IDL.Text,
+          IDL.Text,
           ExternalBlob,
+          IDL.Opt(IDL.Text),
           IDL.Vec(Tag),
         ],
         [],

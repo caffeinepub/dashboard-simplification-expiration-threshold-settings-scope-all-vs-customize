@@ -124,6 +124,14 @@ export default function BenchDetailPage() {
               </a>
             </Button>
           )}
+          {bench.decawebUrl && (
+            <Button variant="outline" asChild>
+              <a href={bench.decawebUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Open in Decaweb
+              </a>
+            </Button>
+          )}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive">

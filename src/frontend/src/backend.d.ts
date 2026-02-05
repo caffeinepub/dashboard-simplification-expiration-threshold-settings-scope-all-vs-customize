@@ -14,6 +14,15 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
+export interface ExpiredComponentSummary {
+    aml: string;
+    status: Status;
+    component: Component;
+    dueDate: string;
+    currentDate: string;
+    benchSerialNumber: string;
+    associatedBench: string;
+}
 export type Time = bigint;
 export interface HistoryEntry {
     action: string;
@@ -37,6 +46,8 @@ export interface Component {
     status: Status;
     validityDate: string;
     expirationDate: string;
+    associatedBenchId: string;
+    manufacturerReference: string;
     componentName: string;
 }
 export type ProfilePicture = {
@@ -51,16 +62,23 @@ export interface TestBench {
     plmAgileUrl: string;
     creator?: Principal;
     documents: Array<[string, Version]>;
+    decawebUrl: string;
     name: string;
     tags: Array<Tag>;
     description: string;
+    photoUrl?: string;
     agileCode: string;
+    serialNumber: string;
     photo: ExternalBlob;
 }
 export interface Tag {
     tagName: string;
 }
 export type Version = bigint;
+export interface PublicUserInfo {
+    name: string;
+    profilePicture: ProfilePicture;
+}
 export interface UserProfile {
     entity: string;
     thresholdCustomizedBenches: Array<[string, bigint]>;
@@ -91,7 +109,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     associateDocumentToBench(documentId: string, benchId: string): Promise<void>;
     createDocument(id: string, productDisplayName: string, version: Version, category: string, fileReference: ExternalBlob, semanticVersion: string, tags: Array<Tag>, documentVersion: string | null): Promise<void>;
-    createTestBench(id: string, name: string, agileCode: string, plmAgileUrl: string, description: string, photo: ExternalBlob, tags: Array<Tag>): Promise<void>;
+    createTestBench(id: string, name: string, serialNumber: string, agileCode: string, plmAgileUrl: string, decawebUrl: string, description: string, photo: ExternalBlob, photoUrl: string | null, tags: Array<Tag>): Promise<void>;
     documentExists(documentId: string): Promise<boolean>;
     filterDocumentsByTags(tags: Array<Tag>): Promise<Array<Document>>;
     findExpiringDocuments(daysRemaining: bigint | null): Promise<Array<Document>>;
@@ -103,7 +121,9 @@ export interface backendInterface {
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getComponents(benchId: string): Promise<Array<Component>>;
+    getExpiredComponentsSummary(): Promise<Array<ExpiredComponentSummary>>;
     getProfilePicture(userId: Principal): Promise<ProfilePicture | null>;
+    getPublicUserInfo(user: Principal): Promise<PublicUserInfo | null>;
     getTestBench(benchId: string): Promise<TestBench | null>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getUsersByEntity(entity: string): Promise<Array<UserProfile>>;
@@ -118,6 +138,6 @@ export interface backendInterface {
     updateDashboardSectionsOrder(sections: Array<string>): Promise<void>;
     updateExpirationPreferences(mode: ExpirationThresholdMode, thresholdAll: bigint, thresholdCustom: Array<[string, bigint]>): Promise<void>;
     updateLastSeen(): Promise<void>;
-    updateTestBench(benchId: string, name: string, agileCode: string, plmAgileUrl: string, description: string, photo: ExternalBlob, tags: Array<Tag>): Promise<void>;
+    updateTestBench(benchId: string, name: string, serialNumber: string, agileCode: string, plmAgileUrl: string, decawebUrl: string, description: string, photo: ExternalBlob, photoUrl: string | null, tags: Array<Tag>): Promise<void>;
     uploadProfilePicture(picture: ExternalBlob): Promise<ExternalBlob>;
 }

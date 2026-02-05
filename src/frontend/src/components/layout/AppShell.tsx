@@ -2,16 +2,15 @@ import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
-import { Moon, Sun, LayoutDashboard, TestTube2, User, Settings } from 'lucide-react';
+import { Moon, Sun, LayoutDashboard, TestTube2, User } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { useGetCallerRole } from '../../hooks/useQueries';
+import { ScrollShortcuts } from '../navigation/ScrollShortcuts';
 
 export default function AppShell() {
   const navigate = useNavigate();
   const { clear, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
-  const { data: role } = useGetCallerRole();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
 
@@ -28,9 +27,9 @@ export default function AppShell() {
         <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <img
-              src="/assets/generated/safran-logo-placeholder.dim_220x64.png"
+              src="/assets/generated/safran-logo.dim_220x64.png"
               alt="Safran"
-              className="h-8 w-auto"
+              className="h-6 w-auto"
             />
             <nav className="hidden md:flex items-center gap-1">
               <Button
@@ -57,16 +56,6 @@ export default function AppShell() {
                 <User className="h-4 w-4 mr-2" />
                 Profile
               </Button>
-              {role === 'admin' && (
-                <Button
-                  variant={isActive('/admin') ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => navigate({ to: '/admin' })}
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Admin
-                </Button>
-              )}
             </nav>
           </div>
           <div className="flex items-center gap-2">
@@ -110,21 +99,12 @@ export default function AppShell() {
             <User className="h-4 w-4 mr-2" />
             Profile
           </Button>
-          {role === 'admin' && (
-            <Button
-              variant={isActive('/admin') ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => navigate({ to: '/admin' })}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Admin
-            </Button>
-          )}
         </nav>
       </header>
       <main className="flex-1 container mx-auto px-4 py-6">
         <Outlet />
       </main>
+      <ScrollShortcuts />
       <footer className="border-t bg-card mt-auto">
         <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
           © 2026. Built with ❤️ using{' '}

@@ -13,13 +13,17 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Upload, Image as ImageIcon } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Loader2, Upload, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { TagsInput } from './TagsInput';
 import { DocumentCategoriesInput, type DocumentCategory } from './DocumentCategoriesInput';
 import { BenchComponentsTableEditor } from './BenchComponentsTableEditor';
 import { useCreateTestBench, useGetBenchTagSuggestions } from '../../../hooks/useQueries';
 import { validateAgileCode, validateUrl } from '../../../utils/validation';
 import { generateId } from '../../../utils/id';
+import { rewriteDescription } from '../../../utils/rewriteDescription';
+import { getDefaultBenchPhoto } from '../../../utils/defaultBenchPhoto';
+import { uploadFileAsBlob } from '../../../utils/blobUpload';
 import { ExternalBlob } from '../../../backend';
 import type { Tag, Component } from '../../../backend';
 import { toast } from 'sonner';
@@ -41,8 +45,10 @@ interface DocumentInput {
 
 export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
   const [name, setName] = useState('');
+  const [serialNumber, setSerialNumber] = useState('');
   const [agileCode, setAgileCode] = useState('');
   const [plmAgileUrl, setPlmAgileUrl] = useState('');
+  const [decawebUrl, setDecawebUrl] = useState('');
   const [description, setDescription] = useState('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -50,6 +56,8 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
   const [documentCategories, setDocumentCategories] = useState<DocumentCategory[]>([]);
   const [components, setComponents] = useState<Component[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   const createBench = useCreateTestBench();
   const { data: tagSuggestions = [] } = useGetBenchTagSuggestions();
@@ -65,6 +73,15 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
       reader.readAsDataURL(file);
       setErrors((prev) => ({ ...prev, photo: '' }));
     }
+  };
+
+  const handleRewriteDescription = () => {
+    if (!description.trim()) {
+      return;
+    }
+    const rewritten = rewriteDescription(description);
+    setDescription(rewritten);
+    toast.success('Description rewritten');
   };
 
   const validateForm = (): boolean => {
@@ -88,12 +105,15 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
       }
     }
 
-    if (!description.trim()) {
-      newErrors.description = 'Description is required';
+    if (decawebUrl.trim()) {
+      const urlError = validateUrl(decawebUrl);
+      if (urlError) {
+        newErrors.decawebUrl = urlError;
+      }
     }
 
-    if (!photoFile) {
-      newErrors.photo = 'Bench photo is required';
+    if (!description.trim()) {
+      newErrors.description = 'Description is required';
     }
 
     documentCategories.forEach((category, index) => {
@@ -116,34 +136,66 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
       return;
     }
 
+    setIsUploading(true);
+    setUploadProgress(0);
+
     try {
       const benchId = generateId();
 
-      const photoBytes = new Uint8Array(await photoFile!.arrayBuffer());
-      const photoBlob = ExternalBlob.fromBytes(photoBytes);
+      // Upload photo
+      let photoBlob: ExternalBlob;
+      if (photoFile) {
+        photoBlob = await uploadFileAsBlob(photoFile, (progress) => {
+          setUploadProgress(Math.min(progress * 0.2, 20));
+        });
+      } else {
+        photoBlob = await getDefaultBenchPhoto();
+        setUploadProgress(20);
+      }
 
+      // Upload documents with progress
       const documents: DocumentInput[] = [];
+      const totalFiles = documentCategories.reduce((sum, cat) => sum + cat.files.length, 0);
+      let filesProcessed = 0;
+
       for (const category of documentCategories) {
         for (const fileData of category.files) {
-          const fileBytes = new Uint8Array(await fileData.file.arrayBuffer());
-          const fileBlob = ExternalBlob.fromBytes(fileBytes);
-          documents.push({
-            id: generateId(),
-            productDisplayName: fileData.file.name,
-            category: category.categoryName,
-            fileReference: fileBlob,
-            semanticVersion: '1.0',
-            tags: tags,
-            documentVersion: fileData.version.trim() || undefined,
-          });
+          try {
+            const fileBlob = await uploadFileAsBlob(fileData.file, (progress) => {
+              const baseProgress = 20 + ((filesProcessed + progress / 100) / totalFiles) * 70;
+              setUploadProgress(Math.min(baseProgress, 90));
+            });
+
+            documents.push({
+              id: generateId(),
+              productDisplayName: fileData.file.name,
+              category: category.categoryName,
+              fileReference: fileBlob,
+              semanticVersion: '1.0',
+              tags: tags,
+              documentVersion: fileData.version.trim() || undefined,
+            });
+
+            filesProcessed++;
+          } catch (error: any) {
+            console.error(`Failed to upload ${fileData.file.name}:`, error);
+            if (error.message?.includes('exceeds') || error.message?.includes('too large')) {
+              throw new Error(`File "${fileData.file.name}" is too large. Please use a smaller file.`);
+            }
+            throw error;
+          }
         }
       }
+
+      setUploadProgress(95);
 
       await createBench.mutateAsync({
         id: benchId,
         name: name.trim(),
+        serialNumber: serialNumber.trim() || '',
         agileCode: agileCode.trim() || '',
         plmAgileUrl: plmAgileUrl.trim() || '',
+        decawebUrl: decawebUrl.trim() || '',
         description: description.trim(),
         photo: photoBlob,
         tags,
@@ -151,19 +203,25 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
         components,
       });
 
+      setUploadProgress(100);
       toast.success('Test bench created successfully');
       resetForm();
       onOpenChange(false);
     } catch (error: any) {
       console.error('Failed to create bench:', error);
       toast.error(error.message || 'Failed to create bench');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
   const resetForm = () => {
     setName('');
+    setSerialNumber('');
     setAgileCode('');
     setPlmAgileUrl('');
+    setDecawebUrl('');
     setDescription('');
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -171,10 +229,11 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
     setDocumentCategories([]);
     setComponents([]);
     setErrors({});
+    setUploadProgress(0);
   };
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen && !createBench.isPending) {
+    if (!newOpen && !createBench.isPending && !isUploading) {
       resetForm();
     }
     onOpenChange(newOpen);
@@ -192,8 +251,18 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
 
         <ScrollArea className="max-h-[calc(90vh-180px)] pr-4">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {isUploading && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Uploading files...</span>
+                  <span className="font-medium">{Math.round(uploadProgress)}%</span>
+                </div>
+                <Progress value={uploadProgress} />
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="photo">Bench Photo *</Label>
+              <Label htmlFor="photo">Bench Photo</Label>
               <div className="border-2 border-dashed rounded-md p-4">
                 {photoPreview ? (
                   <div className="space-y-2">
@@ -210,6 +279,7 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
                         setPhotoFile(null);
                         setPhotoPreview(null);
                       }}
+                      disabled={isUploading}
                     >
                       Change Photo
                     </Button>
@@ -222,16 +292,21 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
                       accept="image/png,image/jpeg"
                       className="hidden"
                       onChange={handlePhotoChange}
+                      disabled={isUploading}
                     />
                     <Button
                       type="button"
                       variant="outline"
                       className="w-full"
                       onClick={() => document.getElementById('photo')?.click()}
+                      disabled={isUploading}
                     >
                       <ImageIcon className="h-4 w-4 mr-2" />
                       Upload Photo (PNG/JPEG)
                     </Button>
+                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                      Optional - a default image will be used if not provided
+                    </p>
                   </>
                 )}
               </div>
@@ -249,8 +324,25 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
                   setName(e.target.value);
                   setErrors((prev) => ({ ...prev, name: '' }));
                 }}
+                disabled={isUploading}
               />
               {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="serialNumber">Bench S/N</Label>
+              <Input
+                id="serialNumber"
+                type="text"
+                placeholder="e.g., SN-2024-001 (optional)"
+                value={serialNumber}
+                onChange={(e) => {
+                  setSerialNumber(e.target.value);
+                  setErrors((prev) => ({ ...prev, serialNumber: '' }));
+                }}
+                disabled={isUploading}
+              />
+              {errors.serialNumber && <p className="text-sm text-destructive">{errors.serialNumber}</p>}
             </div>
 
             <div className="space-y-2">
@@ -264,6 +356,7 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
                   setAgileCode(e.target.value);
                   setErrors((prev) => ({ ...prev, agileCode: '' }));
                 }}
+                disabled={isUploading}
               />
               {errors.agileCode && <p className="text-sm text-destructive">{errors.agileCode}</p>}
             </div>
@@ -279,6 +372,7 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
                   setPlmAgileUrl(e.target.value);
                   setErrors((prev) => ({ ...prev, plmAgileUrl: '' }));
                 }}
+                disabled={isUploading}
               />
               {errors.plmAgileUrl && (
                 <p className="text-sm text-destructive">{errors.plmAgileUrl}</p>
@@ -286,7 +380,37 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
+              <Label htmlFor="decawebUrl">Decaweb URL</Label>
+              <Input
+                id="decawebUrl"
+                type="url"
+                placeholder="https://decaweb.example.com/bench/... (optional)"
+                value={decawebUrl}
+                onChange={(e) => {
+                  setDecawebUrl(e.target.value);
+                  setErrors((prev) => ({ ...prev, decawebUrl: '' }));
+                }}
+                disabled={isUploading}
+              />
+              {errors.decawebUrl && (
+                <p className="text-sm text-destructive">{errors.decawebUrl}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="description">Description *</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRewriteDescription}
+                  disabled={!description.trim() || isUploading}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Rewrite
+                </Button>
+              </div>
               <Textarea
                 id="description"
                 placeholder="Describe the bench and project..."
@@ -296,6 +420,7 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
                   setErrors((prev) => ({ ...prev, description: '' }));
                 }}
                 rows={4}
+                disabled={isUploading}
               />
               {errors.description && (
                 <p className="text-sm text-destructive">{errors.description}</p>
@@ -318,6 +443,7 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
                 components={components}
                 onChange={setComponents}
                 effectiveThreshold={30}
+                benchId=""
               />
               <p className="text-sm text-muted-foreground">
                 Add equipment components with validity and expiration dates.
@@ -340,7 +466,7 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
                   </p>
                 ))}
               <p className="text-sm text-muted-foreground">
-                Select category type (Hardware, Software, or Other(s)) and attach files. Optionally specify a version for each document.
+                Select category type (Hardware, Software, or Other(s)) and attach files. Optionally specify a version for each document. Large files are supported via chunked upload.
               </p>
             </div>
 
@@ -357,12 +483,12 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
             type="button"
             variant="outline"
             onClick={() => handleOpenChange(false)}
-            disabled={createBench.isPending}
+            disabled={createBench.isPending || isUploading}
           >
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={createBench.isPending}>
-            {createBench.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button onClick={handleSubmit} disabled={createBench.isPending || isUploading}>
+            {(createBench.isPending || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create Bench
           </Button>
         </DialogFooter>

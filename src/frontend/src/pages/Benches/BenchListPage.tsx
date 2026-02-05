@@ -114,19 +114,34 @@ export default function BenchListPage() {
                   )}
                 </div>
               )}
-              {bench.plmAgileUrl && (
-                <Button variant="outline" size="sm" className="w-full" asChild>
-                  <a
-                    href={bench.plmAgileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <ExternalLink className="h-3 w-3 mr-2" />
-                    View in PLM Agile
-                  </a>
-                </Button>
-              )}
+              <div className="flex gap-2">
+                {bench.plmAgileUrl && (
+                  <Button variant="outline" size="sm" className="flex-1" asChild>
+                    <a
+                      href={bench.plmAgileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink className="h-3 w-3 mr-2" />
+                      PLM Agile
+                    </a>
+                  </Button>
+                )}
+                {bench.decawebUrl && (
+                  <Button variant="outline" size="sm" className="flex-1" asChild>
+                    <a
+                      href={bench.decawebUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink className="h-3 w-3 mr-2" />
+                      Decaweb
+                    </a>
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         ))}

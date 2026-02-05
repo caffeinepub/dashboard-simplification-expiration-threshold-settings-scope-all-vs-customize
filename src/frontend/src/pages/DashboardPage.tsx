@@ -9,14 +9,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { useNavigate } from '@tanstack/react-router';
 import { useGetAllTestBenches, useGetCallerUserProfile, useGetAllBenchComponents, useGetAllDocuments, useUpdateDashboardSectionsOrder } from '../hooks/useQueries';
 import { getEffectiveThreshold, computeExpirationStatus } from '../utils/expirationSettings';
 import { TestTube2, FileText, Activity, TrendingUp, Plus, AlertTriangle, Download, ArrowUp, ArrowDown, Edit } from 'lucide-react';
 import { downloadDocument } from '../utils/download';
 import { toast } from 'sonner';
+import { ExpiredByBenchChartCard } from './Dashboard/components/StatisticsCharts/ExpiredByBenchChartCard';
+import { ExpirationTrendChartCard } from './Dashboard/components/StatisticsCharts/ExpirationTrendChartCard';
+import { HealthGaugeCard } from './Dashboard/components/StatisticsCharts/HealthGaugeCard';
+import { DocumentsByCategoryPieCard } from './Dashboard/components/StatisticsCharts/DocumentsByCategoryPieCard';
+import { ComponentsByStatusPieCard } from './Dashboard/components/StatisticsCharts/ComponentsByStatusPieCard';
+import { useDashboardChartType, type ChartType } from '../hooks/useDashboardChartType';
 
-const DEFAULT_SECTIONS = ['statistics', 'criticalComponents', 'expiringComponents', 'documents', 'quickActions'];
+const DEFAULT_SECTIONS = ['statistics', 'charts', 'criticalComponents', 'expiringComponents', 'documents', 'quickActions'];
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -25,6 +33,7 @@ export default function DashboardPage() {
   const { data: allBenchComponents = [] } = useGetAllBenchComponents();
   const { data: allDocuments = [] } = useGetAllDocuments();
   const updateSectionsOrder = useUpdateDashboardSectionsOrder();
+  const { chartType, setChartType } = useDashboardChartType();
 
   const [isReordering, setIsReordering] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<string[]>(DEFAULT_SECTIONS);
@@ -166,6 +175,45 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </div>
+          </div>
+        );
+
+      case 'charts':
+        return (
+          <div key={sectionId} className="space-y-4">
+            <div className="flex items-center justify-between">
+              {isReordering ? (
+                <>
+                  <h2 className="text-lg font-semibold">Charts & Analytics</h2>
+                  {reorderControls}
+                </>
+              ) : (
+                <>
+                  <h2 className="text-lg font-semibold">Charts & Analytics</h2>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="chart-type" className="text-sm">Chart type:</Label>
+                    <Select value={chartType} onValueChange={(value) => setChartType(value as ChartType)}>
+                      <SelectTrigger id="chart-type" className="w-[120px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="bar">Bar</SelectItem>
+                        <SelectItem value="line">Line</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <ExpiredByBenchChartCard data={allBenchComponents} chartType={chartType} />
+              <ExpirationTrendChartCard data={allBenchComponents} chartType={chartType} />
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <DocumentsByCategoryPieCard data={allDocuments} />
+              <ComponentsByStatusPieCard data={allBenchComponents} profile={profile ?? null} />
+            </div>
+            <HealthGaugeCard data={allBenchComponents} />
           </div>
         );
 
