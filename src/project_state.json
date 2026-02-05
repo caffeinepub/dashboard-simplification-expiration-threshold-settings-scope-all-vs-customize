@@ -1,0 +1,193 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Application with Safran branding and dashboard-style layout management across tabs; enhanced benches management (documents, description helper), richer Statistics (reorderable layouts + new charts), and expanded Admin/Profile features (entities, user lists, email constraints, avatars).",
+  "architectural_notes": [],
+  "known_issues": [
+    "Build/deploy failing intermittently due to configuration/internal errors and 'AI couldn't implement your request' message; user requested retries."
+  ],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-profile-allow-each-user-to-set-a-custom-profile-photo-upload-or-choose-from-a-predefined-avatar-list-e-g-duck-basketball-rocket-robot-add-an-entity-field-on-the-user-profile-to-indicate-the-team-e-g-t2i",
+      "title": "Profile: allow each user to set a custom profile photo (upload) OR choose from a predefined avatar list (e.g., duck, basketball, rocket, robot). Add an \"Entity\" field on the user profile to indicate the team (e.g., T2I).",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-email-domain-rule-enforce-the-email-domain-safrangroup-com-when-a-user-edits-saves-their-email-in-their-own-profile-in-admin-settings-allow-admins-to-change-the-enforced-domain-value-so-it-is-configurable",
+      "title": "Email domain rule: enforce the email domain '@safrangroup.com' when a user edits/saves their email in their own profile. In Admin settings, allow admins to change the enforced domain value (so it is configurable).",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-all-layouts-draggable-reorderable-in-all-tabs-using-the-same-drag-and-drop-behavior-already-used-elsewhere-and-unify-improve-the-drag-and-drop-ux-specifically-from-the-admin-tab-consistent-handles-spacing-and-feedback",
+      "title": "Make all layouts draggable/reorderable in all tabs using the same drag-and-drop behavior already used elsewhere, and unify/improve the drag-and-drop UX specifically from the Admin tab (consistent handles, spacing, and feedback).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-admin-add-an-entity-dropdown-and-filters-that-list-all-existing-entities-allow-the-admin-to-select-an-entity-and-display-the-users-belonging-to-that-selected-entity",
+      "title": "Admin: add an entity dropdown and filters that list all existing entities, allow the admin to select an entity, and display the users belonging to that selected entity.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-admin-show-an-online-status-indicator-next-to-each-user-in-the-entity-user-list-green-dot-when-connected-red-dot-when-disconnected-implement-online-status-without-real-time-sockets-by-tracking-a-backend-last-seen-timestamp-updated-by-the-frontend-at-a-regular-interval-while-the-user-is-authenticated",
+      "title": "Admin: show an online status indicator next to each user in the entity user list (green dot when connected, red dot when disconnected). Implement online status without real-time sockets by tracking a backend last-seen timestamp updated by the frontend at a regular interval while the user is authenticated.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-contextual-shortcuts-show-a-scroll-to-top-button-when-the-user-reaches-near-the-bottom-of-a-page-and-show-a-scroll-to-bottom-button-when-the-user-is-near-the-top-of-a-page",
+      "title": "Add contextual shortcuts: show a \"Scroll to top\" button when the user reaches near the bottom of a page, and show a \"Scroll to bottom\" button when the user is near the top of a page.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-statistics-allow-reordering-of-all-internal-layouts-within-statistics-not-just-reordering-the-whole-statistics-block",
+      "title": "Statistics: allow reordering of all internal layouts within Statistics (not just reordering the whole Statistics block).",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-statistics-add-two-separate-charts-with-filters-1-estimated-number-of-components-by-criticality-and-2-estimated-number-of-components-by-deadline-date-limite-both-charts-must-be-draggable-as-layouts",
+      "title": "Statistics: add two separate charts with filters: (1) estimated number of components by criticality, and (2) estimated number of components by deadline/date limite. Both charts must be draggable as layouts.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-bench-form-add-a-lightweight-local-heuristic-rewrite-button-in-the-description-section-that-reformulates-user-text-without-calling-external-ai-llm-services",
+      "title": "Bench form: add a lightweight local/heuristic \"Rewrite\" button in the Description section that reformulates user text without calling external AI/LLM services.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Replace current app logo with provided Safran logo (resize as needed).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Fix light mode header/top bar overlapping page content; keep it fixed and with white background while scrolling.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Add contextual shortcuts: show 'scroll to top' button when user reaches bottom, and 'scroll to bottom' when user reaches top.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Allow reordering of all internal layouts within Statistics (not just the whole block).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add two separate Statistics charts with filters: estimate number of components by (1) criticality and (2) deadline/date limite; both charts must be draggable as layouts.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "In Benches list, show PLM Agile URL shortcut under the bench image only if the field was filled at creation (hide when empty).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Add a lightweight local/heuristic AI rewrite button in Bench form Description section to reformulate user text.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Profile enhancements: allow custom profile photo upload or choose from a predefined avatar list; add 'Entité' field to indicate the user's team (e.g., T2I).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Email constraint: enforce domain '@safrangroup.com' in user profile, but allow admin to change domain via admin settings.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Bench Documents UX: in a bench's Documents section, enable editing HW/SW/Other document lists with '+' add, delete (trash), edit/replace (pencil toggle), and download actions for each document.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Make all layouts draggable/reorderable in all tabs; reuse existing drag&drop behavior while unifying/improving UX from the Admin tab.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Admin: provide entity dropdown/filters listing all entities; show users by selected entity with online status indicator (green dot connected, red dot disconnected).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Bench documents UX: in each bench's Documents section, enable directly editing the HW/SW/Other document lists via a '+' add action. For every already-uploaded document, provide actions to delete (trash), edit/replace (pencil toggle), and download.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Replace the current app logo with the provided Safran logo (resize as needed) and ensure it displays correctly in both light and dark themes.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Fix the light-mode header/top bar overlapping page content: keep the header fixed while scrolling with a white background and ensure the main content is correctly offset so it never renders underneath the header.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Benches list: show the PLM Agile URL shortcut under the bench image only if that URL field was provided at creation time; hide the shortcut when the field is empty/missing.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Retry build: profile/entity/email rules, bench documents UX, global draggable layouts, admin entity users + online status, and UI fixes",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

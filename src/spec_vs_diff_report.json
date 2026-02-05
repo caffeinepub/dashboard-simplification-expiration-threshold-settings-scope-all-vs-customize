@@ -1,0 +1,113 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-05T15:44:10.428Z",
+  "summary": "Diff implements parts of profile enhancements (entity + avatar/custom photo data model and UI components), adds scroll shortcuts, adds Statistics internal draggable ordering and two new chart cards, and introduces last-seen heartbeat scaffolding. Several requested bench documents UX items, global draggable layouts across all tabs, admin entity filtering/user list UX, and the bench description rewrite button UI are not evidenced in the diff summary.",
+  "missing_requirements": [
+    {
+      "id": "REQ-3",
+      "requirement": "Bench documents UX: '+' add actions for HW/SW/Other lists, and per-document delete/edit-replace/download actions working end-to-end.",
+      "reason": "Bench detail documents changes shown in the summaries only mention download; no evidence of '+' add, delete (trash), or edit/replace (pencil toggle) end-to-end UX.",
+      "evidence": [
+        "frontend-file-summaries.txt (BenchDetailPage: \"Documents (with download)\")"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Make all layouts draggable/reorderable in all tabs and unify/improve drag-and-drop UX from the Admin tab.",
+      "reason": "Drag-and-drop components were added, and Statistics uses draggable ordering, but there is no evidence that all other tabs with layout blocks were converted to the same draggable behavior, nor that Admin tab drag UX was unified/improved.",
+      "evidence": [
+        "frontend/src/components/dnd/DraggableList.tsx",
+        "frontend/src/components/dnd/useDraggableOrder.ts",
+        "frontend/src/pages/Dashboard/components/StatisticsSection.tsx"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "requirement": "Admin: entity dropdown/filters listing all entities and showing users for the selected entity (with empty state when none).",
+      "reason": "Admin page summary mentions bench/document management and user profile viewing, but does not evidence an entity selector, listing all entities, filtering users by entity, or an empty state for entities with no users.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/pages/Admin/AdminPage.tsx description)"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "requirement": "Admin: show online status indicator per user using backend last-seen timestamp updated periodically by frontend; no websockets.",
+      "reason": "Frontend heartbeat hook exists and backend profile includes lastSeen, but the diff summary does not show Admin UI rendering green/red indicators, nor does it show the backend endpoint (e.g., updateLastSeen) implementation needed for the heartbeat call.",
+      "evidence": [
+        "frontend/src/hooks/useLastSeenHeartbeat.ts",
+        "backend/main.mo (adds lastSeen to UserProfile)",
+        "frontend-file-summaries.txt (AdminPage description does not mention online status dots)"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "requirement": "Fix light-mode header/top bar overlap: fixed header with white background; main content offset so it never renders underneath header.",
+      "reason": "The diff summary mentions a global AppShell with Safran logo, and global styles were changed, but does not provide explicit evidence that the header is fixed in light mode with a white background and that all primary routes have correct content offset.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/components/layout/AppShell.tsx description)",
+        "frontend-file-summaries.txt (frontend/src/index.css description)"
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "requirement": "Benches list: show PLM Agile URL shortcut under bench image only when provided; hide when empty/missing.",
+      "reason": "Bench list summary mentions BenchPhoto rendering and responsive grid, but does not mention conditional rendering of the PLM Agile URL shortcut under the image or hiding the container when missing.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/pages/Benches/BenchListPage.tsx description)"
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "requirement": "Bench form: add a deterministic client-side heuristic Rewrite button in Description section (no external AI/LLM).",
+      "reason": "A client-side rewrite utility was added, but there is no evidence of the Rewrite button being wired into the bench creation/edit form UI; the bench creation page is described as a placeholder.",
+      "evidence": [
+        "frontend/src/utils/rewriteDescription.ts",
+        "frontend-file-summaries.txt (frontend/src/pages/Benches/NewBenchPage.tsx: \"Placeholder page for bench creation\")"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Added a new bench creation route/page (`/benches/new`) and a placeholder NewBenchPage.",
+      "reason": "The build request does not ask for adding a new bench creation route or placeholder page; it only requests a rewrite button within the bench form description section.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/App.tsx mentions new `/benches/new` route)",
+        "frontend-file-summaries.txt (frontend/src/pages/Benches/NewBenchPage.tsx: \"Placeholder page\")"
+      ]
+    },
+    {
+      "description": "Dashboard section reordering via move up/down controls (not drag-and-drop).",
+      "reason": "REQ-4 focuses on drag-and-drop reordering UX across tabs; move up/down controls are not requested and may be an alternative implementation not specified.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/pages/DashboardPage.tsx: \"section reordering (move up/down controls)\")"
+      ]
+    },
+    {
+      "description": "Admin panels for bench deletion and document management download actions beyond entity/user filtering and email-domain setting UI.",
+      "reason": "The request for Admin focuses on entity dropdown/filtering, online status indicators, and configurable email domain; additional bench delete/document management panels are not requested in the listed requirements.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/pages/Admin/AdminPage.tsx: \"bench management (delete), document management (download)\")"
+      ]
+    }
+  ],
+  "confidence": 0.63,
+  "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/components/dnd/DraggableList.tsx",
+    "frontend/src/components/dnd/useDraggableOrder.ts",
+    "frontend/src/components/navigation/ScrollShortcuts.tsx",
+    "frontend/src/components/profile/PredefinedAvatarPicker.tsx",
+    "frontend/src/hooks/useLastSeenHeartbeat.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/Dashboard/components/StatisticsCharts/CriticalityChartCard.tsx",
+    "frontend/src/pages/Dashboard/components/StatisticsCharts/DeadlineChartCard.tsx",
+    "frontend/src/pages/Dashboard/components/StatisticsSection.tsx",
+    "frontend/src/pages/ProfilePage.tsx",
+    "frontend/src/utils/rewriteDescription.ts",
+    "frontend/src/utils/validation.ts",
+    "project_state.json"
+  ]
+}

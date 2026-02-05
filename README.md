@@ -1,2 +1,3 @@
-# dashboard-simplification-expiration-threshold-settings-scope-all-vs-customize
-Exported from Caffeine project: Retry build: profile/entity/email rules, bench documents UX, global draggable layouts, admin entity users + online status, and UI fixes
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`
