@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import type { TestBench, UserProfile, UserRole, Tag, ExternalBlob, ExpirationThresholdMode, Component, Document, HistoryEntry, ProfilePicture, PublicUserInfo, ExpiredComponentSummary } from '../backend';
 import { Principal } from '@dfinity/principal';
+import { useAvatarCacheBuster } from './useAvatarCacheBuster';
 
 export function useGetAllTestBenches() {
   const { actor, isFetching } = useActor();
@@ -173,6 +174,7 @@ export function useUploadProfilePicture() {
 export function useSetProfilePicture() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
+  const { updateCacheBuster } = useAvatarCacheBuster();
 
   return useMutation({
     mutationFn: async (profilePicture: ProfilePicture) => {
@@ -182,6 +184,7 @@ export function useSetProfilePicture() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['publicUserInfo'] });
+      updateCacheBuster();
     },
   });
 }
@@ -208,6 +211,19 @@ export function useGetAllEntities() {
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.getAllEntities();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetUniqueEntities() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<string[]>({
+    queryKey: ['uniqueEntities'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getUniqueEntities();
     },
     enabled: !!actor && !isFetching,
   });

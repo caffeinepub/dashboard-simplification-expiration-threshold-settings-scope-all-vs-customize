@@ -10,9 +10,11 @@ import Time "mo:core/Time";
 import List "mo:core/List";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+import Migration "migration";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+(with migration = Migration.run)
 actor {
   // Initialize the user system state
   let accessControlState = AccessControl.initState();
@@ -265,6 +267,12 @@ actor {
     switch (userProfileMap.get(caller)) {
       case (null) {
         let defaultSections = [
+          "dashboardGeneralStatsChart",
+          "dashboardTotalBenchesChart",
+          "dashboardExpiredComponentsChart",
+          "dashboardThresholdBreakdownChart",
+          "dashboardExpiringSoonChart",
+          "dashboardDrillDownChart",
           "statistics",
           "documents",
           "benches",
@@ -309,6 +317,23 @@ actor {
     };
 
     userProfileMap.add(caller, profile);
+  };
+
+  // Entity suggestions for non-admin users
+  public query ({ caller }) func getUniqueEntities() : async [Text] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view entities");
+    };
+
+    let allProfiles = userProfileMap.values().toArray();
+    let uniqueList = List.empty<Text>();
+    for (profile in allProfiles.values()) {
+      let exists = uniqueList.any(func(e) { e == profile.entity });
+      if (not exists) {
+        uniqueList.add(profile.entity);
+      };
+    };
+    uniqueList.toArray();
   };
 
   // Function for admins to set the allowed email domain
@@ -387,6 +412,7 @@ actor {
     result.toArray();
   };
 
+  // Deprecated for backward compatibility only - can be removed in the future
   public query ({ caller }) func getAllEntities() : async [Text] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view all entities");

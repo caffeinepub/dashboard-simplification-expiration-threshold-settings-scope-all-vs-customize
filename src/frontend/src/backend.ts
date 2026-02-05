@@ -218,6 +218,7 @@ export interface backendInterface {
     getProfilePicture(userId: Principal): Promise<ProfilePicture | null>;
     getPublicUserInfo(user: Principal): Promise<PublicUserInfo | null>;
     getTestBench(benchId: string): Promise<TestBench | null>;
+    getUniqueEntities(): Promise<Array<string>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getUsersByEntity(entity: string): Promise<Array<UserProfile>>;
     isCallerAdmin(): Promise<boolean>;
@@ -599,6 +600,20 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getTestBench(arg0);
             return from_candid_opt_n44(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getUniqueEntities(): Promise<Array<string>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUniqueEntities();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUniqueEntities();
+            return result;
         }
     }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {

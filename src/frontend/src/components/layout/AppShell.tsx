@@ -29,7 +29,7 @@ export default function AppShell() {
             <img
               src="/assets/generated/safran-logo.dim_220x64.png"
               alt="Safran"
-              className="h-6 w-auto"
+              className="h-5 w-auto object-contain"
             />
             <nav className="hidden md:flex items-center gap-1">
               <Button

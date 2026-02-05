@@ -16,7 +16,7 @@ export default function SignInPage() {
           <img
             src="/assets/generated/safran-logo.dim_220x64.png"
             alt="Safran"
-            className="h-10 w-auto mx-auto mb-4"
+            className="h-8 w-auto mx-auto mb-4 object-contain"
             onError={(e) => {
               // Fallback if image fails to load
               e.currentTarget.style.display = 'none';

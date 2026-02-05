@@ -165,6 +165,7 @@ export interface _SERVICE {
   'getProfilePicture' : ActorMethod<[Principal], [] | [ProfilePicture]>,
   'getPublicUserInfo' : ActorMethod<[Principal], [] | [PublicUserInfo]>,
   'getTestBench' : ActorMethod<[string], [] | [TestBench]>,
+  'getUniqueEntities' : ActorMethod<[], Array<string>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'getUsersByEntity' : ActorMethod<[string], Array<UserProfile>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,

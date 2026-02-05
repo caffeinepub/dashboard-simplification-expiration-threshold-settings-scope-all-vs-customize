@@ -1,60 +1,52 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T20:49:29.701Z",
-  "summary": "BuildRequest contains no stated requirements or acceptance criteria. The diff shows multiple functional/UI/backend changes; since nothing was requested, these constitute unrequested (hallucinated) features relative to the BuildRequest.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-05T21:22:01.557Z",
+  "summary": "Implemented tag-style single-entity input on Profile (badge + suggestions) and added UI/URL-level avatar cache busting. Adjusted Safran logo sizing/contain in header and sign-in. Dashboard now merges default sections with saved order, but a dedicated section titled \"Graphs\" is not evidenced, and backend support for non-admin entity suggestions and correct default dashboard section ordering is not clearly implemented/consistent with frontend section IDs.",
+  "missing_requirements": [
     {
-      "description": "Added/updated backend domain model and authorization/storage integration (access control state, authorization mixin, storage mixin, and multiple entity types/maps like TestBench/Document/Component/UserProfile/HistoryEntry).",
-      "reason": "No requirements were provided in the BuildRequest, so backend feature additions are not traceable to any request.",
+      "id": "REQ-2",
+      "requirement": "Expose entity suggestions to non-admin users so the Profile page can autocomplete entities.",
+      "reason": "Frontend calls a hook for unique entities (useGetUniqueEntities) and uses suggestions in the new EntityTagInput, but the diff summary provides no evidence of a backend query/method or permission change that allows non-admin users to fetch distinct entity values without authorization errors.",
       "evidence": [
-        "backend/main.mo"
+        "frontend/src/pages/ProfilePage.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "backend/main.mo (truncated)"
       ]
     },
     {
-      "description": "AppShell UI changes: updated navigation (Dashboard/Test Benches/Profile), theme toggle, sign-out, responsive mobile nav, and Safran logo sizing adjustments.",
-      "reason": "No requirements were provided in the BuildRequest, so UI/navigation changes are unrequested.",
+      "id": "REQ-5",
+      "requirement": "Add/restore a dedicated \"Graphs\" section in the Dashboard that contains bar-chart style statistics, and ensure it reliably appears for all users even if their saved dashboard section order is missing chart-related sections.",
+      "reason": "The Dashboard defaults/merge logic references a \"charts\" section (DEFAULT_SECTIONS includes 'charts') and the file summary describes a \"charts section\"; there is no evidence of a section titled \"Graphs\" being rendered. While merging defaults with saved order is implemented, the specific \"Graphs\" section requirement is not clearly met.",
       "evidence": [
-        "frontend/src/components/layout/AppShell.tsx",
+        "frontend/src/pages/DashboardPage.tsx",
         "frontend-file-summaries.txt"
       ]
     },
     {
-      "description": "Bench history UI enhancement: show user avatar and name for history entries by fetching public user info; fallback to shortened principal; sort history by timestamp.",
-      "reason": "No requirements were provided in the BuildRequest, so this new UI behavior is unrequested.",
+      "id": "REQ-6",
+      "requirement": "Update backend default dashboard section ordering for new/empty profiles so it includes the expected chart/graph sections used by the Dashboard page.",
+      "reason": "A migration was added that injects many \"dashboard*Chart\" section IDs into existing profiles, but there is no evidence that getCallerUserProfile (default profile path) sets dashboardSectionsOrdered for new/empty profiles. Additionally, the migration’s default section IDs do not match the frontend Dashboard DEFAULT_SECTIONS (e.g., 'statistics', 'charts', etc.), so it’s unclear that new users will receive the sections the current UI expects.",
       "evidence": [
-        "frontend/src/pages/Benches/components/BenchHistoryList.tsx"
-      ]
-    },
-    {
-      "description": "Sign-in page redesign/behavior: branded card layout, Safran logo with onError fallback, login error alert, and updated copy.",
-      "reason": "No requirements were provided in the BuildRequest, so sign-in UI changes are unrequested.",
-      "evidence": [
-        "frontend/src/pages/SignInPage.tsx"
-      ]
-    },
-    {
-      "description": "Additional frontend features described in summaries: AuthGate/AdminGate, error boundary, profile management enhancements (avatar selection/custom upload, email domain validation), dashboard analytics changes, benches list/detail updates, admin page panels, new/updated query hooks, validation/search utilities, styling/theme system updates, tailwind config changes, expiration settings utilities.",
-      "reason": "No requirements were provided in the BuildRequest, so these features cannot be justified against requested scope.",
-      "evidence": [
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Project metadata/state updated to describe UI updates and add pending feature requests AR-1/AR-2.",
-      "reason": "No requirements were provided in the BuildRequest; this adds scope/context not requested.",
-      "evidence": [
-        "project_state.json"
+        "backend/migration.mo",
+        "backend/main.mo (truncated)",
+        "frontend/src/pages/DashboardPage.tsx"
       ]
     }
   ],
-  "confidence": 0.78,
+  "hallucinated_features": [],
+  "confidence": 0.64,
   "changed_files": [
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
     "frontend/src/components/layout/AppShell.tsx",
-    "frontend/src/pages/Benches/components/BenchHistoryList.tsx",
+    "frontend/src/components/profile/EntityTagInput.tsx",
+    "frontend/src/components/profile/UserAvatar.tsx",
+    "frontend/src/hooks/useAvatarCacheBuster.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/DashboardPage.tsx",
+    "frontend/src/pages/ProfilePage.tsx",
     "frontend/src/pages/SignInPage.tsx",
     "project_state.json"
   ]

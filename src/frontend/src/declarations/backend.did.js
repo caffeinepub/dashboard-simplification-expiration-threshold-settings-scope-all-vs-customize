@@ -202,6 +202,7 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getTestBench' : IDL.Func([IDL.Text], [IDL.Opt(TestBench)], ['query']),
+  'getUniqueEntities' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -443,6 +444,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getTestBench' : IDL.Func([IDL.Text], [IDL.Opt(TestBench)], ['query']),
+    'getUniqueEntities' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],

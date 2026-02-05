@@ -15,6 +15,7 @@ import {
   useSetProfilePicture,
   useGetAllowedEmailDomain,
   useIsCallerAdmin,
+  useGetUniqueEntities,
 } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { validateEmailAgainstDomain } from '../utils/validation';
@@ -22,8 +23,9 @@ import { AlertCircle, CheckCircle2, User, Clock, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExpirationThresholdMode, ExternalBlob } from '../backend';
 import { PredefinedAvatarPicker } from '../components/profile/PredefinedAvatarPicker';
+import { EntityTagInput } from '../components/profile/EntityTagInput';
 
-const DEFAULT_SECTIONS = ['statistics', 'documents', 'benches', 'quickActions'];
+const DEFAULT_SECTIONS = ['statistics', 'charts', 'criticalComponents', 'expiringComponents', 'documents', 'quickActions'];
 
 export default function ProfilePage() {
   const { identity } = useInternetIdentity();
@@ -31,6 +33,7 @@ export default function ProfilePage() {
   const { data: benches = [] } = useGetAllTestBenches();
   const { data: allowedDomain = 'safrangroup.com' } = useGetAllowedEmailDomain();
   const { data: isAdmin = false } = useIsCallerAdmin();
+  const { data: entitySuggestions = [] } = useGetUniqueEntities();
   const saveMutation = useSaveCallerUserProfile();
   const updatePreferencesMutation = useUpdateExpirationPreferences();
   const setProfilePictureMutation = useSetProfilePicture();
@@ -161,6 +164,8 @@ export default function ProfilePage() {
         const photoBytes = new Uint8Array(await customPhotoFile.arrayBuffer());
         const photoBlob = ExternalBlob.fromBytes(photoBytes);
         await setProfilePictureMutation.mutateAsync({ __kind__: 'custom', custom: photoBlob });
+        // Clear local preview state after successful upload
+        setCustomPhotoFile(null);
       }
 
       // Save profile
@@ -352,12 +357,11 @@ export default function ProfilePage() {
             <Label htmlFor="entity">
               Entity <span className="text-destructive">*</span>
             </Label>
-            <Input
-              id="entity"
+            <EntityTagInput
               value={entity}
-              onChange={(e) => setEntity(e.target.value)}
-              placeholder="e.g., T2I, IMI, Qualité, IVV"
-              className={errors.entity ? 'border-destructive' : ''}
+              onChange={setEntity}
+              suggestions={entitySuggestions}
+              error={errors.entity}
             />
             {errors.entity && (
               <p className="text-sm text-destructive">{errors.entity}</p>

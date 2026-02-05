@@ -1,6 +1,107 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Untitled request",
-  "requirements": []
+  "title": "Profile Entity tag input, avatar refresh propagation, Safran logo sizing, and Dashboard Graphs restoration",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Replace Profile \"Entity\" text field with a single-tag (badge + typeahead) input backed by entity suggestions while still persisting a single entity string.",
+      "acceptanceCriteria": [
+        "On the Profile page, the Entity field displays the selected entity as a removable badge/tag and allows typing to search/add.",
+        "Users can select an existing entity from suggestions and can also enter a new entity value (unless blocked by backend validation).",
+        "Only one entity can be selected at a time (single-tag behavior), and clearing/removing it reverts the field to an empty state.",
+        "Saving the profile persists the entity value correctly and it is reloaded on refresh."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/profile/EntityTagInput.tsx",
+          "operation": "create",
+          "description": "Create a single-tag entity input component (badge + removable X + typeahead suggestions) composed from shadcn/ui primitives (e.g., Badge, Input, Popover, Command) to match existing TagsInput UX patterns. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a React Query hook for fetching entity suggestions for autocomplete (prefer the existing backend capability returning unique/deduplicated values) and expose it for Profile usage."
+        },
+        {
+          "path": "frontend/src/pages/ProfilePage.tsx",
+          "operation": "modify",
+          "description": "Swap the Entity <Input> for the new EntityTagInput, wiring it to the existing single string state (entity) with single-tag behavior (set/clear). Use the entity suggestions hook to provide autocomplete, and ensure save payload still sends a single entity string."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Ensure profile picture updates propagate across the app in-session by invalidating/refetching relevant React Query caches and busting browser-cached avatar URLs when needed.",
+      "acceptanceCriteria": [
+        "After changing the profile picture (predefined avatar or custom upload) and saving, any place that shows the user’s avatar updates to the new image during the same session.",
+        "React Query caches related to the caller profile and public user info are invalidated/refetched after profile picture update so stale avatars are not shown.",
+        "No UI location continues to show the previous avatar after the new one is saved (excluding brief loading states)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useAvatarCacheBuster.ts",
+          "operation": "create",
+          "description": "Create a small React Query-backed hook that exposes an app-wide \"avatar cache buster\" value (e.g., a timestamp) and a helper to update it after avatar changes, enabling consistent cache-busting across all avatar renders."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update the profile picture mutation success handling to: (1) invalidate/refetch the current user profile and any public user info queries; and (2) update the global avatar cache-buster value so UI surfaces using direct image URLs re-render with a fresh URL."
+        },
+        {
+          "path": "frontend/src/components/profile/UserAvatar.tsx",
+          "operation": "modify",
+          "description": "Append the global avatar cache-buster value to custom avatar direct URLs (without changing aspect ratio) so browser caching does not keep showing the old image; keep predefined avatars unchanged."
+        },
+        {
+          "path": "frontend/src/pages/ProfilePage.tsx",
+          "operation": "modify",
+          "description": "After successfully saving a new custom avatar, ensure the local preview state is consistent (avoid retaining stale preview URLs) and rely on the global cache invalidation + cache-buster so other UI surfaces update without a hard refresh."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Adjust Safran logo sizing and fit so it is not clipped in the header/left area and on the home/sign-in screen.",
+      "acceptanceCriteria": [
+        "The Safran logo is fully visible (not clipped/truncated) in the top-left header/left area at common viewport sizes.",
+        "The Safran logo is fully visible (not clipped/truncated) on the home screen.",
+        "The adjustment does not distort the logo’s aspect ratio (no stretching)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/layout/AppShell.tsx",
+          "operation": "modify",
+          "description": "Update the header Safran logo styling to prioritize non-cropped display (contain fit, appropriate max height/width, and preventing truncation within the header flex layout) while preserving aspect ratio."
+        },
+        {
+          "path": "frontend/src/pages/SignInPage.tsx",
+          "operation": "modify",
+          "description": "Update the home/sign-in Safran logo styling to use non-cropped display (contain fit with sensible max sizing) to avoid truncation across common viewport sizes while preserving aspect ratio."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Restore a dedicated Dashboard \"Graphs\" section with bar-chart stats and make section rendering robust by merging default sections with any saved order.",
+      "acceptanceCriteria": [
+        "The Dashboard includes a visible section titled \"Graphs\" containing bar-chart based stats (at minimum, bar-chart cards already available in the codebase).",
+        "If a user profile’s stored dashboardSectionsOrdered does not include chart/graph sections, the Dashboard still renders the missing default sections by merging defaults with the saved order (rather than hiding charts).",
+        "Existing dashboard section reordering continues to work and saving layout preserves the user’s choices."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/DashboardPage.tsx",
+          "operation": "modify",
+          "description": "Add a new 'graphs' section (titled \"Graphs\") that renders existing bar-chart style cards already in the codebase, and update the section order initialization logic to merge DEFAULT_SECTIONS with the user’s saved dashboardSectionsOrdered (append missing defaults; preserve existing order). Ensure reordering and saving continue to work with the merged list."
+        },
+        {
+          "path": "frontend/src/pages/ProfilePage.tsx",
+          "operation": "modify",
+          "description": "Align the profile fallback dashboardSectionsOrdered default to include the restored graph/chart-related sections so saving a profile without an existing order does not omit the Dashboard Graphs section."
+        }
+      ]
+    }
+  ]
 }

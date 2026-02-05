@@ -1,10 +1,126 @@
 {
   "kind": "build_request",
-  "title": "Untitled request",
+  "title": "Tag-style Entity field, global avatar refresh, Safran logo sizing fix, and restore Dashboard graphs/bar charts section",
   "priority": "normal",
-  "requirements": [],
-  "constraints": [],
-  "nonGoals": [],
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Update the Profile page so the \"Entity\" field is handled as a tag-style input (badge + typeahead suggestions), instead of a plain text input, while still storing a single entity value for the user profile.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Je veux que le champ entite soit géré comme un tag."
+        ]
+      },
+      "acceptanceCriteria": [
+        "On the Profile page, the Entity field displays the selected entity as a removable badge/tag and allows typing to search/add.",
+        "Users can select an existing entity from suggestions and can also enter a new entity value (unless blocked by backend validation).",
+        "Only one entity can be selected at a time (single-tag behavior), and clearing/removing it reverts the field to an empty state.",
+        "Saving the profile persists the entity value correctly and it is reloaded on refresh."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Expose entity suggestions to non-admin users so the Profile page can autocomplete entities (e.g., add a user-permitted query for listing distinct entity values, or adjust the permissions of the existing backend entity listing).",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Je veux que le champ entite soit géré comme un tag."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A signed-in non-admin user can fetch a list of existing entities for autocomplete without authorization errors.",
+        "The returned entity list is deduplicated (unique values) and stable enough for autocomplete usage."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Ensure that when a user updates their profile picture, the updated image propagates everywhere it is displayed (header/profile/history entries/any user info surfaces) without requiring a hard refresh.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Il faut aussi que l'image de profil se mette a jour partout où elle est appelé."
+        ]
+      },
+      "acceptanceCriteria": [
+        "After changing the profile picture (predefined avatar or custom upload) and saving, any place that shows the user’s avatar updates to the new image during the same session.",
+        "React Query caches related to the caller profile and public user info are invalidated/refetched after profile picture update so stale avatars are not shown.",
+        "No UI location continues to show the previous avatar after the new one is saved (excluding brief loading states)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Further reduce/adjust the Safran logo rendering on the home screen and the left/header area so it is not truncated, prioritizing a non-cropped display (e.g., using a contain fit and appropriate max height/width).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Il faut réduire envore la taille de l'image safran dans l'écran d'accueil et en a gauche car elle est tronquée."
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Safran logo is fully visible (not clipped/truncated) in the top-left header/left area at common viewport sizes.",
+        "The Safran logo is fully visible (not clipped/truncated) on the home screen.",
+        "The adjustment does not distort the logo’s aspect ratio (no stretching)."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Add/restore a dedicated \"Graphs\" section in the Dashboard that contains bar-chart style statistics, and ensure it reliably appears for all users even if their saved dashboard section order is missing chart-related sections.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Il manque toujours une section graphes dans l'onglet Dashboard aceg des stats en barres"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Dashboard includes a visible section titled \"Graphs\" containing bar-chart based stats (at minimum, bar-chart cards already available in the codebase).",
+        "If a user profile’s stored dashboardSectionsOrdered does not include chart/graph sections, the Dashboard still renders the missing default sections by merging defaults with the saved order (rather than hiding charts).",
+        "Existing dashboard section reordering continues to work and saving layout preserves the user’s choices."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Update backend default dashboard section ordering for new/empty profiles so it includes the expected chart/graph sections used by the Dashboard page.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Il manque toujours une section graphes dans l'onglet Dashboard aceg des stats en barres"
+        ]
+      },
+      "acceptanceCriteria": [
+        "For a user with no stored profile (default profile path), getCallerUserProfile returns dashboardSectionsOrdered that includes the chart/graph sections expected by the current Dashboard UI (e.g., charts/graphs).",
+        "A new user sees the Dashboard graphs/charts sections without needing to manually reorder or edit preferences."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
+    "Do not edit files under frontend/src/components/ui (compose them instead).",
+    "Do not edit immutable frontend hook paths listed in SYSTEM_CONTEXT (work through other components/hooks as needed)."
+  ],
+  "nonGoals": [
+    "Do not introduce multi-entity (multi-tag) storage for the user profile unless explicitly requested; entity remains a single value.",
+    "Do not add third-party authentication or external data stores.",
+    "Do not redesign the entire Dashboard; only ensure the missing graphs/bar-charts section exists and is shown reliably."
+  ],
   "imageRequirements": {
     "required": [],
     "edits": []

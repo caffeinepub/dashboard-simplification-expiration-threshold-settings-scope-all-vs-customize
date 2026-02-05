@@ -125,6 +125,7 @@ export interface backendInterface {
     getProfilePicture(userId: Principal): Promise<ProfilePicture | null>;
     getPublicUserInfo(user: Principal): Promise<PublicUserInfo | null>;
     getTestBench(benchId: string): Promise<TestBench | null>;
+    getUniqueEntities(): Promise<Array<string>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getUsersByEntity(entity: string): Promise<Array<UserProfile>>;
     isCallerAdmin(): Promise<boolean>;

@@ -40,7 +40,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (profile?.dashboardSectionsOrdered && profile.dashboardSectionsOrdered.length > 0) {
-      setSectionOrder(profile.dashboardSectionsOrdered);
+      // Merge saved order with default sections to ensure all sections are present
+      const savedSections = profile.dashboardSectionsOrdered;
+      const missingDefaults = DEFAULT_SECTIONS.filter(section => !savedSections.includes(section));
+      setSectionOrder([...savedSections, ...missingDefaults]);
     } else {
       setSectionOrder(DEFAULT_SECTIONS);
     }

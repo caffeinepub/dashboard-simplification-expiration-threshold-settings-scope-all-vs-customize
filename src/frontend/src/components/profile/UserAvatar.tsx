@@ -3,6 +3,7 @@ import { User } from 'lucide-react';
 import { getAvatarPath } from '../../utils/avatars';
 import type { ProfilePicture } from '../../backend';
 import { cn } from '@/lib/utils';
+import { useAvatarCacheBuster } from '../../hooks/useAvatarCacheBuster';
 
 interface UserAvatarProps {
   profilePicture: ProfilePicture;
@@ -12,6 +13,8 @@ interface UserAvatarProps {
 }
 
 export function UserAvatar({ profilePicture, name, size = 'md', className }: UserAvatarProps) {
+  const { cacheBuster } = useAvatarCacheBuster();
+  
   const sizeClasses = {
     sm: 'h-8 w-8',
     md: 'h-12 w-12',
@@ -22,7 +25,8 @@ export function UserAvatar({ profilePicture, name, size = 'md', className }: Use
     if (profilePicture.__kind__ === 'avatar') {
       return getAvatarPath(profilePicture.avatar);
     } else if (profilePicture.__kind__ === 'custom') {
-      return profilePicture.custom.getDirectURL();
+      const baseUrl = profilePicture.custom.getDirectURL();
+      return `${baseUrl}?cb=${cacheBuster}`;
     }
     return getAvatarPath('duck');
   };
