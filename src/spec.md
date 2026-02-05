@@ -1,14 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Improve profile entity input UX, ensure avatars update everywhere immediately after change, fix Safran logo truncation, and restore reliable Dashboard bar-chart “Graphs” section visibility for all users.
+**Goal:** Ensure profile updates persist correctly (especially profile photos and entity values) and that avatar changes are reflected immediately across the UI.
 
 **Planned changes:**
-- Update the Profile “Entity” field to a single-value tag-style input (removable badge + typeahead suggestions) while still persisting only one entity value.
-- Expose an entity-suggestions endpoint/query to signed-in non-admin users for autocomplete (deduplicated, stable list).
-- Ensure profile picture updates propagate across all UI surfaces in-session by invalidating/refetching relevant cached user/profile queries after update.
-- Adjust Safran logo sizing/rendering on home and header/left areas to avoid cropping (contain-style fit with appropriate max sizing, no aspect distortion).
-- Add/restore a “Graphs” section on the Dashboard with bar-chart style stats, and merge default sections with any saved dashboard order so charts aren’t hidden when missing from stored preferences.
-- Update backend default dashboard section ordering for new/empty profiles so chart/graph sections are included by default.
+- Fix profile save logic so the selected avatar (predefined or uploaded) is not overwritten by subsequent saves.
+- Ensure avatar displays that rely on public user info (including the “binôme profile” tab) refresh immediately after a successful profile save.
+- Invalidate/refetch relevant React Query caches after profile updates so changes appear without a hard refresh.
+- Allow saving newly typed “entity” values (not only suggested ones) and ensure newly saved entities appear in suggestions afterward.
+- Align backend validation with frontend rules so admin users are not blocked from saving due to email-domain constraints.
 
-**User-visible outcome:** Users can select or type a single “Entity” as a tag with autocomplete, see their updated avatar everywhere without hard refresh, view an unclipped Safran logo on home/header, and reliably see the Dashboard “Graphs” bar-chart section even if their saved layout is missing it.
+**User-visible outcome:** Users can change their profile picture (avatar or uploaded photo) and see it update immediately everywhere (including the binôme profile tab), and they can save newly typed entity values (e.g., “T2I”, “IVV”, “Qualite”, “IMI”, “RLI”) which then show up in entity suggestions.

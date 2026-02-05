@@ -1,44 +1,27 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Project involves an app with entity tag handling and a \"binôme profile\" tab where profile photos should update after being saved.",
   "architectural_notes": [],
   "known_issues": [
-    "L’image Safran est tronquée sur l’écran d’accueil et dans la zone de gauche",
-    "La section graphes (stats en barres) manque dans l’onglet Dashboard",
-    "L’image de profil ne se met pas à jour partout où elle est appelée"
+    "Entity tag does not save when adding a new tag (e.g., \"T2I\").",
+    "Profile photo in the \"binôme profile\" tab does not refresh/update after selecting and saving a new photo."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-the-profile-page-so-the-entity-field-is-handled-as-a-tag-style-input-badge-typeahead-suggestions-instead-of-a-plain-text-input-while-still-storing-a-single-entity-value-for-the-user-profile",
-      "title": "Update the Profile page so the \"Entity\" field is handled as a tag-style input (badge + typeahead suggestions), instead of a plain text input, while still storing a single entity value for the user profile.",
+      "id": "feature-fix-profile-saving-so-that-the-selected-updated-profile-picture-predefined-avatar-or-custom-upload-is-not-overwritten-by-a-subsequent-profile-save-and-ensure-any-ui-that-renders-user-avatars-including-the-bin-me-profile-tab-reflects-the-new-picture-immediately-after-a-successful-save",
+      "title": "Fix profile saving so that the selected/updated profile picture (predefined avatar or custom upload) is not overwritten by a subsequent profile save, and ensure any UI that renders user avatars (including the “binôme profile” tab) reflects the new picture immediately after a successful save.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-that-when-a-user-updates-their-profile-picture-the-updated-image-propagates-everywhere-it-is-displayed-header-profile-history-entries-any-user-info-surfaces-without-requiring-a-hard-refresh",
-      "title": "Ensure that when a user updates their profile picture, the updated image propagates everywhere it is displayed (header/profile/history entries/any user info surfaces) without requiring a hard refresh.",
+      "id": "feature-allow-saving-a-user-profile-entity-value-even-when-it-is-a-newly-typed-entity-not-present-in-suggestions-and-ensure-newly-saved-entities-appear-in-entity-suggestions-thereafter-support-and-validate-examples-including-t2i-ivv-qualite-imi-rli",
+      "title": "Allow saving a user profile entity value even when it is a newly typed entity (not present in suggestions), and ensure newly saved entities appear in entity suggestions thereafter. Support and validate examples including: \"T2I\", \"IVV\", \"Qualite\", \"IMI\", \"RLI\".",
       "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-further-reduce-adjust-the-safran-logo-rendering-on-the-home-screen-and-the-left-header-area-so-it-is-not-truncated-prioritizing-a-non-cropped-display-e-g-using-a-contain-fit-and-appropriate-max-height-width",
-      "title": "Further reduce/adjust the Safran logo rendering on the home screen and the left/header area so it is not truncated, prioritizing a non-cropped display (e.g., using a contain fit and appropriate max height/width).",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-restore-a-dedicated-graphs-section-in-the-dashboard-that-contains-bar-chart-style-statistics-and-ensure-it-reliably-appears-for-all-users-even-if-their-saved-dashboard-section-order-is-missing-chart-related-sections",
-      "title": "Add/restore a dedicated \"Graphs\" section in the Dashboard that contains bar-chart style statistics, and ensure it reliably appears for all users even if their saved dashboard section order is missing chart-related sections.",
-      "reqIds": [
-        "REQ-5"
+        "REQ-2"
       ],
       "version": 1
     }
@@ -46,46 +29,18 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Gérer le champ « entite » comme un tag (tagging UI/UX)",
+      "summary": "Fix entity tag creation/saving when adding a new tag (e.g., \"T2I\"); support/validate tags such as T2I, IVV, Qualite, IMI, RLI.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Assurer que l’image de profil se mette à jour partout où elle est affichée/utilisée",
+      "summary": "Update the profile photo in the \"binôme profile\" tab immediately after a new photo is chosen and saved.",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Réduire encore la taille de l’image Safran sur l’écran d’accueil et dans la zone de gauche (actuellement tronquée)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Ajouter une section « graphes » dans l’onglet Dashboard avec des statistiques en barres",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Expose entity suggestions to non-admin users so the Profile page can autocomplete entities (e.g., add a user-permitted query for listing distinct entity values, or adjust the permissions of the existing backend entity listing).",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-10",
-      "summary": "Update backend default dashboard section ordering for new/empty profiles so it includes the expected chart/graph sections used by the Dashboard page.",
-      "reqIds": [
-        "REQ-6"
-      ],
       "status": "pending"
     }
   ],
-  "projectName": "Tag-style Entity field, global avatar refresh, Safran logo sizing fix, and restore Dashboard graphs/bar charts section",
+  "projectName": "Fix entity saving for new values and refresh profile photo in binôme profile after update",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

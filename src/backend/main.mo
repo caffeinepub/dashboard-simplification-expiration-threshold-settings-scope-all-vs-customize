@@ -10,11 +10,11 @@ import Time "mo:core/Time";
 import List "mo:core/List";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
-import Migration "migration";
+import Set "mo:core/Set";
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-(with migration = Migration.run)
 actor {
   // Initialize the user system state
   let accessControlState = AccessControl.initState();
@@ -150,6 +150,7 @@ actor {
   let componentMap = Map.empty<Text, [Component]>();
   let historyMap = Map.empty<Text, [HistoryEntry]>();
   let userProfileMap = Map.empty<Principal, UserProfile>();
+  let entitiesSet = Set.empty<Text>();
   var allowedEmailDomain = "safrangroup.com";
 
   // Benches
@@ -307,6 +308,7 @@ actor {
     email.endsWith(#text("@" # allowedEmailDomain));
   };
 
+  // Save or update user profile with persistent entities management
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
@@ -316,6 +318,10 @@ actor {
       Runtime.trap("Invalid email domain. Only " # allowedEmailDomain # " is allowed.");
     };
 
+    // Update entities set with new profile entity
+    // Original entities set persists across upgrades due to Map storage
+    entitiesSet.add(profile.entity);
+
     userProfileMap.add(caller, profile);
   };
 
@@ -324,19 +330,9 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can view entities");
     };
-
-    let allProfiles = userProfileMap.values().toArray();
-    let uniqueList = List.empty<Text>();
-    for (profile in allProfiles.values()) {
-      let exists = uniqueList.any(func(e) { e == profile.entity });
-      if (not exists) {
-        uniqueList.add(profile.entity);
-      };
-    };
-    uniqueList.toArray();
+    entitiesSet.toArray();
   };
 
-  // Function for admins to set the allowed email domain
   public shared ({ caller }) func setAllowedEmailDomain(newDomain : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can set allowed email domain");
@@ -863,4 +859,3 @@ actor {
     };
   };
 };
-

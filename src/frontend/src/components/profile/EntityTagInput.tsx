@@ -40,6 +40,13 @@ export function EntityTagInput({ value, onChange, suggestions, error }: EntityTa
     }
   };
 
+  const handleBlur = () => {
+    // When user types and clicks away, save the typed value
+    if (inputValue.trim() && !value) {
+      handleAdd(inputValue);
+    }
+  };
+
   const filteredSuggestions = suggestions.filter(
     (suggestion) =>
       suggestion.toLowerCase() !== value.toLowerCase() &&
@@ -49,7 +56,7 @@ export function EntityTagInput({ value, onChange, suggestions, error }: EntityTa
   return (
     <div className="space-y-2">
       <div className={`flex flex-wrap gap-2 p-2 border rounded-md min-h-[42px] bg-background ${error ? 'border-destructive' : ''}`}>
-        {value ? (
+        {value && (
           <Badge variant="secondary" className="gap-1">
             {value}
             <button
@@ -60,17 +67,18 @@ export function EntityTagInput({ value, onChange, suggestions, error }: EntityTa
               <X className="h-3 w-3" />
             </button>
           </Badge>
-        ) : (
-          <Input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type entity name..."
-            className="border-0 shadow-none focus-visible:ring-0 p-0 h-6 flex-1"
-          />
         )}
+        <Input
+          ref={inputRef}
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
+          placeholder={value ? "Remove tag to change entity..." : "Type entity name (e.g., T2I, IVV, Qualite, IMI, RLI)..."}
+          disabled={!!value}
+          className="border-0 shadow-none focus-visible:ring-0 p-0 h-6 flex-1 disabled:opacity-50"
+        />
       </div>
 
       {!value && filteredSuggestions.length > 0 && (

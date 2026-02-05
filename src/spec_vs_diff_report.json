@@ -1,53 +1,60 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T21:22:01.557Z",
-  "summary": "Implemented tag-style single-entity input on Profile (badge + suggestions) and added UI/URL-level avatar cache busting. Adjusted Safran logo sizing/contain in header and sign-in. Dashboard now merges default sections with saved order, but a dedicated section titled \"Graphs\" is not evidenced, and backend support for non-admin entity suggestions and correct default dashboard section ordering is not clearly implemented/consistent with frontend section IDs.",
+  "generatedAt": "2026-02-05T21:58:31.567Z",
+  "summary": "Diff adds frontend changes for entity input to accept newly typed values and adds React Query invalidations on profile save; it also includes profile-page avatar state management intended to prevent profile picture reversion. However, the diff summary does not provide clear evidence of backend changes for persisting new entities into suggestions or for admin email-domain rule exceptions, and it does not clearly show invalidation/refetch for public user info used by the “binôme profile” tab.",
   "missing_requirements": [
     {
+      "id": "REQ-1",
+      "requirement": "After a successful save, any UI that displays the user’s avatar via public user info (e.g., the “binôme profile” tab) shows the updated avatar without requiring a hard refresh; React Query caches related to user profile/public user info are invalidated/refetched as needed.",
+      "reason": "The diff shows invalidation for ['currentUserProfile'], ['testBenches'], and ['uniqueEntities'], but does not show any invalidation/refetch of queries for public user info (which the “binôme profile” tab would typically use). No “binôme profile” tab code changes are present in the provided diff summary.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    },
+    {
       "id": "REQ-2",
-      "requirement": "Expose entity suggestions to non-admin users so the Profile page can autocomplete entities.",
-      "reason": "Frontend calls a hook for unique entities (useGetUniqueEntities) and uses suggestions in the new EntityTagInput, but the diff summary provides no evidence of a backend query/method or permission change that allows non-admin users to fetch distinct entity values without authorization errors.",
+      "requirement": "Typing a new entity value and saving the profile persists that entity on the backend and newly saved entities appear in entity suggestions thereafter (without full page reload).",
+      "reason": "Frontend changes support entering a typed entity and invalidating ['uniqueEntities'], but the backend-side behavior to accept arbitrary entity values and to add new values into the entities suggestions set/list is not evidenced in the truncated backend diff.",
       "evidence": [
-        "frontend/src/pages/ProfilePage.tsx",
+        "frontend/src/components/profile/EntityTagInput.tsx",
         "frontend/src/hooks/useQueries.ts",
-        "backend/main.mo (truncated)"
+        "backend/main.mo"
       ]
     },
     {
-      "id": "REQ-5",
-      "requirement": "Add/restore a dedicated \"Graphs\" section in the Dashboard that contains bar-chart style statistics, and ensure it reliably appears for all users even if their saved dashboard section order is missing chart-related sections.",
-      "reason": "The Dashboard defaults/merge logic references a \"charts\" section (DEFAULT_SECTIONS includes 'charts') and the file summary describes a \"charts section\"; there is no evidence of a section titled \"Graphs\" being rendered. While merging defaults with saved order is implemented, the specific \"Graphs\" section requirement is not clearly met.",
+      "id": "REQ-2",
+      "requirement": "The backend does not reject profile saving for admin users due to email-domain rules when the frontend indicates admins can use any domain.",
+      "reason": "No backend logic change is shown (diff is truncated) demonstrating that admin users bypass email-domain enforcement during profile save.",
       "evidence": [
-        "frontend/src/pages/DashboardPage.tsx",
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "requirement": "Update backend default dashboard section ordering for new/empty profiles so it includes the expected chart/graph sections used by the Dashboard page.",
-      "reason": "A migration was added that injects many \"dashboard*Chart\" section IDs into existing profiles, but there is no evidence that getCallerUserProfile (default profile path) sets dashboardSectionsOrdered for new/empty profiles. Additionally, the migration’s default section IDs do not match the frontend Dashboard DEFAULT_SECTIONS (e.g., 'statistics', 'charts', etc.), so it’s unclear that new users will receive the sections the current UI expects.",
-      "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo (truncated)",
-        "frontend/src/pages/DashboardPage.tsx"
+        "backend/main.mo",
+        "frontend/src/pages/ProfilePage.tsx"
       ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.64,
+  "hallucinated_features": [
+    {
+      "description": "Invalidating the React Query cache for ['testBenches'] on successful profile save.",
+      "reason": "The BuildRequest focuses on profile picture refresh and entity saving/suggestions; it does not ask to refetch test benches when saving a user profile.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    },
+    {
+      "description": "Introducing/using an avatar cache-buster hook (useAvatarCacheBuster).",
+      "reason": "Cache-busting implementation details were not explicitly requested (only that the updated avatar appears immediately). This is an additional mechanism beyond the stated requirements.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    }
+  ],
+  "confidence": 0.56,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/layout/AppShell.tsx",
     "frontend/src/components/profile/EntityTagInput.tsx",
-    "frontend/src/components/profile/UserAvatar.tsx",
-    "frontend/src/hooks/useAvatarCacheBuster.ts",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/DashboardPage.tsx",
     "frontend/src/pages/ProfilePage.tsx",
-    "frontend/src/pages/SignInPage.tsx",
     "project_state.json"
   ]
 }

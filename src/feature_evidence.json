@@ -2,10 +2,9 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-profile-page-so-the-entity-field-is-handled-as-a-tag-style-input-badge-typeahead-suggestions-instead-of-a-plain-text-input-while-still-storing-a-single-entity-value-for-the-user-profile",
-      "featureTitle": "Update the Profile page so the \"Entity\" field is handled as a tag-style input (badge + typeahead suggestions), instead of a plain text input, while still storing a single entity value for the user profile.",
+      "featureId": "feature-fix-profile-saving-so-that-the-selected-updated-profile-picture-predefined-avatar-or-custom-upload-is-not-overwritten-by-a-subsequent-profile-save-and-ensure-any-ui-that-renders-user-avatars-including-the-bin-me-profile-tab-reflects-the-new-picture-immediately-after-a-successful-save",
+      "featureTitle": "Fix profile saving so that the selected/updated profile picture (predefined avatar or custom upload) is not overwritten by a subsequent profile save, and ensure any UI that renders user avatars (including the “binôme profile” tab) reflects the new picture immediately after a successful save.",
       "files": [
-        "frontend/src/components/profile/EntityTagInput.tsx",
         "frontend/src/hooks/useQueries.ts",
         "frontend/src/pages/ProfilePage.tsx"
       ],
@@ -24,11 +23,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-that-when-a-user-updates-their-profile-picture-the-updated-image-propagates-everywhere-it-is-displayed-header-profile-history-entries-any-user-info-surfaces-without-requiring-a-hard-refresh",
-      "featureTitle": "Ensure that when a user updates their profile picture, the updated image propagates everywhere it is displayed (header/profile/history entries/any user info surfaces) without requiring a hard refresh.",
+      "featureId": "feature-allow-saving-a-user-profile-entity-value-even-when-it-is-a-newly-typed-entity-not-present-in-suggestions-and-ensure-newly-saved-entities-appear-in-entity-suggestions-thereafter-support-and-validate-examples-including-t2i-ivv-qualite-imi-rli",
+      "featureTitle": "Allow saving a user profile entity value even when it is a newly typed entity (not present in suggestions), and ensure newly saved entities appear in entity suggestions thereafter. Support and validate examples including: \"T2I\", \"IVV\", \"Qualite\", \"IMI\", \"RLI\".",
       "files": [
-        "frontend/src/components/profile/UserAvatar.tsx",
-        "frontend/src/hooks/useAvatarCacheBuster.ts",
+        "frontend/src/components/profile/EntityTagInput.tsx",
         "frontend/src/hooks/useQueries.ts",
         "frontend/src/pages/ProfilePage.tsx"
       ],
@@ -42,49 +40,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-further-reduce-adjust-the-safran-logo-rendering-on-the-home-screen-and-the-left-header-area-so-it-is-not-truncated-prioritizing-a-non-cropped-display-e-g-using-a-contain-fit-and-appropriate-max-height-width",
-      "featureTitle": "Further reduce/adjust the Safran logo rendering on the home screen and the left/header area so it is not truncated, prioritizing a non-cropped display (e.g., using a contain fit and appropriate max height/width).",
-      "files": [
-        "frontend/src/components/layout/AppShell.tsx",
-        "frontend/src/pages/SignInPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-restore-a-dedicated-graphs-section-in-the-dashboard-that-contains-bar-chart-style-statistics-and-ensure-it-reliably-appears-for-all-users-even-if-their-saved-dashboard-section-order-is-missing-chart-related-sections",
-      "featureTitle": "Add/restore a dedicated \"Graphs\" section in the Dashboard that contains bar-chart style statistics, and ensure it reliably appears for all users even if their saved dashboard section order is missing chart-related sections.",
-      "files": [
-        "frontend/src/pages/DashboardPage.tsx",
-        "frontend/src/pages/ProfilePage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
+        "REQ-2"
       ],
       "confidence": "high"
     }

@@ -21,7 +21,7 @@ import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { validateEmailAgainstDomain } from '../utils/validation';
 import { AlertCircle, CheckCircle2, User, Clock, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import { ExpirationThresholdMode, ExternalBlob } from '../backend';
+import { ExpirationThresholdMode, ExternalBlob, ProfilePicture } from '../backend';
 import { PredefinedAvatarPicker } from '../components/profile/PredefinedAvatarPicker';
 import { EntityTagInput } from '../components/profile/EntityTagInput';
 
@@ -52,6 +52,7 @@ export default function ProfilePage() {
   const [selectedAvatar, setSelectedAvatar] = useState('duck');
   const [customPhotoFile, setCustomPhotoFile] = useState<File | null>(null);
   const [customPhotoPreview, setCustomPhotoPreview] = useState<string | null>(null);
+  const [uploadedCustomBlob, setUploadedCustomBlob] = useState<ExternalBlob | null>(null);
 
   const isNewProfile = isFetched && profile === null;
 
@@ -82,6 +83,7 @@ export default function ProfilePage() {
         setSelectedAvatar(profilePicture.avatar);
       } else if (profilePicture.__kind__ === 'custom') {
         setAvatarMode('custom');
+        setUploadedCustomBlob(profilePicture.custom);
         // Load custom photo preview
         const customBlob = profilePicture.custom;
         const loadCustomPhoto = async () => {
@@ -157,18 +159,35 @@ export default function ProfilePage() {
     setErrors({});
 
     try {
-      // Save profile picture first
+      // Build the new profile picture from current state
+      let newProfilePicture: ProfilePicture;
+      
       if (avatarMode === 'predefined') {
-        await setProfilePictureMutation.mutateAsync({ __kind__: 'avatar', avatar: selectedAvatar });
-      } else if (avatarMode === 'custom' && customPhotoFile) {
-        const photoBytes = new Uint8Array(await customPhotoFile.arrayBuffer());
-        const photoBlob = ExternalBlob.fromBytes(photoBytes);
-        await setProfilePictureMutation.mutateAsync({ __kind__: 'custom', custom: photoBlob });
-        // Clear local preview state after successful upload
-        setCustomPhotoFile(null);
+        newProfilePicture = { __kind__: 'avatar', avatar: selectedAvatar };
+      } else if (avatarMode === 'custom') {
+        if (customPhotoFile) {
+          // New custom photo uploaded - convert to ExternalBlob
+          const photoBytes = new Uint8Array(await customPhotoFile.arrayBuffer());
+          const photoBlob = ExternalBlob.fromBytes(photoBytes);
+          newProfilePicture = { __kind__: 'custom', custom: photoBlob };
+          setUploadedCustomBlob(photoBlob);
+          setCustomPhotoFile(null);
+        } else if (uploadedCustomBlob) {
+          // Use existing uploaded custom blob
+          newProfilePicture = { __kind__: 'custom', custom: uploadedCustomBlob };
+        } else {
+          // Fallback to default avatar if no custom photo available
+          newProfilePicture = { __kind__: 'avatar', avatar: 'duck' };
+        }
+      } else {
+        // Fallback
+        newProfilePicture = { __kind__: 'avatar', avatar: 'duck' };
       }
 
-      // Save profile
+      // Save profile picture first
+      await setProfilePictureMutation.mutateAsync(newProfilePicture);
+
+      // Save profile with the new profile picture
       await saveMutation.mutateAsync({
         userId: identity?.getPrincipal().toString() || '',
         name: name.trim(),
@@ -178,7 +197,7 @@ export default function ProfilePage() {
         thresholdAllBenches: profile?.thresholdAllBenches || BigInt(30),
         thresholdCustomizedBenches: profile?.thresholdCustomizedBenches || [],
         dashboardSectionsOrdered: profile?.dashboardSectionsOrdered || DEFAULT_SECTIONS,
-        profilePicture: profile?.profilePicture || { __kind__: 'avatar', avatar: 'duck' },
+        profilePicture: newProfilePicture,
         lastSeen: profile?.lastSeen,
       });
 
@@ -367,7 +386,7 @@ export default function ProfilePage() {
               <p className="text-sm text-destructive">{errors.entity}</p>
             )}
             <p className="text-xs text-muted-foreground">
-              Your team or department
+              Your team or department (e.g., T2I, IVV, Qualite, IMI, RLI)
             </p>
           </div>
         </CardContent>
