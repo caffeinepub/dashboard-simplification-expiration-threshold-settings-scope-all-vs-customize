@@ -3,10 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   useGetCallerUserProfile,
   useSaveCallerUserProfile,
@@ -19,11 +21,13 @@ import {
 } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { validateEmailAgainstDomain } from '../utils/validation';
-import { AlertCircle, CheckCircle2, User, Clock, Upload } from 'lucide-react';
+import { AlertCircle, User, Clock, Upload, Languages } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExpirationThresholdMode, ExternalBlob, ProfilePicture } from '../backend';
 import { PredefinedAvatarPicker } from '../components/profile/PredefinedAvatarPicker';
 import { EntityTagInput } from '../components/profile/EntityTagInput';
+import { useI18n } from '../i18n/useI18n';
+import { SUPPORTED_LANGUAGES } from '../i18n/languages';
 
 const DEFAULT_SECTIONS = ['statistics', 'charts', 'criticalComponents', 'expiringComponents', 'documents', 'quickActions'];
 
@@ -37,9 +41,15 @@ export default function ProfilePage() {
   const saveMutation = useSaveCallerUserProfile();
   const updatePreferencesMutation = useUpdateExpirationPreferences();
   const setProfilePictureMutation = useSetProfilePicture();
+  const { t, languageTag, setLanguageTag } = useI18n();
 
+  // Extended profile fields
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
+  const [bio, setBio] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [entity, setEntity] = useState('');
   const [thresholdMode, setThresholdMode] = useState<'all' | 'customize'>('all');
   const [globalThreshold, setGlobalThreshold] = useState(30);
@@ -60,7 +70,11 @@ export default function ProfilePage() {
   useEffect(() => {
     if (profile) {
       setName(profile.name);
+      setUsername(profile.username || '');
+      setDisplayName(profile.displayName || '');
       setEmail(profile.email);
+      setBio(profile.bio || '');
+      setAvatarUrl(profile.avatarUrl || '');
       setEntity(profile.entity || '');
       setGlobalThreshold(Number(profile.thresholdAllBenches));
       
@@ -131,6 +145,15 @@ export default function ProfilePage() {
     }
   };
 
+  const handleLanguageChange = async (newLanguageTag: string) => {
+    try {
+      await setLanguageTag(newLanguageTag);
+      toast.success('Language updated successfully');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update language');
+    }
+  };
+
   const handleSave = async () => {
     const newErrors: { name?: string; email?: string; entity?: string; threshold?: string } = {};
 
@@ -187,17 +210,22 @@ export default function ProfilePage() {
       // Save profile picture first
       await setProfilePictureMutation.mutateAsync(newProfilePicture);
 
-      // Save profile with the new profile picture
+      // Save profile with all fields including new ones
       await saveMutation.mutateAsync({
         userId: identity?.getPrincipal().toString() || '',
         name: name.trim(),
+        username: username.trim(),
+        displayName: displayName.trim(),
         email: email.trim(),
+        bio: bio.trim(),
+        avatarUrl: avatarUrl.trim(),
         entity: entity.trim(),
         expirationThresholdMode: profile?.expirationThresholdMode || ExpirationThresholdMode.allBenches,
         thresholdAllBenches: profile?.thresholdAllBenches || BigInt(30),
         thresholdCustomizedBenches: profile?.thresholdCustomizedBenches || [],
         dashboardSectionsOrdered: profile?.dashboardSectionsOrdered || DEFAULT_SECTIONS,
         profilePicture: newProfilePicture,
+        languageTag: languageTag,
         lastSeen: profile?.lastSeen,
       });
 
@@ -238,13 +266,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
+    <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold flex items-center gap-3">
           <User className="h-8 w-8" />
-          User Profile
+          {t('profile.title')}
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-muted-foreground mt-2">
           Manage your account information and preferences
         </p>
       </div>
@@ -258,197 +286,240 @@ export default function ProfilePage() {
         </Alert>
       )}
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Profile Information</CardTitle>
-          <CardDescription>
-            Your profile information is used for identification
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Profile Picture</Label>
-            <Tabs value={avatarMode} onValueChange={(v) => setAvatarMode(v as 'predefined' | 'custom')}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="predefined">Predefined</TabsTrigger>
-                <TabsTrigger value="custom">Custom Upload</TabsTrigger>
-              </TabsList>
-              <TabsContent value="predefined" className="space-y-3">
-                <PredefinedAvatarPicker selectedId={selectedAvatar} onSelect={setSelectedAvatar} />
-              </TabsContent>
-              <TabsContent value="custom" className="space-y-3">
-                <div className="border-2 border-dashed rounded-md p-4">
-                  {customPhotoPreview ? (
-                    <div className="space-y-2">
-                      <img
-                        src={customPhotoPreview}
-                        alt="Preview"
-                        className="w-32 h-32 object-cover rounded-full mx-auto"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setCustomPhotoFile(null);
-                          setCustomPhotoPreview(null);
-                        }}
-                        className="w-full"
-                      >
-                        Change Photo
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <input
-                        type="file"
-                        id="custom-photo"
-                        accept="image/png,image/jpeg"
-                        className="hidden"
-                        onChange={handleCustomPhotoChange}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => document.getElementById('custom-photo')?.click()}
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload Photo (PNG/JPEG)
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile Information</CardTitle>
+            <CardDescription>
+              Your profile information is used for identification across the platform
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label>Profile Picture</Label>
+              <Tabs value={avatarMode} onValueChange={(v) => setAvatarMode(v as 'predefined' | 'custom')}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="predefined">Predefined</TabsTrigger>
+                  <TabsTrigger value="custom">Custom Upload</TabsTrigger>
+                </TabsList>
+                <TabsContent value="predefined" className="space-y-3 mt-4">
+                  <PredefinedAvatarPicker selectedId={selectedAvatar} onSelect={setSelectedAvatar} />
+                </TabsContent>
+                <TabsContent value="custom" className="space-y-3 mt-4">
+                  <div className="border-2 border-dashed rounded-lg p-6">
+                    {customPhotoPreview ? (
+                      <div className="space-y-3">
+                        <img
+                          src={customPhotoPreview}
+                          alt="Preview"
+                          className="w-32 h-32 object-cover rounded-full mx-auto"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setCustomPhotoFile(null);
+                            setCustomPhotoPreview(null);
+                          }}
+                          className="w-full"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ) : (
+                      <label className="cursor-pointer flex flex-col items-center gap-2">
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Click to upload photo</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCustomPhotoChange}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="principal">Principal ID</Label>
-            <Input
-              id="principal"
-              value={identity?.getPrincipal().toString() || ''}
-              disabled
-              className="font-mono text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              Your unique identifier on the Internet Computer
-            </p>
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name *</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your full name"
+                />
+                {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="name">
-              Name <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your full name"
-              className={errors.name ? 'border-destructive' : ''}
-            />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name}</p>
-            )}
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username"
+                />
+              </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">
-              Corporate Email <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={`your.name@${allowedDomain}`}
-              className={errors.email ? 'border-destructive' : ''}
-            />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email}</p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              {isAdmin ? 'Admins can use any domain' : `Must end with @${allowedDomain}`}
-            </p>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Display Name</Label>
+              <Input
+                id="displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Enter your display name"
+              />
+              <p className="text-xs text-muted-foreground">
+                This is how your name will appear to other users
+              </p>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="entity">
-              Entity <span className="text-destructive">*</span>
-            </Label>
-            <EntityTagInput
-              value={entity}
-              onChange={setEntity}
-              suggestions={entitySuggestions}
-              error={errors.entity}
-            />
-            {errors.entity && (
-              <p className="text-sm text-destructive">{errors.entity}</p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              Your team or department (e.g., T2I, IVV, Qualite, IMI, RLI)
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={`user@${allowedDomain}`}
+              />
+              {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+              {!isAdmin && (
+                <p className="text-xs text-muted-foreground">
+                  Only {allowedDomain} email addresses are allowed
+                </p>
+              )}
+            </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Expiration Preferences
-          </CardTitle>
-          <CardDescription>
-            Configure when components are considered "expiring soon"
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="threshold">
-              Global Threshold (days)
-            </Label>
-            <Input
-              id="threshold"
-              type="number"
-              min="1"
-              max="365"
-              value={globalThreshold}
-              onChange={(e) => setGlobalThreshold(parseInt(e.target.value) || 30)}
-              className={errors.threshold ? 'border-destructive' : ''}
-            />
-            {errors.threshold && (
-              <p className="text-sm text-destructive">{errors.threshold}</p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              Components expiring within this many days will be highlighted (default: 30 days)
-            </p>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="avatarUrl">Avatar URL</Label>
+              <Input
+                id="avatarUrl"
+                type="url"
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                placeholder="https://example.com/avatar.jpg"
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional: External URL for your avatar image
+              </p>
+            </div>
 
-          <div className="space-y-4">
-            <Label>Apply Threshold To</Label>
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea
+                id="bio"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell us about yourself..."
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">
+                A brief description about yourself
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="entity">Entity *</Label>
+              <EntityTagInput
+                value={entity}
+                onChange={setEntity}
+                suggestions={entitySuggestions}
+              />
+              {errors.entity && <p className="text-sm text-destructive">{errors.entity}</p>}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Languages className="h-5 w-5" />
+              {t('profile.language')}
+            </CardTitle>
+            <CardDescription>
+              {t('profile.languageDescription')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Label htmlFor="language">Language</Label>
+              <Select value={languageTag} onValueChange={handleLanguageChange}>
+                <SelectTrigger id="language">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPORTED_LANGUAGES.map((lang) => (
+                    <SelectItem key={lang.code} value={lang.code}>
+                      <span className="flex items-center gap-2">
+                        <span>{lang.flag}</span>
+                        <span>{lang.name}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Changes take effect immediately across the entire application
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Expiration Thresholds
+            </CardTitle>
+            <CardDescription>
+              Configure when components are considered expiring soon
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
             <RadioGroup value={thresholdMode} onValueChange={(v) => setThresholdMode(v as 'all' | 'customize')}>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="all" id="mode-all" />
-                <Label htmlFor="mode-all" className="font-normal cursor-pointer">
-                  All benches
+                <RadioGroupItem value="all" id="all" />
+                <Label htmlFor="all" className="font-normal cursor-pointer">
+                  Apply same threshold to all benches
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="customize" id="mode-customize" />
-                <Label htmlFor="mode-customize" className="font-normal cursor-pointer">
-                  Customize per bench
+                <RadioGroupItem value="customize" id="customize" />
+                <Label htmlFor="customize" className="font-normal cursor-pointer">
+                  Customize threshold per bench
                 </Label>
               </div>
             </RadioGroup>
-          </div>
 
-          {thresholdMode === 'customize' && (
-            <div className="space-y-4 border rounded-md p-4">
-              <Label>Select Benches and Set Thresholds</Label>
-              {benches.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No benches available</p>
-              ) : (
-                <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="globalThreshold">
+                {thresholdMode === 'all' ? 'Global Threshold (days)' : 'Default Threshold (days)'}
+              </Label>
+              <Input
+                id="globalThreshold"
+                type="number"
+                min="1"
+                max="365"
+                value={globalThreshold}
+                onChange={(e) => setGlobalThreshold(Number(e.target.value))}
+              />
+              {errors.threshold && <p className="text-sm text-destructive">{errors.threshold}</p>}
+              <p className="text-xs text-muted-foreground">
+                Components expiring within this many days will be marked as "Expiring Soon"
+              </p>
+            </div>
+
+            {thresholdMode === 'customize' && (
+              <div className="space-y-3 border rounded-lg p-4">
+                <Label>Select Benches to Customize</Label>
+                <div className="space-y-3 max-h-64 overflow-y-auto">
                   {benches.map((bench) => (
                     <div key={bench.id} className="space-y-2">
                       <div className="flex items-center space-x-2">
@@ -458,13 +529,13 @@ export default function ProfilePage() {
                           onCheckedChange={(checked) => handleBenchToggle(bench.id, checked as boolean)}
                         />
                         <Label htmlFor={`bench-${bench.id}`} className="font-normal cursor-pointer flex-1">
-                          {bench.name} {bench.agileCode && `(${bench.agileCode})`}
+                          {bench.name}
                         </Label>
                       </div>
                       {selectedBenches.has(bench.id) && (
-                        <div className="ml-6 flex items-center gap-2">
+                        <div className="ml-6 space-y-1">
                           <Label htmlFor={`threshold-${bench.id}`} className="text-xs">
-                            Threshold:
+                            Threshold (days)
                           </Label>
                           <Input
                             id={`threshold-${bench.id}`}
@@ -472,38 +543,28 @@ export default function ProfilePage() {
                             min="1"
                             max="365"
                             value={benchThresholds.get(bench.id) || globalThreshold}
-                            onChange={(e) =>
-                              handleBenchThresholdChange(bench.id, parseInt(e.target.value) || 30)
-                            }
-                            className="w-20 h-8"
+                            onChange={(e) => handleBenchThresholdChange(bench.id, Number(e.target.value))}
+                            className="h-8"
                           />
-                          <span className="text-xs text-muted-foreground">days</span>
                         </div>
                       )}
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      <div className="flex gap-2 pt-6">
-        <Button
-          onClick={handleSave}
-          disabled={saveMutation.isPending || updatePreferencesMutation.isPending || setProfilePictureMutation.isPending}
-          className="flex-1"
-        >
-          {(saveMutation.isPending || updatePreferencesMutation.isPending || setProfilePictureMutation.isPending) ? (
-            <>Saving...</>
-          ) : (
-            <>
-              <CheckCircle2 className="h-4 w-4 mr-2" />
-              Save Profile & Preferences
-            </>
-          )}
-        </Button>
+        <div className="flex justify-end gap-3">
+          <Button
+            onClick={handleSave}
+            disabled={saveMutation.isPending || updatePreferencesMutation.isPending}
+            size="lg"
+          >
+            {saveMutation.isPending || updatePreferencesMutation.isPending ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
       </div>
     </div>
   );

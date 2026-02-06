@@ -1,78 +1,56 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T12:37:58.973Z",
-  "summary": "BuildRequest contains no stated requirements or acceptance criteria. The diff shows multiple functional additions/changes across backend and frontend (authorization, profile/dashboard features, bench UI enhancements, component duplication behavior). With no requirements, there are no identifiable missing requirements; most changes appear unrequested relative to the empty BuildRequest.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-06T20:07:30.849Z",
+  "summary": "Diff adds new backend UserProfile fields plus a Motoko migration module, and introduces a frontend I18nProvider to load/persist language and update UI immediately. The Profile page appears extended with the new fields and improved styling, but key backend partial-update preservation and frontend save payload changes are not fully verifiable from the truncated diff. Diff summary also indicates unrelated dashboard/chart features and broader global theming changes not requested.",
+  "missing_requirements": [
     {
-      "description": "Implemented/modified authorization and access control checks for test bench access (e.g., permission-gated getAllTestBenches).",
-      "reason": "No requirements were provided in the BuildRequest; this behavior is not requested.",
+      "id": "REQ-1",
+      "requirement": "Update all backend profile-related methods that construct or update a UserProfile (including getCallerUserProfile defaults and partial-update methods like setLanguageTag, setProfilePicture, updateExpirationPreferences, updateDashboardSectionsOrder) so they preserve all profile fields when updating a single property.",
+      "reason": "While UserProfile is extended with username/displayName/avatarUrl/bio, the diff is truncated before showing the implementations of the profile update methods; therefore it is not possible to confirm that partial updates preserve all fields and do not reset the new ones.",
       "evidence": [
-        "backend/main.mo"
+        "backend/main.mo (truncated after type definitions; no shown implementations of setLanguageTag/setProfilePicture/updateExpirationPreferences/updateDashboardSectionsOrder/getCallerUserProfile)"
       ]
     },
     {
-      "description": "Added/modified component duplication UX (dialog to duplicate a component to other benches) and bench detail integration with refetch callback.",
-      "reason": "No requirements were provided in the BuildRequest; this behavior is not requested.",
+      "id": "REQ-3",
+      "requirement": "Ensure the Profile page includes the new fields when saving the profile so they are persisted in the backend and restored automatically after login/logout.",
+      "reason": "ProfilePage state and initialization for the new fields are visible, but the diff is truncated before showing the save/submit handler payload sent via useSaveCallerUserProfile, so it cannot be confirmed that username/displayName/avatarUrl/bio are actually persisted.",
       "evidence": [
-        "frontend/src/pages/Benches/BenchDetailPage.tsx",
-        "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Added/modified React Query hooks for backend operations, including a duplication mutation that delays and forces refetches to update destination benches instantly.",
-      "reason": "No requirements were provided in the BuildRequest; this behavior is not requested.",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Added/modified user profile management features (avatar selection/upload, entity selection autocomplete, corporate email validation, expiration preferences, dashboard section ordering).",
-      "reason": "No requirements were provided in the BuildRequest; these capabilities are not requested.",
-      "evidence": [
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Added/modified dashboard analytics/charts section with persistence and default section merging.",
-      "reason": "No requirements were provided in the BuildRequest; this feature is not requested.",
-      "evidence": [
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Added/modified bench list/detail UI enhancements (BenchPhoto, external link buttons for PLM Agile/Decaweb, tabbed Health Book/Documents/History interface, edit/remove actions).",
-      "reason": "No requirements were provided in the BuildRequest; these UI changes are not requested.",
-      "evidence": [
-        "frontend/src/pages/Benches/BenchDetailPage.tsx",
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Added/modified admin-only gating and an administration page with bench/document/user management panels.",
-      "reason": "No requirements were provided in the BuildRequest; this functionality is not requested.",
-      "evidence": [
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Added/modified global styling/theme system and Tailwind design tokens/fonts.",
-      "reason": "No requirements were provided in the BuildRequest; style system changes are not requested.",
-      "evidence": [
-        "frontend-file-summaries.txt"
+        "frontend/src/pages/ProfilePage.tsx (truncated; initialization shown, but save handler/payload not shown)"
       ]
     }
   ],
-  "confidence": 0.74,
+  "hallucinated_features": [
+    {
+      "description": "Dashboard analytics/visualizations changes including a persistent chart type selector and ensuring a 'charts' section is always visible.",
+      "reason": "BuildRequest is focused on user profile persistence and instant language switching plus Profile page theming; it does not request dashboard chart features or section-merging behavior.",
+      "evidence": [
+        "frontend-file-summaries.txt (entry for \"frontend/src/pages/DashboardPage.tsx\": \"chart type selector (Bar/Line) with persistence\", \"analytics visualizations including charts section\", \"automatic merging of default sections...\")"
+      ]
+    },
+    {
+      "description": "Global enterprise theme overhaul (global index.css OKLCH theme and tailwind design system changes) beyond the Profile page.",
+      "reason": "REQ-5 asks for a coherent visual theme for the Profile experience specifically; applying/altering global styling and tailwind tokens across the entire app is not explicitly requested.",
+      "evidence": [
+        "frontend-file-summaries.txt (\"frontend/src/index.css\": \"Global styles with OKLCH color system defining enterprise-friendly blue-gray theme...\", \"frontend/tailwind.config.js\": \"extended design system\")"
+      ]
+    },
+    {
+      "description": "Introduction/changes of new AuthGate/AdminGate guards and an AppErrorBoundary at the top level.",
+      "reason": "The BuildRequest does not ask for new route guards or error boundaries; these are additional application-structure features.",
+      "evidence": [
+        "frontend-file-summaries.txt (entries for \"frontend/src/components/auth/AuthGate.tsx\", \"frontend/src/components/admin/AdminGate.tsx\", and \"frontend/src/components/ui/AppErrorBoundary.tsx\")"
+      ]
+    }
+  ],
+  "confidence": 0.55,
   "changed_files": [
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/Benches/BenchDetailPage.tsx",
-    "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
+    "frontend/src/i18n/I18nProvider.tsx",
+    "frontend/src/pages/ProfilePage.tsx",
     "project_state.json"
   ]
 }

@@ -1,24 +1,78 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Build a user profile system where users edit their profile (username, display name, email, avatar URL, bio) and choose a language in the profile page; all profile data is stored in the backend, automatically loaded on login, and the whole site updates language instantly and persists across login/logout.",
   "architectural_notes": [
-    "Health Book section must refresh instantly after component duplication or bench reassignment (real-time UI/data sync)."
+    "Language preference is saved in backend user profile and applied globally across the site with instant update (no full page reload).",
+    "User profile data is loaded at authentication time and reapplied after login/logout to maintain user preferences."
   ],
   "known_issues": [
-    "Duplicated/reassigned components do not appear in the destination bench’s Health Book section."
+    "Automated build/deployment attempts failed to implement the requested profile + language persistence/instant update flow (needs retry/rebuild)."
   ],
   "isFixRequest": true,
-  "existing_features": [],
+  "existing_features": [
+    {
+      "id": "feature-update-the-profile-page-ui-so-the-user-can-view-and-edit-all-requested-profile-fields-username-display-name-email-avatar-url-bio-and-language-ensure-these-fields-are-included-when-saving-the-profile-so-they-are-persisted-in-the-backend-and-restored-automatically-after-login-logout",
+      "title": "Update the Profile page UI so the user can view and edit all requested profile fields: username, display name, email, avatar URL, bio, and language. Ensure these fields are included when saving the profile so they are persisted in the backend and restored automatically after login/logout.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-that-changing-the-language-from-the-profile-page-updates-the-entire-site-immediately-without-a-full-page-reload-and-that-the-selected-language-persists-across-login-logout-by-loading-the-user-s-saved-language-from-the-backend-upon-authentication-state-changes",
+      "title": "Ensure that changing the language from the Profile page updates the entire site immediately without a full page reload and that the selected language persists across login/logout by loading the user’s saved language from the backend upon authentication state changes.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-and-apply-a-coherent-visual-theme-colors-typography-spacing-and-component-styling-for-the-profile-experience-so-it-looks-consistent-with-the-rest-of-the-app-without-changing-product-functionality",
+      "title": "Create and apply a coherent visual theme (colors, typography, spacing, and component styling) for the Profile experience so it looks consistent with the rest of the app, without changing product functionality.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    }
+  ],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Fix: When duplicating/reassigning a component to another bench, update the destination bench Health Book section instantly so the component appears correctly",
+      "summary": "Profile page: allow editing username, display name, email, avatar URL, bio, and language",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Backend persistence: store all user profile data (including language) and restore automatically on login/logout",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Instant i18n update: when user changes language in profile, the entire site updates immediately (no page reload)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Extend the backend `UserProfile` data model to persist these additional profile fields for each user: `username`, `displayName`, `avatarUrl`, and `bio` (in addition to the existing fields including `languageTag`). Update all backend profile-related methods that construct or update a `UserProfile` (including `getCallerUserProfile` defaults and any partial-update methods like `setLanguageTag`, `setProfilePicture`, `updateExpirationPreferences`, and `updateDashboardSectionsOrder`) so they preserve all profile fields when updating a single property.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add a conditional Motoko state migration for existing canister state to safely populate the new `UserProfile` fields (`username`, `displayName`, `avatarUrl`, `bio`) for previously stored profiles, preserving all existing user profile data (including `languageTag`) and all other actor state.",
+      "reqIds": [
+        "REQ-2"
+      ],
       "status": "pending"
     }
   ],
-  "projectName": "Untitled request",
+  "projectName": "Persist full user profile fields and instant language switching across login/logout",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

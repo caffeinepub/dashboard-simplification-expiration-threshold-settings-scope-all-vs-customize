@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { TestBench, UserProfile, UserRole, Tag, ExternalBlob, ExpirationThresholdMode, Component, Document, HistoryEntry, ProfilePicture, PublicUserInfo, ExpiredComponentSummary } from '../backend';
+import type { TestBench, UserProfile, UserRole, Tag, ExternalBlob, ExpirationThresholdMode, Component, Document, HistoryEntry, ProfilePicture, PublicUserInfo } from '../backend';
 import { Principal } from '@dfinity/principal';
 import { useAvatarCacheBuster } from './useAvatarCacheBuster';
 
@@ -63,6 +63,7 @@ export function useSaveCallerUserProfile() {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['testBenches'] });
       queryClient.invalidateQueries({ queryKey: ['uniqueEntities'] });
+      queryClient.invalidateQueries({ queryKey: ['languageTag'] });
     },
   });
 }
@@ -257,6 +258,35 @@ export function useIsUserOnline(userId: string) {
   });
 }
 
+export function useGetLanguageTag() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<string>({
+    queryKey: ['languageTag'],
+    queryFn: async () => {
+      if (!actor) return 'en-US';
+      return actor.getLanguageTag();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useSetLanguageTag() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (languageTag: string) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.setLanguageTag(languageTag);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['languageTag'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
 export function useGetBenchTagSuggestions() {
   const { actor, isFetching } = useActor();
 
@@ -346,7 +376,6 @@ export function useCreateTestBench() {
       queryClient.invalidateQueries({ queryKey: ['benchTagSuggestions'] });
       queryClient.invalidateQueries({ queryKey: ['benchComponents'] });
       queryClient.invalidateQueries({ queryKey: ['allDocuments'] });
-      queryClient.invalidateQueries({ queryKey: ['expiredComponentsSummary'] });
     },
   });
 }
@@ -404,7 +433,6 @@ export function useRemoveTestBench() {
       queryClient.invalidateQueries({ queryKey: ['benchTagSuggestions'] });
       queryClient.invalidateQueries({ queryKey: ['benchComponents'] });
       queryClient.invalidateQueries({ queryKey: ['allDocuments'] });
-      queryClient.invalidateQueries({ queryKey: ['expiredComponentsSummary'] });
     },
   });
 }
@@ -435,7 +463,6 @@ export function useSetBenchComponents() {
       queryClient.invalidateQueries({ queryKey: ['benchComponents', variables.benchId] });
       queryClient.invalidateQueries({ queryKey: ['benchComponents'] });
       queryClient.invalidateQueries({ queryKey: ['benchHistory', variables.benchId] });
-      queryClient.invalidateQueries({ queryKey: ['expiredComponentsSummary'] });
     },
   });
 }
@@ -453,21 +480,21 @@ export function useDuplicateComponentToBenches() {
       await new Promise(resolve => setTimeout(resolve, 300));
     },
     onSuccess: async (_, variables) => {
-      // Invalidate all affected bench component queries
+      // Invalidate and refetch all affected bench component queries
       for (const benchId of variables.targetBenchIds) {
-        queryClient.invalidateQueries({ queryKey: ['benchComponents', benchId] });
-        queryClient.invalidateQueries({ queryKey: ['benchHistory', benchId] });
+        await queryClient.invalidateQueries({ queryKey: ['benchComponents', benchId] });
+        await queryClient.invalidateQueries({ queryKey: ['benchHistory', benchId] });
       }
       
       // Invalidate global queries
-      queryClient.invalidateQueries({ queryKey: ['benchComponents'] });
-      queryClient.invalidateQueries({ queryKey: ['expiredComponentsSummary'] });
+      await queryClient.invalidateQueries({ queryKey: ['benchComponents'] });
       
       // Force immediate refetch of all destination benches to ensure data is ready
+      // This ensures that navigating to a destination bench shows the duplicated component immediately
       const refetchPromises = variables.targetBenchIds.map(async (benchId) => {
         await queryClient.refetchQueries({ 
           queryKey: ['benchComponents', benchId],
-          type: 'active'
+          exact: true
         });
       });
       
@@ -501,19 +528,6 @@ export function useGetAllBenchComponents() {
       return results;
     },
     enabled: !!actor && !isFetching && benches.length > 0,
-  });
-}
-
-export function useGetExpiredComponentsSummary() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<ExpiredComponentSummary[]>({
-    queryKey: ['expiredComponentsSummary'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getExpiredComponentsSummary();
-    },
-    enabled: !!actor && !isFetching,
   });
 }
 
@@ -581,12 +595,13 @@ export function useGetAllDocuments() {
       
       for (const bench of benches) {
         for (const [docId] of bench.documents) {
-          const doc = await actor.filterDocumentsByTags([]);
-          const matchingDoc = doc.find(d => d.id === docId);
+          const docs = await actor.filterDocumentsByTags([]);
+          const matchingDoc = docs.find(d => d.id === docId);
           
           if (matchingDoc) {
-            if (documentMap.has(docId)) {
-              documentMap.get(docId)!.benchNames.push(bench.name);
+            const existing = documentMap.get(docId);
+            if (existing) {
+              existing.benchNames.push(bench.name);
             } else {
               documentMap.set(docId, {
                 document: matchingDoc,
@@ -597,33 +612,11 @@ export function useGetAllDocuments() {
         }
       }
       
-      const results: Array<{ document: Document; benchName: string }> = [];
-      documentMap.forEach(({ document, benchNames }) => {
-        benchNames.forEach(benchName => {
-          results.push({ document, benchName });
-        });
-      });
-      
-      return results;
+      return Array.from(documentMap.values()).map(({ document, benchNames }) => ({
+        document,
+        benchName: benchNames.join(', '),
+      }));
     },
     enabled: !!actor && !isFetching && benches.length > 0,
-  });
-}
-
-export function useGetBenchDocuments(benchId: string) {
-  const { actor, isFetching } = useActor();
-  const { data: bench } = useGetTestBench(benchId);
-
-  return useQuery<Document[]>({
-    queryKey: ['benchDocuments', benchId],
-    queryFn: async () => {
-      if (!actor || !bench) return [];
-      
-      const allDocs = await actor.filterDocumentsByTags([]);
-      const benchDocIds = bench.documents.map(([docId]) => docId);
-      
-      return allDocs.filter(doc => benchDocIds.includes(doc.id));
-    },
-    enabled: !!actor && !isFetching && !!bench,
   });
 }

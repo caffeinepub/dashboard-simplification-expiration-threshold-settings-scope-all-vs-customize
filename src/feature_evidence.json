@@ -1,4 +1,66 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-update-the-profile-page-ui-so-the-user-can-view-and-edit-all-requested-profile-fields-username-display-name-email-avatar-url-bio-and-language-ensure-these-fields-are-included-when-saving-the-profile-so-they-are-persisted-in-the-backend-and-restored-automatically-after-login-logout",
+      "featureTitle": "Update the Profile page UI so the user can view and edit all requested profile fields: username, display name, email, avatar URL, bio, and language. Ensure these fields are included when saving the profile so they are persisted in the backend and restored automatically after login/logout.",
+      "files": [
+        "frontend/src/pages/ProfilePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-that-changing-the-language-from-the-profile-page-updates-the-entire-site-immediately-without-a-full-page-reload-and-that-the-selected-language-persists-across-login-logout-by-loading-the-user-s-saved-language-from-the-backend-upon-authentication-state-changes",
+      "featureTitle": "Ensure that changing the language from the Profile page updates the entire site immediately without a full page reload and that the selected language persists across login/logout by loading the user’s saved language from the backend upon authentication state changes.",
+      "files": [
+        "frontend/src/i18n/I18nProvider.tsx",
+        "frontend/src/pages/ProfilePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-and-apply-a-coherent-visual-theme-colors-typography-spacing-and-component-styling-for-the-profile-experience-so-it-looks-consistent-with-the-rest-of-the-app-without-changing-product-functionality",
+      "featureTitle": "Create and apply a coherent visual theme (colors, typography, spacing, and component styling) for the Profile experience so it looks consistent with the rest of the app, without changing product functionality.",
+      "files": [
+        "frontend/src/pages/ProfilePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

@@ -15,10 +15,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Progress } from '@/components/ui/progress';
 import { Trash2, Upload, FileIcon, Download, Pencil } from 'lucide-react';
-import { ExternalBlob } from '../../../backend';
+import { ExternalBlob, Document } from '../../../backend';
 import { generateId } from '../../../utils/id';
 import { uploadFileAsBlob } from '../../../utils/blobUpload';
-import { useAssociateDocumentToBench, useRemoveDocumentFromBench, useGetBenchDocuments } from '../../../hooks/useQueries';
+import { useAssociateDocumentToBench, useRemoveDocumentFromBench, useGetTestBench } from '../../../hooks/useQueries';
 import { useActor } from '../../../hooks/useActor';
 import { downloadDocument } from '../../../utils/download';
 import { toast } from 'sonner';
@@ -31,7 +31,7 @@ const DOCUMENT_CATEGORIES = ['Hardware', 'Software', 'Other(s)'] as const;
 
 export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
   const { actor } = useActor();
-  const { data: documents = [], isLoading } = useGetBenchDocuments(benchId);
+  const { data: bench } = useGetTestBench(benchId);
   const associateDoc = useAssociateDocumentToBench();
   const removeDoc = useRemoveDocumentFromBench();
   
@@ -46,6 +46,28 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
   const [documentVersions, setDocumentVersions] = useState<Record<string, string>>({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<{ id: string; name: string } | null>(null);
+
+  // Get documents from bench
+  const [documents, setDocuments] = useState<Document[]>([]);
+
+  // Load documents when bench data is available
+  useState(() => {
+    const loadDocuments = async () => {
+      if (!actor || !bench) return;
+      
+      try {
+        const allDocs = await actor.filterDocumentsByTags([]);
+        const benchDocs = allDocs.filter(doc => 
+          bench.documents.some(([docId]) => docId === doc.id)
+        );
+        setDocuments(benchDocs);
+      } catch (error) {
+        console.error('Failed to load documents:', error);
+      }
+    };
+    
+    loadDocuments();
+  });
 
   const handleFileSelect = (category: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -120,7 +142,7 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
     }
   };
 
-  const handleDownload = async (doc: any) => {
+  const handleDownload = async (doc: Document) => {
     try {
       await downloadDocument(doc.fileReference, doc.productDisplayName);
       toast.success(`Downloaded ${doc.productDisplayName}`);
@@ -140,7 +162,7 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
     }
     acc[doc.category].push(doc);
     return acc;
-  }, {} as Record<string, typeof documents>);
+  }, {} as Record<string, Document[]>);
 
   return (
     <>

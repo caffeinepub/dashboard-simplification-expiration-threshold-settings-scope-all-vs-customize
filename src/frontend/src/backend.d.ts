@@ -14,15 +14,6 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
-export interface ExpiredComponentSummary {
-    aml: string;
-    status: Status;
-    component: Component;
-    dueDate: string;
-    currentDate: string;
-    benchSerialNumber: string;
-    associatedBench: string;
-}
 export type Time = bigint;
 export interface HistoryEntry {
     action: string;
@@ -80,11 +71,16 @@ export interface PublicUserInfo {
     profilePicture: ProfilePicture;
 }
 export interface UserProfile {
+    bio: string;
     entity: string;
+    username: string;
+    displayName: string;
+    languageTag: string;
     thresholdCustomizedBenches: Array<[string, bigint]>;
     userId: string;
     name: string;
     email: string;
+    avatarUrl: string;
     thresholdAllBenches: bigint;
     expirationThresholdMode: ExpirationThresholdMode;
     profilePicture: ProfilePicture;
@@ -111,7 +107,7 @@ export interface backendInterface {
     createDocument(id: string, productDisplayName: string, version: Version, category: string, fileReference: ExternalBlob, semanticVersion: string, tags: Array<Tag>, documentVersion: string | null): Promise<void>;
     createTestBench(id: string, name: string, serialNumber: string, agileCode: string, plmAgileUrl: string, decawebUrl: string, description: string, photo: ExternalBlob, photoUrl: string | null, tags: Array<Tag>): Promise<void>;
     documentExists(documentId: string): Promise<boolean>;
-    duplicateComponentToBench(_benchId: string, _component: Component, targetBenchId: string): Promise<void>;
+    duplicateComponentToBench(_benchId: string, component: Component, targetBenchId: string): Promise<void>;
     duplicateComponentToBenches(component: Component, targetBenchIds: Array<string>): Promise<void>;
     filterDocumentsByTags(tags: Array<Tag>): Promise<Array<Document>>;
     findExpiringDocuments(daysRemaining: bigint | null): Promise<Array<Document>>;
@@ -123,7 +119,7 @@ export interface backendInterface {
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getComponents(benchId: string): Promise<Array<Component>>;
-    getExpiredComponentsSummary(): Promise<Array<ExpiredComponentSummary>>;
+    getLanguageTag(): Promise<string>;
     getProfilePicture(userId: Principal): Promise<ProfilePicture | null>;
     getPublicUserInfo(user: Principal): Promise<PublicUserInfo | null>;
     getTestBench(benchId: string): Promise<TestBench | null>;
@@ -137,6 +133,7 @@ export interface backendInterface {
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setAllowedEmailDomain(newDomain: string): Promise<void>;
     setComponents(benchId: string, components: Array<Component>): Promise<void>;
+    setLanguageTag(languageTag: string): Promise<void>;
     setProfilePicture(profilePicture: ProfilePicture): Promise<void>;
     updateDashboardSectionsOrder(sections: Array<string>): Promise<void>;
     updateExpirationPreferences(mode: ExpirationThresholdMode, thresholdAll: bigint, thresholdCustom: Array<[string, bigint]>): Promise<void>;

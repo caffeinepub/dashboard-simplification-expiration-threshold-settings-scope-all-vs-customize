@@ -1,20 +1,23 @@
 import Array "mo:core/Array";
 import Map "mo:core/Map";
+import Text "mo:core/Text";
 import Nat "mo:core/Nat";
 import Order "mo:core/Order";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
-import Text "mo:core/Text";
 import Iter "mo:core/Iter";
 import Time "mo:core/Time";
 import List "mo:core/List";
-import MixinStorage "blob-storage/Mixin";
-import Storage "blob-storage/Storage";
 import Set "mo:core/Set";
+import Migration "migration";
 
 import MixinAuthorization "authorization/MixinAuthorization";
+import MixinStorage "blob-storage/Mixin";
+import Storage "blob-storage/Storage";
 import AccessControl "authorization/access-control";
 
+// Use migration
+(with migration = Migration.run)
 actor {
   // Initialize the user system state
   let accessControlState = AccessControl.initState();
@@ -99,16 +102,6 @@ actor {
     };
   };
 
-  type ExpiredComponentSummary = {
-    component : Component;
-    dueDate : Text;
-    currentDate : Text;
-    aml : Text;
-    associatedBench : Text;
-    benchSerialNumber : Text;
-    status : Status;
-  };
-
   type HistoryEntry = {
     timestamp : Time.Time;
     action : Text;
@@ -129,6 +122,10 @@ actor {
   type UserProfile = {
     userId : Text;
     email : Text;
+    username : Text;
+    displayName : Text;
+    bio : Text;
+    avatarUrl : Text;
     name : Text;
     entity : Text;
     expirationThresholdMode : ExpirationThresholdMode;
@@ -136,6 +133,7 @@ actor {
     thresholdCustomizedBenches : [(Text, Nat)];
     dashboardSectionsOrdered : [Text];
     profilePicture : ProfilePicture;
+    languageTag : Text;
     lastSeen : ?Int;
   };
 
@@ -153,7 +151,6 @@ actor {
   let entitiesSet = Set.empty<Text>();
   var allowedEmailDomain = "safrangroup.com";
 
-  // Benches
   public query ({ caller }) func getAllTestBenches() : async [TestBench] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access test benches");
@@ -171,7 +168,6 @@ actor {
     };
   };
 
-  // Documents
   public query ({ caller }) func documentExists(documentId : Text) : async Bool {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access documents");
@@ -214,7 +210,6 @@ actor {
     filteredDocs;
   };
 
-  // Upload a file
   public shared ({ caller }) func uploadProfilePicture(picture : Storage.ExternalBlob) : async Storage.ExternalBlob {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can upload files");
@@ -222,7 +217,6 @@ actor {
     picture;
   };
 
-  // Set profile picture
   public shared ({ caller }) func setProfilePicture(profilePicture : ProfilePicture) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can set profile picture");
@@ -236,6 +230,10 @@ actor {
     let updatedProfile : UserProfile = {
       userId = currentProfile.userId;
       email = currentProfile.email;
+      username = currentProfile.username;
+      displayName = currentProfile.displayName;
+      bio = currentProfile.bio;
+      avatarUrl = currentProfile.avatarUrl;
       name = currentProfile.name;
       entity = currentProfile.entity;
       expirationThresholdMode = currentProfile.expirationThresholdMode;
@@ -243,6 +241,7 @@ actor {
       thresholdCustomizedBenches = currentProfile.thresholdCustomizedBenches;
       dashboardSectionsOrdered = currentProfile.dashboardSectionsOrdered;
       profilePicture;
+      languageTag = currentProfile.languageTag;
       lastSeen = currentProfile.lastSeen;
     };
 
@@ -259,7 +258,48 @@ actor {
     };
   };
 
-  // User Profile Management
+  public shared ({ caller }) func setLanguageTag(languageTag : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can set language preference");
+    };
+
+    let currentProfile = switch (userProfileMap.get(caller)) {
+      case (null) { Runtime.trap("User profile does not exist") };
+      case (?profile) { profile };
+    };
+
+    let updatedProfile : UserProfile = {
+      userId = currentProfile.userId;
+      email = currentProfile.email;
+      username = currentProfile.username;
+      displayName = currentProfile.displayName;
+      bio = currentProfile.bio;
+      avatarUrl = currentProfile.avatarUrl;
+      name = currentProfile.name;
+      entity = currentProfile.entity;
+      expirationThresholdMode = currentProfile.expirationThresholdMode;
+      thresholdAllBenches = currentProfile.thresholdAllBenches;
+      thresholdCustomizedBenches = currentProfile.thresholdCustomizedBenches;
+      dashboardSectionsOrdered = currentProfile.dashboardSectionsOrdered;
+      profilePicture = currentProfile.profilePicture;
+      languageTag;
+      lastSeen = currentProfile.lastSeen;
+    };
+
+    userProfileMap.add(caller, updatedProfile);
+  };
+
+  public query ({ caller }) func getLanguageTag() : async Text {
+    // No authorization check - accessible to all users including guests
+    // This allows the frontend to get language preference before authentication
+    switch (userProfileMap.get(caller)) {
+      case (null) {
+        "en-US"; // Default to English if no profile exists
+      };
+      case (?profile) { profile.languageTag };
+    };
+  };
+
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view profiles");
@@ -267,6 +307,7 @@ actor {
 
     switch (userProfileMap.get(caller)) {
       case (null) {
+        // Default dashboard structure
         let defaultSections = [
           "dashboardGeneralStatsChart",
           "dashboardTotalBenchesChart",
@@ -282,6 +323,10 @@ actor {
         ?{
           userId = caller.toText();
           email = "";
+          username = "";
+          displayName = "";
+          bio = "";
+          avatarUrl = "";
           name = "";
           entity = "";
           expirationThresholdMode = #allBenches;
@@ -289,6 +334,7 @@ actor {
           thresholdCustomizedBenches = [];
           dashboardSectionsOrdered = defaultSections;
           profilePicture = #avatar("default");
+          languageTag = "en-US";
           lastSeen = null;
         };
       };
@@ -303,12 +349,10 @@ actor {
     userProfileMap.get(user);
   };
 
-  // Helper function to check email domain
   func hasAllowedDomain(email : Text) : Bool {
     email.endsWith(#text("@" # allowedEmailDomain));
   };
 
-  // Save or update user profile with persistent entities management
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
@@ -318,14 +362,10 @@ actor {
       Runtime.trap("Invalid email domain. Only " # allowedEmailDomain # " is allowed.");
     };
 
-    // Update entities set with new profile entity
-    // Original entities set persists across upgrades due to Map storage
     entitiesSet.add(profile.entity);
-
     userProfileMap.add(caller, profile);
   };
 
-  // Entity suggestions for non-admin users
   public query ({ caller }) func getUniqueEntities() : async [Text] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can view entities");
@@ -347,7 +387,6 @@ actor {
     allowedEmailDomain;
   };
 
-  // Online status indicator (authenticated UDP sockets not implemented and not needed)
   public query ({ caller }) func isOnline(userId : Principal) : async Bool {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can check online status");
@@ -380,6 +419,10 @@ actor {
     let updatedProfile : UserProfile = {
       userId = currentProfile.userId;
       email = currentProfile.email;
+      username = currentProfile.username;
+      displayName = currentProfile.displayName;
+      bio = currentProfile.bio;
+      avatarUrl = currentProfile.avatarUrl;
       name = currentProfile.name;
       entity = currentProfile.entity;
       expirationThresholdMode = currentProfile.expirationThresholdMode;
@@ -387,13 +430,13 @@ actor {
       thresholdCustomizedBenches = currentProfile.thresholdCustomizedBenches;
       dashboardSectionsOrdered = currentProfile.dashboardSectionsOrdered;
       profilePicture = currentProfile.profilePicture;
+      languageTag = currentProfile.languageTag;
       lastSeen = ?Time.now();
     };
 
     userProfileMap.add(caller, updatedProfile);
   };
 
-  // Admin function to fetch all users by entity
   public query ({ caller }) func getUsersByEntity(entity : Text) : async [UserProfile] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view users by entity");
@@ -441,6 +484,10 @@ actor {
     let updatedProfile : UserProfile = {
       userId = currentProfile.userId;
       email = currentProfile.email;
+      username = currentProfile.username;
+      displayName = currentProfile.displayName;
+      bio = currentProfile.bio;
+      avatarUrl = currentProfile.avatarUrl;
       name = currentProfile.name;
       entity = currentProfile.entity;
       expirationThresholdMode = mode;
@@ -448,6 +495,7 @@ actor {
       thresholdCustomizedBenches = thresholdCustom;
       dashboardSectionsOrdered = currentProfile.dashboardSectionsOrdered;
       profilePicture = currentProfile.profilePicture;
+      languageTag = currentProfile.languageTag;
       lastSeen = currentProfile.lastSeen;
     };
 
@@ -467,6 +515,10 @@ actor {
     let updatedProfile : UserProfile = {
       userId = currentProfile.userId;
       email = currentProfile.email;
+      username = currentProfile.username;
+      displayName = currentProfile.displayName;
+      bio = currentProfile.bio;
+      avatarUrl = currentProfile.avatarUrl;
       name = currentProfile.name;
       entity = currentProfile.entity;
       expirationThresholdMode = currentProfile.expirationThresholdMode;
@@ -474,13 +526,13 @@ actor {
       thresholdCustomizedBenches = currentProfile.thresholdCustomizedBenches;
       dashboardSectionsOrdered = sections;
       profilePicture = currentProfile.profilePicture;
+      languageTag = currentProfile.languageTag;
       lastSeen = currentProfile.lastSeen;
     };
 
     userProfileMap.add(caller, updatedProfile);
   };
 
-  // Test Bench Operations
   public shared ({ caller }) func createTestBench(
     id : Text,
     name : Text,
@@ -760,7 +812,6 @@ actor {
     addHistoryEntry(benchId, historyEntry);
   };
 
-  // Component Management
   public shared ({ caller }) func setComponents(benchId : Text, components : [Component]) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can manage components");
@@ -792,12 +843,7 @@ actor {
     };
   };
 
-  // Duplicate/Transfer a single Equipment/Component
-  public shared ({ caller }) func duplicateComponentToBench(_benchId : Text, _component : Component, targetBenchId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can duplicate components between benches");
-    };
-
+  private func duplicateComponentToBenchInternal(component : Component, targetBenchId : Text, caller : Principal) {
     let targetBench = switch (testBenchMap.get(targetBenchId)) {
       case (null) { Runtime.trap("Target bench does not exist") };
       case (?tb) { tb };
@@ -809,7 +855,7 @@ actor {
     };
 
     let duplicatedComponent : Component = {
-      _component with
+      component with
       associatedBenchId = targetBench.id
     };
 
@@ -824,7 +870,14 @@ actor {
     addHistoryEntry(targetBench.id, historyEntry);
   };
 
-  // Duplicate/Transfer an Equipment/Component to multiple Benches called with pre-merged set of benches, so each equipment is only duplicated to one bench
+  public shared ({ caller }) func duplicateComponentToBench(_benchId : Text, component : Component, targetBenchId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can duplicate components between benches");
+    };
+
+    duplicateComponentToBenchInternal(component, targetBenchId, caller);
+  };
+
   public shared ({ caller }) func duplicateComponentToBenches(component : Component, targetBenchIds : [Text]) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can duplicate components between benches");
@@ -835,42 +888,10 @@ actor {
     };
 
     for (targetBenchId in targetBenchIds.values()) {
-      await duplicateComponentToBench(component.associatedBenchId, component, targetBenchId);
+      duplicateComponentToBenchInternal(component, targetBenchId, caller);
     };
   };
 
-  public query ({ caller }) func getExpiredComponentsSummary() : async [ExpiredComponentSummary] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access expired components summary");
-    };
-
-    let expiredComponents = List.empty<ExpiredComponentSummary>();
-
-    for ((benchId, components) in componentMap.entries()) {
-      let bench = switch (testBenchMap.get(benchId)) {
-        case (null) { Runtime.trap("Bench does not exist") };
-        case (?b) { b };
-      };
-
-      for (component in components.values()) {
-        if (component.status == #expired) {
-          expiredComponents.add({
-            component;
-            dueDate = component.expirationDate;
-            currentDate = Time.now().toText();
-            aml = component.manufacturerReference;
-            associatedBench = bench.agileCode;
-            benchSerialNumber = bench.serialNumber;
-            status = #expired;
-          });
-        };
-      };
-    };
-
-    expiredComponents.toArray();
-  };
-
-  // History Management
   private func addHistoryEntry(benchId : Text, entry : HistoryEntry) {
     let currentHistory = switch (historyMap.get(benchId)) {
       case (null) { [] };

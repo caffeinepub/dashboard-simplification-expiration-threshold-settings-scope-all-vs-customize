@@ -1,25 +1,80 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T12:37:58.976Z",
+  "generatedAt": "2026-02-06T20:07:30.852Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 0,
-    "implemented": 0,
-    "items": []
+    "total": 5,
+    "implemented": 3,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "Extend the backend `UserProfile` data model to persist these additional profile fields for each user: `username`, `displayName`, `avatarUrl`, and `bio` (in addition to the existing fields including `languageTag`). Update all backend profile-related methods that construct or update a `UserProfile` (including `getCallerUserProfile` defaults and any partial-update methods like `setLanguageTag`, `setProfilePicture`, `updateExpirationPreferences`, and `updateDashboardSectionsOrder`) so they preserve all profile fields when updating a single property.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Add a conditional Motoko state migration for existing canister state to safely populate the new `UserProfile` fields (`username`, `displayName`, `avatarUrl`, `bio`) for previously stored profiles, preserving all existing user profile data (including `languageTag`) and all other actor state.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Update the Profile page UI so the user can view and edit all requested profile fields: username, display name, email, avatar URL, bio, and language. Ensure these fields are included when saving the profile so they are persisted in the backend and restored automatically after login/logout.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/ProfilePage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/ProfilePage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Ensure that changing the language from the Profile page updates the entire site immediately without a full page reload and that the selected language persists across login/logout by loading the user’s saved language from the backend upon authentication state changes.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/i18n/I18nProvider.tsx",
+          "frontend/src/pages/ProfilePage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/i18n/I18nProvider.tsx",
+          "frontend/src/pages/ProfilePage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Create and apply a coherent visual theme (colors, typography, spacing, and component styling) for the Profile experience so it looks consistent with the rest of the app, without changing product functionality.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/ProfilePage.tsx",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/ProfilePage.tsx"
+        ]
+      }
+    ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/Benches/BenchDetailPage.tsx",
-    "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/i18n/I18nProvider.tsx",
+    "frontend/src/pages/ProfilePage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

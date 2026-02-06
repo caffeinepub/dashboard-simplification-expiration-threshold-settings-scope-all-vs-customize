@@ -15,6 +15,7 @@ import { Loader2, Copy } from 'lucide-react';
 import { useDuplicateComponentToBenches, useGetAllTestBenches } from '../../../hooks/useQueries';
 import type { Component } from '../../../backend';
 import { toast } from 'sonner';
+import { normalizeErrorMessage } from '../../../utils/errors';
 
 interface DuplicateComponentDialogProps {
   open: boolean;
@@ -67,9 +68,10 @@ export function DuplicateComponentDialog({
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to duplicate component:', error);
-      toast.error(error.message || 'Failed to duplicate component');
+      const errorMessage = normalizeErrorMessage(error);
+      toast.error(`Failed to duplicate component: ${errorMessage}`);
     }
   };
 

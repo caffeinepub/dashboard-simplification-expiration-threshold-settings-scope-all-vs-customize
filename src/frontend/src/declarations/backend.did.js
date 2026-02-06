@@ -82,25 +82,21 @@ export const ProfilePicture = IDL.Variant({
   'avatar' : IDL.Text,
 });
 export const UserProfile = IDL.Record({
+  'bio' : IDL.Text,
   'entity' : IDL.Text,
+  'username' : IDL.Text,
+  'displayName' : IDL.Text,
+  'languageTag' : IDL.Text,
   'thresholdCustomizedBenches' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
   'userId' : IDL.Text,
   'name' : IDL.Text,
   'email' : IDL.Text,
+  'avatarUrl' : IDL.Text,
   'thresholdAllBenches' : IDL.Nat,
   'expirationThresholdMode' : ExpirationThresholdMode,
   'profilePicture' : ProfilePicture,
   'lastSeen' : IDL.Opt(IDL.Int),
   'dashboardSectionsOrdered' : IDL.Vec(IDL.Text),
-});
-export const ExpiredComponentSummary = IDL.Record({
-  'aml' : IDL.Text,
-  'status' : Status,
-  'component' : Component,
-  'dueDate' : IDL.Text,
-  'currentDate' : IDL.Text,
-  'benchSerialNumber' : IDL.Text,
-  'associatedBench' : IDL.Text,
 });
 export const PublicUserInfo = IDL.Record({
   'name' : IDL.Text,
@@ -196,11 +192,7 @@ export const idlService = IDL.Service({
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getComponents' : IDL.Func([IDL.Text], [IDL.Vec(Component)], ['query']),
-  'getExpiredComponentsSummary' : IDL.Func(
-      [],
-      [IDL.Vec(ExpiredComponentSummary)],
-      ['query'],
-    ),
+  'getLanguageTag' : IDL.Func([], [IDL.Text], ['query']),
   'getProfilePicture' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(ProfilePicture)],
@@ -226,6 +218,7 @@ export const idlService = IDL.Service({
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'setAllowedEmailDomain' : IDL.Func([IDL.Text], [], []),
   'setComponents' : IDL.Func([IDL.Text, IDL.Vec(Component)], [], []),
+  'setLanguageTag' : IDL.Func([IDL.Text], [], []),
   'setProfilePicture' : IDL.Func([ProfilePicture], [], []),
   'updateDashboardSectionsOrder' : IDL.Func([IDL.Vec(IDL.Text)], [], []),
   'updateExpirationPreferences' : IDL.Func(
@@ -330,25 +323,21 @@ export const idlFactory = ({ IDL }) => {
     'avatar' : IDL.Text,
   });
   const UserProfile = IDL.Record({
+    'bio' : IDL.Text,
     'entity' : IDL.Text,
+    'username' : IDL.Text,
+    'displayName' : IDL.Text,
+    'languageTag' : IDL.Text,
     'thresholdCustomizedBenches' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
     'userId' : IDL.Text,
     'name' : IDL.Text,
     'email' : IDL.Text,
+    'avatarUrl' : IDL.Text,
     'thresholdAllBenches' : IDL.Nat,
     'expirationThresholdMode' : ExpirationThresholdMode,
     'profilePicture' : ProfilePicture,
     'lastSeen' : IDL.Opt(IDL.Int),
     'dashboardSectionsOrdered' : IDL.Vec(IDL.Text),
-  });
-  const ExpiredComponentSummary = IDL.Record({
-    'aml' : IDL.Text,
-    'status' : Status,
-    'component' : Component,
-    'dueDate' : IDL.Text,
-    'currentDate' : IDL.Text,
-    'benchSerialNumber' : IDL.Text,
-    'associatedBench' : IDL.Text,
   });
   const PublicUserInfo = IDL.Record({
     'name' : IDL.Text,
@@ -448,11 +437,7 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getComponents' : IDL.Func([IDL.Text], [IDL.Vec(Component)], ['query']),
-    'getExpiredComponentsSummary' : IDL.Func(
-        [],
-        [IDL.Vec(ExpiredComponentSummary)],
-        ['query'],
-      ),
+    'getLanguageTag' : IDL.Func([], [IDL.Text], ['query']),
     'getProfilePicture' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(ProfilePicture)],
@@ -482,6 +467,7 @@ export const idlFactory = ({ IDL }) => {
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'setAllowedEmailDomain' : IDL.Func([IDL.Text], [], []),
     'setComponents' : IDL.Func([IDL.Text, IDL.Vec(Component)], [], []),
+    'setLanguageTag' : IDL.Func([IDL.Text], [], []),
     'setProfilePicture' : IDL.Func([ProfilePicture], [], []),
     'updateDashboardSectionsOrder' : IDL.Func([IDL.Vec(IDL.Text)], [], []),
     'updateExpirationPreferences' : IDL.Func(

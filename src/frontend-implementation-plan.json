@@ -1,6 +1,64 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Untitled request",
-  "requirements": []
+  "title": "Persist extended user profile fields and enable instant language switching in Profile UI",
+  "requirements": [
+    {
+      "id": "REQ-3",
+      "summary": "Expand Profile page form to view/edit username, display name, email, avatar URL, bio, and language, and persist them to the backend on save.",
+      "acceptanceCriteria": [
+        "Profile page contains input controls for username, display name, email, avatar URL, and bio (in addition to the existing language selector).",
+        "Saving the profile persists the new fields to the backend (verified by reloading the app or logging out/in and seeing the values restored).",
+        "User-facing labels/help text for the new fields are in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ProfilePage.tsx",
+          "operation": "modify",
+          "description": "Add controlled inputs for `username`, `displayName`, `avatarUrl`, and `bio` (keeping existing email + language selector). Initialize these fields from the loaded `UserProfile`, and on save construct and submit a complete `UserProfile` object that includes the newly edited fields while preserving existing non-edited fields (thresholds, dashboard order, profilePicture, etc.). Keep labels/help text for the new fields in English. Where profile picture upload uses `ExternalBlob`, continue using the blob-storage-backed flow; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Apply language changes instantly across the app from Profile page and reload the saved language from the backend on authentication changes (defaulting to en-US when no profile exists).",
+      "acceptanceCriteria": [
+        "When the user changes language in the Profile page, visible translatable UI text across the app updates immediately (no manual refresh).",
+        "After logout and subsequent login, the app loads the user’s saved language from the backend and applies it automatically.",
+        "If no profile exists, the app uses the default language (en-US) consistently."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/i18n/I18nProvider.tsx",
+          "operation": "modify",
+          "description": "Ensure language state is driven by auth/actor lifecycle: (1) when unauthenticated (no identity), reset language to default `en-US` consistently without backend calls; (2) when actor becomes available after login, load the saved language from the backend and apply it; (3) keep the existing behavior that updates UI immediately on set and persists asynchronously. Align with the authorization component's frontend guidance on auth state changes and cache clearing expectations; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/ProfilePage.tsx",
+          "operation": "modify",
+          "description": "Ensure the language selector continues to call the I18n provider `setLanguageTag` so the entire site updates immediately via context state updates, and keep the selected value consistent with the provider state after save/login/logout. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Apply a coherent, consistent visual theme to the Profile page experience (spacing, typography, and section styling) without changing functionality.",
+      "acceptanceCriteria": [
+        "Profile page uses consistent spacing, typography, and component styling aligned with a single chosen theme.",
+        "Theme is applied consistently within the Profile page sections (profile info, language, preferences) without introducing new features."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ProfilePage.tsx",
+          "operation": "modify",
+          "description": "Refine Profile page layout to use a consistent section structure (headers, descriptions, spacing, and form group alignment) using existing Tailwind tokens and existing UI components (Card, Label, Input, Tabs, Select). Keep changes strictly visual (no new product features). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "If needed to align Profile styling with the app-wide theme, adjust existing global CSS variables/tokens (e.g., radius/foreground/muted/border) in a minimal way so Profile sections match the rest of the app. Do not introduce new global stylesheet entry points. Verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
 }

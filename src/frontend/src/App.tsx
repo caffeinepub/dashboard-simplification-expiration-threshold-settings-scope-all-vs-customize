@@ -1,121 +1,104 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
+import { RouterProvider, createRouter, createRootRoute, createRoute, Outlet } from '@tanstack/react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/sonner';
-import { useInternetIdentity } from './hooks/useInternetIdentity';
+import AppShell from './components/layout/AppShell';
 import SignInPage from './pages/SignInPage';
+import DashboardPage from './pages/DashboardPage';
 import BenchListPage from './pages/Benches/BenchListPage';
 import BenchDetailPage from './pages/Benches/BenchDetailPage';
-import NewBenchPage from './pages/Benches/NewBenchPage';
-import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
-import AppShell from './components/layout/AppShell';
+import AdminPage from './pages/Admin/AdminPage';
 import AuthGate from './components/auth/AuthGate';
 import ActorGate from './components/auth/ActorGate';
-import AppErrorBoundary from './components/AppErrorBoundary';
+import AdminGate from './components/admin/AdminGate';
+import { I18nProvider } from './i18n/I18nProvider';
 
-// Root layout component
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 function RootLayout() {
-  const { identity } = useInternetIdentity();
-  const isAuthenticated = !!identity;
-
-  if (!isAuthenticated) {
-    return <SignInPage />;
-  }
-
   return (
-    <AppErrorBoundary>
-      <AppShell />
-    </AppErrorBoundary>
+    <AuthGate>
+      <ActorGate>
+        <AppShell />
+      </ActorGate>
+    </AuthGate>
   );
 }
 
-// Root route with layout
 const rootRoute = createRootRoute({
   component: RootLayout,
 });
 
-// Protected routes with both AuthGate and ActorGate
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: () => (
-    <AuthGate>
-      <ActorGate>
-        <DashboardPage />
-      </ActorGate>
-    </AuthGate>
-  ),
+  component: DashboardPage,
 });
 
 const benchesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/benches',
-  component: () => (
-    <AuthGate>
-      <ActorGate>
-        <BenchListPage />
-      </ActorGate>
-    </AuthGate>
-  ),
-});
-
-const newBenchRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/benches/new',
-  component: () => (
-    <AuthGate>
-      <ActorGate>
-        <NewBenchPage />
-      </ActorGate>
-    </AuthGate>
-  ),
+  component: BenchListPage,
 });
 
 const benchDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/benches/$benchId',
-  component: () => (
-    <AuthGate>
-      <ActorGate>
-        <BenchDetailPage />
-      </ActorGate>
-    </AuthGate>
-  ),
+  component: BenchDetailPage,
 });
 
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/profile',
+  component: ProfilePage,
+});
+
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin',
   component: () => (
-    <AuthGate>
-      <ActorGate>
-        <ProfilePage />
-      </ActorGate>
-    </AuthGate>
+    <AdminGate>
+      <AdminPage />
+    </AdminGate>
   ),
+});
+
+const signInRoute = createRoute({
+  getParentRoute: () => createRootRoute({ component: Outlet }),
+  path: '/sign-in',
+  component: SignInPage,
 });
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
   benchesRoute,
-  newBenchRoute,
   benchDetailRoute,
   profileRoute,
+  adminRoute,
 ]);
 
-const router = createRouter({ routeTree });
+const signInRouteTree = createRootRoute({ component: Outlet }).addChildren([signInRoute]);
 
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router;
-  }
-}
+const router = createRouter({ routeTree });
+const signInRouter = createRouter({ routeTree: signInRouteTree });
 
 export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <RouterProvider router={router} />
-      <Toaster />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <I18nProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </I18nProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

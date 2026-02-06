@@ -3,9 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { useI18n } from '../i18n/useI18n';
 
 export default function SignInPage() {
   const { login, loginStatus, loginError } = useInternetIdentity();
+  const { t } = useI18n();
 
   const isLoggingIn = loginStatus === 'logging-in';
 
@@ -16,13 +18,13 @@ export default function SignInPage() {
           <img
             src="/assets/generated/safran-logo.dim_220x64.png"
             alt="Safran"
-            className="h-8 w-auto mx-auto mb-4 object-contain"
+            className="h-6 w-auto mx-auto mb-4 object-contain"
             onError={(e) => {
               // Fallback if image fails to load
               e.currentTarget.style.display = 'none';
             }}
           />
-          <CardTitle className="text-2xl">Welcome to HistoryBench</CardTitle>
+          <CardTitle className="text-2xl">{t('auth.welcome')}</CardTitle>
           <CardDescription>
             Comprehensive test bench management and traceability system
           </CardDescription>
@@ -40,7 +42,7 @@ export default function SignInPage() {
             className="w-full"
             size="lg"
           >
-            {isLoggingIn ? 'Signing in...' : 'Sign In'}
+            {isLoggingIn ? t('auth.signingIn') : t('auth.signIn')}
           </Button>
           <p className="text-xs text-center text-muted-foreground">
             Sign in to access test bench records, component health tracking, and document management

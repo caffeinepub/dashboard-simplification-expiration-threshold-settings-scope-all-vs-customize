@@ -32,15 +32,6 @@ export interface Document {
 }
 export type ExpirationThresholdMode = { 'allBenches' : null } |
   { 'customizedBenches' : null };
-export interface ExpiredComponentSummary {
-  'aml' : string,
-  'status' : Status,
-  'component' : Component,
-  'dueDate' : string,
-  'currentDate' : string,
-  'benchSerialNumber' : string,
-  'associatedBench' : string,
-}
 export type ExternalBlob = Uint8Array;
 export interface HistoryEntry {
   'action' : string,
@@ -74,11 +65,16 @@ export interface TestBench {
 }
 export type Time = bigint;
 export interface UserProfile {
+  'bio' : string,
   'entity' : string,
+  'username' : string,
+  'displayName' : string,
+  'languageTag' : string,
   'thresholdCustomizedBenches' : Array<[string, bigint]>,
   'userId' : string,
   'name' : string,
   'email' : string,
+  'avatarUrl' : string,
   'thresholdAllBenches' : bigint,
   'expirationThresholdMode' : ExpirationThresholdMode,
   'profilePicture' : ProfilePicture,
@@ -166,10 +162,7 @@ export interface _SERVICE {
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getComponents' : ActorMethod<[string], Array<Component>>,
-  'getExpiredComponentsSummary' : ActorMethod<
-    [],
-    Array<ExpiredComponentSummary>
-  >,
+  'getLanguageTag' : ActorMethod<[], string>,
   'getProfilePicture' : ActorMethod<[Principal], [] | [ProfilePicture]>,
   'getPublicUserInfo' : ActorMethod<[Principal], [] | [PublicUserInfo]>,
   'getTestBench' : ActorMethod<[string], [] | [TestBench]>,
@@ -183,6 +176,7 @@ export interface _SERVICE {
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'setAllowedEmailDomain' : ActorMethod<[string], undefined>,
   'setComponents' : ActorMethod<[string, Array<Component>], undefined>,
+  'setLanguageTag' : ActorMethod<[string], undefined>,
   'setProfilePicture' : ActorMethod<[ProfilePicture], undefined>,
   'updateDashboardSectionsOrder' : ActorMethod<[Array<string>], undefined>,
   'updateExpirationPreferences' : ActorMethod<
