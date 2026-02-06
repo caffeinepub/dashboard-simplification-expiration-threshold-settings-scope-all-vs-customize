@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Let users duplicate (copy) a component to one or more other existing test benches, both during bench creation and after a bench/component already exists.
+**Goal:** Ensure duplicated/reassigned equipment components are persisted to the destination bench and immediately visible in the destination bench Health Book.
 
 **Planned changes:**
-- Backend: Add an authorized duplication method that takes a `Component` payload plus `targetBenchIds`, validates target benches exist, appends copied components to each target bench with `associatedBenchId` set to the target bench, and writes a history entry per affected bench.
-- Bench Detail page: Add a “Duplicate / Copy” action for a component in the components (Health Book) table to select one/more target benches (excluding current bench by default), confirm duplication, show success/error toasts, and refresh relevant data.
-- Add New Test Bench modal: While adding component(s), add a control to optionally select existing benches that should also receive copies; after the new bench is created successfully, duplicate the selected component(s) into the selected existing benches and surface any duplication errors via toasts.
+- Backend: fix duplication/reassignment logic so the duplicated component is stored under the destination bench (with `associatedBenchId` set to the destination bench) and is returned by `getComponents(destinationBenchId)`.
+- Backend: prevent traps for valid duplication actions (authorized user, existing source bench, existing destination bench).
+- Frontend: after successful duplication, invalidate/refetch React Query cache for `['benchComponents', destinationBenchId]` (for each selected destination bench) so the Health Book displays updated data.
+- Frontend: on duplication failure, show an error toast and do not show a success toast.
 
-**User-visible outcome:** Users can copy a component to other existing benches either from an existing bench’s component list or while creating a new bench, without recreating the component from scratch; target benches show the duplicated component and a history entry for the duplication.
+**User-visible outcome:** After duplicating an equipment/component from one bench to another, users can navigate to the destination bench and see the duplicated component in its Health Book immediately (no hard refresh needed).

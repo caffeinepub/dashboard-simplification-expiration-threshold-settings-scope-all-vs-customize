@@ -1,53 +1,48 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T10:08:30.965Z",
-  "summary": "Diff adds a frontend duplication dialog and wires duplication-related hooks into Bench Detail and Add Bench modal, but the backend duplication method behavior and several acceptance-criteria details are not verifiable from the provided truncated diff summary.",
+  "generatedAt": "2026-02-06T11:24:08.309Z",
+  "summary": "The diff clearly shows frontend React Query cache invalidation/refetch-related changes in `frontend/src/hooks/useQueries.ts` (and mentions a duplication hook in the file summaries), but the backend duplication persistence fix required by REQ-1 is not evidenced in the provided truncated backend diff. Some REQ-2 acceptance criteria (error toast behavior) are also not evidenced in the shown diffs.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Add backend support (single Motoko actor) to duplicate a Component into one or more target benches with bench-existence validation, authorization checks, per-bench history entries, associatedBenchId rewritten per target, and trapping on unauthorized/missing bench.",
-      "reason": "backend/main.mo is truncated and does not show any new shared duplication method, nor evidence of bench existence validation, history writes, or trap behavior for invalid benches/unauthorized callers.",
+      "requirement": "Fix component duplication/reassignment so duplicating a component from Bench A to Bench B persists under Bench B and is returned by getComponents(destinationBenchId), with associatedBenchId == BenchB.id, and no backend trap for valid actions.",
+      "reason": "The backend diff for `backend/main.mo` is truncated and does not show any implementation or changes to duplication/reassignment logic, component persistence under destination bench, `getComponents`, or trap-prevention logic for valid duplication actions.",
       "evidence": [
-        "backend/main.mo"
+        "backend/main.mo (truncated; shows types/maps and unrelated code, but no duplication/getComponents changes visible)"
       ]
     },
     {
       "id": "REQ-2",
-      "requirement": "Invalidate/refresh React Query caches related to bench components so UI reflects duplication without a hard reload (and refresh impacted benches’ component data).",
-      "reason": "DuplicateComponentDialog triggers a mutation and closes with a toast, but the diff summary does not include the implementation of useDuplicateComponentToBenches (or explicit invalidations) showing that bench component queries are invalidated/refetched.",
+      "requirement": "If the duplication fails, the UI shows an error toast and does not show a success toast.",
+      "reason": "The provided diffs do not show any UI toast logic or failure-handling logic for the duplication flow; `frontend/src/hooks/useQueries.ts` is truncated before any duplication-specific mutation is visible, and no component/page code is shown with toast handling.",
       "evidence": [
-        "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
-        "frontend/src/hooks/useQueries.ts (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "requirement": "During Add New Test Bench creation, allow choosing additional existing benches to receive copies of the component(s) being created; after bench creation succeeds, duplicate the selected component(s) into selected benches; show clear error toast if duplication fails without rolling back creation.",
-      "reason": "AddBenchModal introduces selectedBenchesForDuplication state and uses useDuplicateComponentToBenches, but the truncated diff does not show (a) UI that maps duplication targets to specific newly-created component(s), (b) the post-create sequencing that duplicates components after createBench succeeds, or (c) the required error handling behavior when duplication fails.",
-      "evidence": [
-        "frontend/src/pages/Benches/components/AddBenchModal.tsx (truncated)"
+        "frontend/src/hooks/useQueries.ts (truncated; duplication mutation not visible)",
+        "frontend-file-summaries.txt (mentions duplication dialog/hook but does not provide code evidence of toast behavior)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "“Rewrite description” functionality in Add Bench modal (rewriteDescription + Sparkles icon + toast).",
-      "reason": "Not requested in the BuildRequest; appears as newly added behavior in the modified AddBenchModal.",
+      "description": "Broader React Query invalidation of `['benchComponents']` on updating expiration preferences.",
+      "reason": "REQ-2 is specifically about invalidating/refetching destination bench component queries after duplication. The diff shows (in the visible portion) `useUpdateExpirationPreferences` invalidating `['benchComponents']`, which is unrelated to duplication per the BuildRequest.",
       "evidence": [
-        "frontend/src/pages/Benches/components/AddBenchModal.tsx (truncated)"
+        "frontend/src/hooks/useQueries.ts (onSuccess in useUpdateExpirationPreferences invalidates { queryKey: ['benchComponents'] })"
+      ]
+    },
+    {
+      "description": "Modification/addition of `project_state.json` content/versioning.",
+      "reason": "The BuildRequest does not ask for changes to project metadata/state files; `project_state.json` is listed as modified in the diff summary without a corresponding requirement.",
+      "evidence": [
+        "project_state.json"
       ]
     }
   ],
-  "confidence": 0.58,
+  "confidence": 0.56,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/Benches/BenchDetailPage.tsx",
-    "frontend/src/pages/Benches/components/AddBenchModal.tsx",
-    "frontend/src/pages/Benches/components/BenchComponentsTableEditor.tsx",
-    "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
     "project_state.json"
   ]
 }

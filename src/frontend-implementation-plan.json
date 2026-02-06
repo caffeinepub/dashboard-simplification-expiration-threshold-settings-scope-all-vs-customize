@@ -1,58 +1,26 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Component duplication UI flows (post-creation and during bench creation)",
+  "title": "Refresh destination bench Health Book after component duplication",
   "requirements": [
     {
       "id": "REQ-2",
-      "summary": "Enable duplicating an existing component from a bench to one or more other existing benches from the Bench Detail page.",
+      "summary": "Ensure component duplication triggers React Query invalidation and refetch/prefetch of destination bench component data so the Health Book is up to date immediately after navigation.",
       "acceptanceCriteria": [
-        "From an existing bench’s components list, a user can select a component and duplicate it into at least one other bench via the UI.",
-        "After duplication, the target bench’s components list includes the duplicated component (visible when navigating to the target bench).",
-        "The current bench remains unchanged by default (copy behavior).",
-        "React Query caches related to bench components are invalidated so the UI reflects changes without a hard reload."
+        "After a successful duplication, React Query invalidates/refetches ['benchComponents', destinationBenchId] for each selected destination bench.",
+        "Navigating to a destination bench immediately after duplication shows the duplicated component in the Health Book without requiring a hard refresh.",
+        "If the duplication fails, the UI shows an error toast and does not show a success toast."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a React Query mutation hook for the backend duplication capability (duplicateComponentToBenches), including robust error propagation and cache invalidation for impacted target benches (bench components + history where applicable)."
+          "description": "Update the useDuplicateComponentToBenches mutation onSuccess handling to (1) invalidate ['benchComponents', benchId] for each target bench and (2) proactively refetch/prefetch those same queries so the destination bench Health Book is immediately up-to-date upon navigation; keep existing invalidations for history/summary."
         },
         {
           "path": "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
-          "operation": "create",
-          "description": "Create a reusable “Duplicate / Copy” dialog that lists existing benches (multi-select, excluding the current bench by default), confirms the action, and calls the duplication mutation; use existing shadcn-ui dialog/inputs to compose the UI. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/BenchComponentsTableEditor.tsx",
           "operation": "modify",
-          "description": "Extend the Components table actions column to include a “Duplicate / Copy” action for each row (when enabled via props) that triggers opening the duplication dialog for that specific component; keep existing edit/delete behavior unchanged. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Benches/BenchDetailPage.tsx",
-          "operation": "modify",
-          "description": "Wire the post-creation duplication flow into the Bench Detail page: manage dialog open/close and selected component state, pass the handler into BenchComponentsTableEditor, fetch benches for target selection via existing hooks, and show English success/error toasts. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Enable selecting existing benches to also receive copies of newly-created components during Add New Test Bench creation.",
-      "acceptanceCriteria": [
-        "In the Add Bench modal, the user can choose one or more existing benches to also receive a copy of a component being created.",
-        "After submitting the Add Bench modal, the new bench is created as before, and the selected existing benches also contain the duplicated component(s).",
-        "If duplication to other benches fails, the user sees a clear error toast indicating which operation failed, and the new bench creation result is not silently rolled back."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/Benches/components/AddBenchModal.tsx",
-          "operation": "modify",
-          "description": "Add a control in the Components (Health Book) section to select one or more existing benches that should also receive copies of the components being added; after the bench creation succeeds, trigger duplication for each created component to the selected benches, show English success/error toasts, and do not roll back the new bench on duplication errors. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Ensure the duplication mutation hook supports being called from the Add Bench flow (batching/looping on the frontend as needed) and invalidates caches so navigating to target benches shows the new duplicated components without a hard reload."
+          "description": "Ensure the duplication UI flow relies on the mutation's success/failure outcome (success toast only after mutateAsync resolves; error toast on catch), and avoid any extra UI state that could imply success on failure; keep selection reset/close behavior after success."
         }
       ]
     }

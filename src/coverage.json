@@ -1,49 +1,31 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T10:08:30.969Z",
+  "generatedAt": "2026-02-06T11:24:08.312Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 2,
+    "total": 2,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Add backend support to duplicate an existing component into one or more target benches without requiring the user to recreate it from scratch.\n\nImplementation scope:\n- Add a new shared method that takes a `Component` payload and a list of `targetBenchIds`.\n- For each `targetBenchId`, validate the bench exists, then append a copied component into that bench’s component list in `componentMap`.\n- Ensure the copied component’s `associatedBenchId` is set to the target bench ID (not the source bench).\n- Write a history entry for each target bench indicating a component was duplicated into it.\n- Enforce the same authorization checks as existing component management methods.",
+        "summary": "Fix the component duplication/reassignment behavior so that when a user duplicates an equipment/component from one bench to another, the duplicated component is persisted under the destination bench and is returned by `getComponents(destinationBenchId)` (so it is visible in the destination bench Health Book).",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Add a post-creation UI flow on the Bench Detail page to duplicate an existing component from the current bench to one or more other existing benches.\n\nUI/UX:\n- In the components table (Health Book) actions column, add an action to open a “Duplicate / Copy” flow for a specific component.\n- The flow must allow selecting one or multiple target benches from existing benches (excluding the current bench by default).\n- On confirm, duplicate the selected component to the selected benches using the backend duplication method.\n- Show success/error toasts and refresh component data for impacted benches.",
+        "summary": "Ensure the frontend duplication flow refreshes and displays up-to-date destination bench component data after duplication, so users can navigate to the destination bench and immediately see the duplicated component in the Health Book.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
-          "frontend/src/pages/Benches/components/BenchComponentsTableEditor.tsx",
-          "frontend/src/pages/Benches/BenchDetailPage.tsx"
+          "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
-          "frontend/src/pages/Benches/components/BenchComponentsTableEditor.tsx",
-          "frontend/src/pages/Benches/BenchDetailPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Add a during-creation UI flow in the “Add New Test Bench” modal to allow extending (duplicating) a newly-created component to other existing benches.\n\nBehavior:\n- While adding a component in the Components (Health Book) section, provide a control to choose additional existing benches to also receive a copy of that component.\n- When the new bench is created, also duplicate the selected component(s) into the selected existing benches (after the new bench creation succeeds).\n- The copied components must have `associatedBenchId` set to the target bench IDs.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/Benches/components/AddBenchModal.tsx",
-          "frontend/src/hooks/useQueries.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/Benches/components/AddBenchModal.tsx",
           "frontend/src/hooks/useQueries.ts"
         ]
       }
@@ -55,15 +37,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/Benches/BenchDetailPage.tsx",
-    "frontend/src/pages/Benches/components/AddBenchModal.tsx",
-    "frontend/src/pages/Benches/components/BenchComponentsTableEditor.tsx",
-    "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

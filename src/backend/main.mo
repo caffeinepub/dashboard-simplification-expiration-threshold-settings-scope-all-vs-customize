@@ -781,6 +781,18 @@ actor {
     addHistoryEntry(benchId, historyEntry);
   };
 
+  public query ({ caller }) func getComponents(benchId : Text) : async [Component] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access components");
+    };
+
+    switch (componentMap.get(benchId)) {
+      case (null) { [] };
+      case (?components) { components };
+    };
+  };
+
+  // Duplicate/Transfer a single Equipment/Component
   public shared ({ caller }) func duplicateComponentToBench(_benchId : Text, _component : Component, targetBenchId : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can duplicate components between benches");
@@ -812,6 +824,7 @@ actor {
     addHistoryEntry(targetBench.id, historyEntry);
   };
 
+  // Duplicate/Transfer an Equipment/Component to multiple Benches called with pre-merged set of benches, so each equipment is only duplicated to one bench
   public shared ({ caller }) func duplicateComponentToBenches(component : Component, targetBenchIds : [Text]) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can duplicate components between benches");
@@ -823,17 +836,6 @@ actor {
 
     for (targetBenchId in targetBenchIds.values()) {
       await duplicateComponentToBench(component.associatedBenchId, component, targetBenchId);
-    };
-  };
-
-  public query ({ caller }) func getComponents(benchId : Text) : async [Component] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access components");
-    };
-
-    switch (componentMap.get(benchId)) {
-      case (null) { [] };
-      case (?components) { components };
     };
   };
 

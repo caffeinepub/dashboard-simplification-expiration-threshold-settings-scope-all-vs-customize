@@ -449,12 +449,21 @@ export function useDuplicateComponentToBenches() {
       if (!actor) throw new Error('Actor not available');
       return actor.duplicateComponentToBenches(params.component, params.targetBenchIds);
     },
-    onSuccess: (_, variables) => {
-      // Invalidate all affected benches
-      variables.targetBenchIds.forEach((benchId) => {
+    onSuccess: async (_, variables) => {
+      // Invalidate and refetch all affected benches to ensure immediate data availability
+      const refetchPromises = variables.targetBenchIds.map(async (benchId) => {
+        // Invalidate the queries
         queryClient.invalidateQueries({ queryKey: ['benchComponents', benchId] });
         queryClient.invalidateQueries({ queryKey: ['benchHistory', benchId] });
+        
+        // Proactively refetch to ensure data is ready when navigating
+        await queryClient.refetchQueries({ queryKey: ['benchComponents', benchId] });
       });
+
+      // Wait for all refetches to complete
+      await Promise.all(refetchPromises);
+
+      // Invalidate global queries
       queryClient.invalidateQueries({ queryKey: ['benchComponents'] });
       queryClient.invalidateQueries({ queryKey: ['expiredComponentsSummary'] });
     },

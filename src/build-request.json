@@ -1,75 +1,52 @@
 {
   "kind": "build_request",
-  "title": "Allow duplicating a component to other existing benches during creation and after creation",
-  "priority": "normal",
+  "title": "Fix component duplication so duplicated equipment appears in destination bench Health Book",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add backend support to duplicate an existing component into one or more target benches without requiring the user to recreate it from scratch.\n\nImplementation scope:\n- Add a new shared method that takes a `Component` payload and a list of `targetBenchIds`.\n- For each `targetBenchId`, validate the bench exists, then append a copied component into that bench’s component list in `componentMap`.\n- Ensure the copied component’s `associatedBenchId` is set to the target bench ID (not the source bench).\n- Write a history entry for each target bench indicating a component was duplicated into it.\n- Enforce the same authorization checks as existing component management methods.",
+      "text": "Fix the component duplication/reassignment behavior so that when a user duplicates an equipment/component from one bench to another, the duplicated component is persisted under the destination bench and is returned by `getComponents(destinationBenchId)` (so it is visible in the destination bench Health Book).",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-5"
         ],
         "quotes": [
-          "Lors de la création d'un composants, j'aimerai avoir un bouton qui permet d'etendre ce même composants à d'autres bancq deja existants... ajouter un toggle \"copier ou dupliquer\" qui permet de duplqier ce composants et le réaffecter a un autre banc sans avoir besoin de le recréer de 0."
+          "Quand je duplique un équipement pour le réaffecter à un autre banc ca marche pas car je le vois pas ensuite dans son Health book. Corrige ca. Merci."
         ]
       },
       "acceptanceCriteria": [
-        "When called with valid target bench IDs, the component is appended to each target bench’s component list and persists after refresh.",
-        "The duplicated component stored under each target bench has `associatedBenchId` equal to that target bench ID.",
-        "A history entry is visible for each affected target bench indicating the duplication action.",
-        "The method traps (fails) when a target bench does not exist or the caller is unauthorized."
+        "Given Bench A contains component X, when duplicating X to Bench B, then calling `getComponents(BenchB)` returns a list that includes a copy of X.",
+        "The duplicated component stored for Bench B has `associatedBenchId == BenchB.id`.",
+        "No backend trap occurs for valid duplication actions (authorized user, existing source bench, existing destination bench)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add a post-creation UI flow on the Bench Detail page to duplicate an existing component from the current bench to one or more other existing benches.\n\nUI/UX:\n- In the components table (Health Book) actions column, add an action to open a “Duplicate / Copy” flow for a specific component.\n- The flow must allow selecting one or multiple target benches from existing benches (excluding the current bench by default).\n- On confirm, duplicate the selected component to the selected benches using the backend duplication method.\n- Show success/error toasts and refresh component data for impacted benches.",
+      "text": "Ensure the frontend duplication flow refreshes and displays up-to-date destination bench component data after duplication, so users can navigate to the destination bench and immediately see the duplicated component in the Health Book.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-5"
         ],
         "quotes": [
-          "Il faut aussi pouvoir le faire après sa création... en ajoutant un toggle \"copier ou dupliquer\" ..."
+          "Quand je duplique un équipement pour le réaffecter à un autre banc ca marche pas car je le vois pas ensuite dans son Health book. Corrige ca. Merci."
         ]
       },
       "acceptanceCriteria": [
-        "From an existing bench’s components list, a user can select a component and duplicate it into at least one other bench via the UI.",
-        "After duplication, the target bench’s components list includes the duplicated component (visible when navigating to the target bench).",
-        "The current bench remains unchanged by default (copy behavior).",
-        "React Query caches related to bench components are invalidated so the UI reflects changes without a hard reload."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Add a during-creation UI flow in the “Add New Test Bench” modal to allow extending (duplicating) a newly-created component to other existing benches.\n\nBehavior:\n- While adding a component in the Components (Health Book) section, provide a control to choose additional existing benches to also receive a copy of that component.\n- When the new bench is created, also duplicate the selected component(s) into the selected existing benches (after the new bench creation succeeds).\n- The copied components must have `associatedBenchId` set to the target bench IDs.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "lors de la création d'un composants, j'aimerai avoir un bouton qui permet d'etendre ce même composants à d'autres bancq deja existants."
-        ]
-      },
-      "acceptanceCriteria": [
-        "In the Add Bench modal, the user can choose one or more existing benches to also receive a copy of a component being created.",
-        "After submitting the Add Bench modal, the new bench is created as before, and the selected existing benches also contain the duplicated component(s).",
-        "If duplication to other benches fails, the user sees a clear error toast indicating which operation failed, and the new bench creation result is not silently rolled back."
+        "After a successful duplication, React Query invalidates/refetches `['benchComponents', destinationBenchId]` for each selected destination bench.",
+        "Navigating to a destination bench immediately after duplication shows the duplicated component in the Health Book without requiring a hard refresh.",
+        "If the duplication fails, the UI shows an error toast and does not show a success toast."
       ]
     }
   ],
   "constraints": [
-    "Use English for any user-facing text.",
-    "Backend must remain a single Motoko actor in backend/main.mo.",
-    "Do not edit any frontend files under frontend/src/components/ui or other immutablePaths listed in SYSTEM_CONTEXT; compose existing UI components instead.",
-    "Do not introduce external databases or additional backend services."
+    "Backend must remain a single Motoko actor in `backend/main.mo`.",
+    "Do not modify any frontend files under `frontend/src/components/ui` or other immutable paths listed in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Implementing a true ‘move’ (remove from source bench) workflow unless explicitly requested; this change focuses on copy/duplicate.",
-    "Adding real-time synchronization across multiple users (no websockets).",
-    "Changing the Component data model shape or introducing global component IDs."
+    "Do not add new product features (e.g., bulk move, merge, or delete-on-duplicate).",
+    "Do not introduce new backend services or external databases."
   ],
   "imageRequirements": {
     "required": [],
