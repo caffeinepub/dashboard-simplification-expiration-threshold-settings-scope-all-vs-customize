@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, Copy } from 'lucide-react';
 import { Status } from '../../../backend';
 import type { Component } from '../../../backend';
 import { computeExpirationStatus } from '../../../utils/expirationSettings';
@@ -22,6 +22,7 @@ interface BenchComponentsTableEditorProps {
   effectiveThreshold: number;
   benchId?: string;
   readOnly?: boolean;
+  onDuplicateComponent?: (component: Component) => void;
 }
 
 export function BenchComponentsTableEditor({
@@ -30,6 +31,7 @@ export function BenchComponentsTableEditor({
   effectiveThreshold,
   benchId = '',
   readOnly = false,
+  onDuplicateComponent,
 }: BenchComponentsTableEditorProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<{
@@ -128,7 +130,7 @@ export function BenchComponentsTableEditor({
             <TableHead>Validity Date</TableHead>
             <TableHead>Expiration Date</TableHead>
             <TableHead>Status</TableHead>
-            {!readOnly && <TableHead className="w-[100px]">Actions</TableHead>}
+            {!readOnly && <TableHead className="w-[140px]">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -188,6 +190,17 @@ export function BenchComponentsTableEditor({
                   {!readOnly && (
                     <TableCell>
                       <div className="flex gap-1">
+                        {onDuplicateComponent && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => onDuplicateComponent(component)}
+                            disabled={editingIndex !== null}
+                            title="Duplicate to other benches"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           size="icon"
                           variant="ghost"

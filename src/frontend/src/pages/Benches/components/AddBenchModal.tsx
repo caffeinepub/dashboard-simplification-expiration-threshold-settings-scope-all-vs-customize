@@ -14,11 +14,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Upload, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { TagsInput } from './TagsInput';
 import { DocumentCategoriesInput, type DocumentCategory } from './DocumentCategoriesInput';
 import { BenchComponentsTableEditor } from './BenchComponentsTableEditor';
-import { useCreateTestBench, useGetBenchTagSuggestions } from '../../../hooks/useQueries';
+import { useCreateTestBench, useGetBenchTagSuggestions, useGetAllTestBenches, useDuplicateComponentToBenches } from '../../../hooks/useQueries';
 import { validateAgileCode, validateUrl } from '../../../utils/validation';
 import { generateId } from '../../../utils/id';
 import { rewriteDescription } from '../../../utils/rewriteDescription';
@@ -55,12 +56,15 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
   const [tags, setTags] = useState<Tag[]>([]);
   const [documentCategories, setDocumentCategories] = useState<DocumentCategory[]>([]);
   const [components, setComponents] = useState<Component[]>([]);
+  const [selectedBenchesForDuplication, setSelectedBenchesForDuplication] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
 
   const createBench = useCreateTestBench();
+  const duplicateComponent = useDuplicateComponentToBenches();
   const { data: tagSuggestions = [] } = useGetBenchTagSuggestions();
+  const { data: allBenches = [] } = useGetAllTestBenches();
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -82,6 +86,12 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
     const rewritten = rewriteDescription(description);
     setDescription(rewritten);
     toast.success('Description rewritten');
+  };
+
+  const handleToggleBenchForDuplication = (benchId: string) => {
+    setSelectedBenchesForDuplication((prev) =>
+      prev.includes(benchId) ? prev.filter((id) => id !== benchId) : [...prev, benchId]
+    );
   };
 
   const validateForm = (): boolean => {
@@ -203,6 +213,24 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
         components,
       });
 
+      // Duplicate components to selected benches if any
+      if (components.length > 0 && selectedBenchesForDuplication.length > 0) {
+        try {
+          for (const component of components) {
+            await duplicateComponent.mutateAsync({
+              component: { ...component, associatedBenchId: benchId },
+              targetBenchIds: selectedBenchesForDuplication,
+            });
+          }
+          toast.success(
+            `Components duplicated to ${selectedBenchesForDuplication.length} additional bench${selectedBenchesForDuplication.length > 1 ? 'es' : ''}`
+          );
+        } catch (error: any) {
+          console.error('Failed to duplicate components:', error);
+          toast.error(`Bench created, but component duplication failed: ${error.message || 'Unknown error'}`);
+        }
+      }
+
       setUploadProgress(100);
       toast.success('Test bench created successfully');
       resetForm();
@@ -228,6 +256,7 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
     setTags([]);
     setDocumentCategories([]);
     setComponents([]);
+    setSelectedBenchesForDuplication([]);
     setErrors({});
     setUploadProgress(0);
   };
@@ -449,6 +478,38 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
                 Add equipment components with validity and expiration dates.
               </p>
             </div>
+
+            {components.length > 0 && allBenches.length > 0 && (
+              <div className="space-y-3 p-4 border rounded-md bg-muted/30">
+                <Label className="text-base font-semibold">
+                  Also Duplicate Components To:
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Select existing benches to also receive copies of the components you're adding.
+                </p>
+                <ScrollArea className="max-h-[200px]">
+                  <div className="space-y-2">
+                    {allBenches.map((bench) => (
+                      <div key={bench.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`dup-bench-${bench.id}`}
+                          checked={selectedBenchesForDuplication.includes(bench.id)}
+                          onCheckedChange={() => handleToggleBenchForDuplication(bench.id)}
+                          disabled={isUploading}
+                        />
+                        <Label
+                          htmlFor={`dup-bench-${bench.id}`}
+                          className="text-sm font-normal cursor-pointer flex-1"
+                        >
+                          {bench.name}
+                          {bench.agileCode && ` (${bench.agileCode})`}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
 
             <Separator />
 

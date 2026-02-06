@@ -1,55 +1,75 @@
 {
   "kind": "build_request",
-  "title": "Fix entity saving for new values and refresh profile photo in binôme profile after update",
-  "priority": "high",
+  "title": "Allow duplicating a component to other existing benches during creation and after creation",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix profile saving so that the selected/updated profile picture (predefined avatar or custom upload) is not overwritten by a subsequent profile save, and ensure any UI that renders user avatars (including the “binôme profile” tab) reflects the new picture immediately after a successful save.",
-      "target": "both",
+      "text": "Add backend support to duplicate an existing component into one or more target benches without requiring the user to recreate it from scratch.\n\nImplementation scope:\n- Add a new shared method that takes a `Component` payload and a list of `targetBenchIds`.\n- For each `targetBenchId`, validate the bench exists, then append a copied component into that bench’s component list in `componentMap`.\n- Ensure the copied component’s `associatedBenchId` is set to the target bench ID (not the source bench).\n- Write a history entry for each target bench indicating a component was duplicated into it.\n- Enforce the same authorization checks as existing component management methods.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-7"
         ],
         "quotes": [
-          "La photo de profil de l'onglet binôme profile soit se MAJ une fois la photo choisie et enregistré."
+          "Lors de la création d'un composants, j'aimerai avoir un bouton qui permet d'etendre ce même composants à d'autres bancq deja existants... ajouter un toggle \"copier ou dupliquer\" qui permet de duplqier ce composants et le réaffecter a un autre banc sans avoir besoin de le recréer de 0."
         ]
       },
       "acceptanceCriteria": [
-        "When a user selects a predefined avatar and clicks “Save Profile & Preferences”, the saved profile picture is the newly selected avatar (it must not revert to the previous avatar).",
-        "When a user uploads a custom photo and clicks “Save Profile & Preferences”, the saved profile picture is the uploaded photo (it must not revert to the previous photo/avatar).",
-        "After a successful save, any UI that displays the user’s avatar via public user info (e.g., the “binôme profile” tab) shows the updated avatar without requiring a hard refresh.",
-        "React Query caches related to user profile/public user info are invalidated/refetched as needed so the update is visible immediately."
+        "When called with valid target bench IDs, the component is appended to each target bench’s component list and persists after refresh.",
+        "The duplicated component stored under each target bench has `associatedBenchId` equal to that target bench ID.",
+        "A history entry is visible for each affected target bench indicating the duplication action.",
+        "The method traps (fails) when a target bench does not exist or the caller is unauthorized."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Allow saving a user profile entity value even when it is a newly typed entity (not present in suggestions), and ensure newly saved entities appear in entity suggestions thereafter. Support and validate examples including: \"T2I\", \"IVV\", \"Qualite\", \"IMI\", \"RLI\".",
-      "target": "both",
+      "text": "Add a post-creation UI flow on the Bench Detail page to duplicate an existing component from the current bench to one or more other existing benches.\n\nUI/UX:\n- In the components table (Health Book) actions column, add an action to open a “Duplicate / Copy” flow for a specific component.\n- The flow must allow selecting one or multiple target benches from existing benches (excluding the current bench by default).\n- On confirm, duplicate the selected component to the selected benches using the backend duplication method.\n- Show success/error toasts and refresh component data for impacted benches.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-7"
         ],
         "quotes": [
-          "Le tag pour entity marche pas quand jen ajoute uk nouveau par exemple si je mets T2I, ca veut pas save et mets des exemples : e.g T2I, IVV, Qualite, IMI, RLI."
+          "Il faut aussi pouvoir le faire après sa création... en ajoutant un toggle \"copier ou dupliquer\" ..."
         ]
       },
       "acceptanceCriteria": [
-        "Typing a new entity value (e.g., “T2I”) and saving the profile persists that entity on the backend and is shown when reloading the profile.",
-        "Entity saving works regardless of whether the value came from suggestions or was newly typed.",
-        "After saving a profile with a new entity value, the entity suggestions list includes the newly saved value (without requiring a full page reload).",
-        "The backend does not reject profile saving for admin users due to email-domain rules when the frontend indicates admins can use any domain."
+        "From an existing bench’s components list, a user can select a component and duplicate it into at least one other bench via the UI.",
+        "After duplication, the target bench’s components list includes the duplicated component (visible when navigating to the target bench).",
+        "The current bench remains unchanged by default (copy behavior).",
+        "React Query caches related to bench components are invalidated so the UI reflects changes without a hard reload."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Add a during-creation UI flow in the “Add New Test Bench” modal to allow extending (duplicating) a newly-created component to other existing benches.\n\nBehavior:\n- While adding a component in the Components (Health Book) section, provide a control to choose additional existing benches to also receive a copy of that component.\n- When the new bench is created, also duplicate the selected component(s) into the selected existing benches (after the new bench creation succeeds).\n- The copied components must have `associatedBenchId` set to the target bench IDs.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "lors de la création d'un composants, j'aimerai avoir un bouton qui permet d'etendre ce même composants à d'autres bancq deja existants."
+        ]
+      },
+      "acceptanceCriteria": [
+        "In the Add Bench modal, the user can choose one or more existing benches to also receive a copy of a component being created.",
+        "After submitting the Add Bench modal, the new bench is created as before, and the selected existing benches also contain the duplicated component(s).",
+        "If duplication to other benches fails, the user sees a clear error toast indicating which operation failed, and the new bench creation result is not silently rolled back."
       ]
     }
   ],
   "constraints": [
     "Use English for any user-facing text.",
-    "Backend must remain a single Motoko actor in backend/main.mo; add backend/migration.mo only if a state upgrade is required.",
-    "Do not edit files under frontend/src/components/ui or other frontend immutable paths listed in SYSTEM_CONTEXT."
+    "Backend must remain a single Motoko actor in backend/main.mo.",
+    "Do not edit any frontend files under frontend/src/components/ui or other immutablePaths listed in SYSTEM_CONTEXT; compose existing UI components instead.",
+    "Do not introduce external databases or additional backend services."
   ],
   "nonGoals": [
-    "Adding new authentication providers (only Internet Identity is supported).",
-    "Adding real-time features (e.g., websockets) for profile updates."
+    "Implementing a true ‘move’ (remove from source bench) workflow unless explicitly requested; this change focuses on copy/duplicate.",
+    "Adding real-time synchronization across multiple users (no websockets).",
+    "Changing the Component data model shape or introducing global component IDs."
   ],
   "imageRequirements": {
     "required": [],

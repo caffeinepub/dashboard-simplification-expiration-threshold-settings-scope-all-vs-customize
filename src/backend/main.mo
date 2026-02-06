@@ -781,6 +781,51 @@ actor {
     addHistoryEntry(benchId, historyEntry);
   };
 
+  public shared ({ caller }) func duplicateComponentToBench(_benchId : Text, _component : Component, targetBenchId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can duplicate components between benches");
+    };
+
+    let targetBench = switch (testBenchMap.get(targetBenchId)) {
+      case (null) { Runtime.trap("Target bench does not exist") };
+      case (?tb) { tb };
+    };
+
+    let existingComponents = switch (componentMap.get(targetBenchId)) {
+      case (null) { [] };
+      case (?comps) { comps };
+    };
+
+    let duplicatedComponent : Component = {
+      _component with
+      associatedBenchId = targetBench.id
+    };
+
+    componentMap.add(targetBench.id, existingComponents.concat([duplicatedComponent]));
+
+    let historyEntry : HistoryEntry = {
+      timestamp = Time.now();
+      action = "Duplicate component";
+      user = caller;
+      details = "Component duplicated to target bench: " # targetBench.name;
+    };
+    addHistoryEntry(targetBench.id, historyEntry);
+  };
+
+  public shared ({ caller }) func duplicateComponentToBenches(component : Component, targetBenchIds : [Text]) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can duplicate components between benches");
+    };
+    switch (componentMap.get(component.associatedBenchId)) {
+      case (null) { Runtime.trap("Source bench does not exist") };
+      case (?_) {};
+    };
+
+    for (targetBenchId in targetBenchIds.values()) {
+      await duplicateComponentToBench(component.associatedBenchId, component, targetBenchId);
+    };
+  };
+
   public query ({ caller }) func getComponents(benchId : Text) : async [Component] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access components");

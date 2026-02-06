@@ -440,6 +440,27 @@ export function useSetBenchComponents() {
   });
 }
 
+export function useDuplicateComponentToBenches() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: { component: Component; targetBenchIds: string[] }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.duplicateComponentToBenches(params.component, params.targetBenchIds);
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate all affected benches
+      variables.targetBenchIds.forEach((benchId) => {
+        queryClient.invalidateQueries({ queryKey: ['benchComponents', benchId] });
+        queryClient.invalidateQueries({ queryKey: ['benchHistory', benchId] });
+      });
+      queryClient.invalidateQueries({ queryKey: ['benchComponents'] });
+      queryClient.invalidateQueries({ queryKey: ['expiredComponentsSummary'] });
+    },
+  });
+}
+
 export function useGetAllBenchComponents() {
   const { actor, isFetching } = useActor();
   const { data: benches = [] } = useGetAllTestBenches();

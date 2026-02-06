@@ -148,6 +148,14 @@ export interface _SERVICE {
     undefined
   >,
   'documentExists' : ActorMethod<[string], boolean>,
+  'duplicateComponentToBench' : ActorMethod<
+    [string, Component, string],
+    undefined
+  >,
+  'duplicateComponentToBenches' : ActorMethod<
+    [Component, Array<string>],
+    undefined
+  >,
   'filterDocumentsByTags' : ActorMethod<[Array<Tag>], Array<Document>>,
   'findExpiringDocuments' : ActorMethod<[[] | [bigint]], Array<Document>>,
   'getAllEntities' : ActorMethod<[], Array<string>>,

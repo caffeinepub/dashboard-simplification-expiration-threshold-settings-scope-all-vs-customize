@@ -1,59 +1,58 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix profile picture persistence/refresh and allow saving newly typed entity values",
+  "title": "Component duplication UI flows (post-creation and during bench creation)",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Prevent profile saves from overwriting a newly updated profile picture and ensure avatar UI (including binôme profile) refreshes immediately after successful save.",
+      "id": "REQ-2",
+      "summary": "Enable duplicating an existing component from a bench to one or more other existing benches from the Bench Detail page.",
       "acceptanceCriteria": [
-        "When a user selects a predefined avatar and clicks “Save Profile & Preferences”, the saved profile picture is the newly selected avatar (it must not revert to the previous avatar).",
-        "When a user uploads a custom photo and clicks “Save Profile & Preferences”, the saved profile picture is the uploaded photo (it must not revert to the previous photo/avatar).",
-        "After a successful save, any UI that displays the user’s avatar via public user info (e.g., the “binôme profile” tab) shows the updated avatar without requiring a hard refresh.",
-        "React Query caches related to user profile/public user info are invalidated/refetched as needed so the update is visible immediately."
+        "From an existing bench’s components list, a user can select a component and duplicate it into at least one other bench via the UI.",
+        "After duplication, the target bench’s components list includes the duplicated component (visible when navigating to the target bench).",
+        "The current bench remains unchanged by default (copy behavior).",
+        "React Query caches related to bench components are invalidated so the UI reflects changes without a hard reload."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/ProfilePage.tsx",
-          "operation": "modify",
-          "description": "Fix save flow so the profile payload does not reuse/submit a stale profilePicture from the previously loaded profile. Build the new ProfilePicture from the current avatarMode (predefined) / uploaded custom photo and ensure the same new value is used consistently when saving (so a subsequent profile save cannot revert the picture). For custom uploads, use the existing upload helper hook (upload -> set) so the saved reference matches what the backend persists."
-        },
-        {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Tighten React Query invalidations for avatar updates: ensure mutations that update profile picture and/or profile invalidate/refetch caches used by avatar-rendering UI (including per-user public user info keys). Keep/confirm cache-buster refresh via useAvatarCacheBuster so custom image URLs update immediately."
+          "description": "Add a React Query mutation hook for the backend duplication capability (duplicateComponentToBenches), including robust error propagation and cache invalidation for impacted target benches (bench components + history where applicable)."
         },
         {
-          "path": "frontend/src/components/profile/UserAvatar.tsx",
+          "path": "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
+          "operation": "create",
+          "description": "Create a reusable “Duplicate / Copy” dialog that lists existing benches (multi-select, excluding the current bench by default), confirms the action, and calls the duplication mutation; use existing shadcn-ui dialog/inputs to compose the UI. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/Benches/components/BenchComponentsTableEditor.tsx",
           "operation": "modify",
-          "description": "Ensure avatar rendering reliably reflects updates immediately after cache invalidation/buster changes (especially for custom blobs). Confirm the cache-busting strategy is applied consistently to prevent showing a stale cached custom image after a successful update."
+          "description": "Extend the Components table actions column to include a “Duplicate / Copy” action for each row (when enabled via props) that triggers opening the duplication dialog for that specific component; keep existing edit/delete behavior unchanged. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/Benches/BenchDetailPage.tsx",
+          "operation": "modify",
+          "description": "Wire the post-creation duplication flow into the Bench Detail page: manage dialog open/close and selected component state, pass the handler into BenchComponentsTableEditor, fetch benches for target selection via existing hooks, and show English success/error toasts. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-2",
-      "summary": "Allow saving a newly typed Entity value (not only suggestions) and ensure newly saved entities appear in suggestions without a full reload.",
+      "id": "REQ-3",
+      "summary": "Enable selecting existing benches to also receive copies of newly-created components during Add New Test Bench creation.",
       "acceptanceCriteria": [
-        "Typing a new entity value (e.g., “T2I”) and saving the profile persists that entity on the backend and is shown when reloading the profile.",
-        "Entity saving works regardless of whether the value came from suggestions or was newly typed.",
-        "After saving a profile with a new entity value, the entity suggestions list includes the newly saved value (without requiring a full page reload).",
-        "The backend does not reject profile saving for admin users due to email-domain rules when the frontend indicates admins can use any domain."
+        "In the Add Bench modal, the user can choose one or more existing benches to also receive a copy of a component being created.",
+        "After submitting the Add Bench modal, the new bench is created as before, and the selected existing benches also contain the duplicated component(s).",
+        "If duplication to other benches fails, the user sees a clear error toast indicating which operation failed, and the new bench creation result is not silently rolled back."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/profile/EntityTagInput.tsx",
+          "path": "frontend/src/pages/Benches/components/AddBenchModal.tsx",
           "operation": "modify",
-          "description": "Adjust the EntityTagInput UX so free-typed values are actually stored in the controlled value (not just in internal draft state). The user should be able to type a new entity (e.g., \"T2I\", \"IVV\", \"Qualite\", \"IMI\", \"RLI\") and click Save without needing an extra “Enter” action for it to persist."
-        },
-        {
-          "path": "frontend/src/pages/ProfilePage.tsx",
-          "operation": "modify",
-          "description": "Ensure the entity field sent on save always reflects what the user typed/selected. Keep admin email-domain bypass behavior intact (admins can use any domain) and ensure validation/messages remain English."
+          "description": "Add a control in the Components (Health Book) section to select one or more existing benches that should also receive copies of the components being added; after the bench creation succeeds, trigger duplication for each created component to the selected benches, show English success/error toasts, and do not roll back the new bench on duplication errors. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "After a successful profile save, invalidate/refetch the entity suggestion query (useGetUniqueEntities) so newly saved entity values appear in suggestions immediately without a full page reload."
+          "description": "Ensure the duplication mutation hook supports being called from the Add Bench flow (batching/looping on the frontend as needed) and invalidates caches so navigating to target benches shows the new duplicated components without a hard reload."
         }
       ]
     }

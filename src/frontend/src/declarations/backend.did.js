@@ -27,6 +27,19 @@ export const UserRole = IDL.Variant({
 export const Version = IDL.Nat;
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const Tag = IDL.Record({ 'tagName' : IDL.Text });
+export const Status = IDL.Variant({
+  'ok' : IDL.Null,
+  'expiringSoon' : IDL.Null,
+  'expired' : IDL.Null,
+});
+export const Component = IDL.Record({
+  'status' : Status,
+  'validityDate' : IDL.Text,
+  'expirationDate' : IDL.Text,
+  'associatedBenchId' : IDL.Text,
+  'manufacturerReference' : IDL.Text,
+  'componentName' : IDL.Text,
+});
 export const Document = IDL.Record({
   'id' : IDL.Text,
   'documentVersion' : IDL.Opt(IDL.Text),
@@ -79,19 +92,6 @@ export const UserProfile = IDL.Record({
   'profilePicture' : ProfilePicture,
   'lastSeen' : IDL.Opt(IDL.Int),
   'dashboardSectionsOrdered' : IDL.Vec(IDL.Text),
-});
-export const Status = IDL.Variant({
-  'ok' : IDL.Null,
-  'expiringSoon' : IDL.Null,
-  'expired' : IDL.Null,
-});
-export const Component = IDL.Record({
-  'status' : Status,
-  'validityDate' : IDL.Text,
-  'expirationDate' : IDL.Text,
-  'associatedBenchId' : IDL.Text,
-  'manufacturerReference' : IDL.Text,
-  'componentName' : IDL.Text,
 });
 export const ExpiredComponentSummary = IDL.Record({
   'aml' : IDL.Text,
@@ -168,6 +168,16 @@ export const idlService = IDL.Service({
       [],
     ),
   'documentExists' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
+  'duplicateComponentToBench' : IDL.Func(
+      [IDL.Text, Component, IDL.Text],
+      [],
+      [],
+    ),
+  'duplicateComponentToBenches' : IDL.Func(
+      [Component, IDL.Vec(IDL.Text)],
+      [],
+      [],
+    ),
   'filterDocumentsByTags' : IDL.Func(
       [IDL.Vec(Tag)],
       [IDL.Vec(Document)],
@@ -265,6 +275,19 @@ export const idlFactory = ({ IDL }) => {
   const Version = IDL.Nat;
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const Tag = IDL.Record({ 'tagName' : IDL.Text });
+  const Status = IDL.Variant({
+    'ok' : IDL.Null,
+    'expiringSoon' : IDL.Null,
+    'expired' : IDL.Null,
+  });
+  const Component = IDL.Record({
+    'status' : Status,
+    'validityDate' : IDL.Text,
+    'expirationDate' : IDL.Text,
+    'associatedBenchId' : IDL.Text,
+    'manufacturerReference' : IDL.Text,
+    'componentName' : IDL.Text,
+  });
   const Document = IDL.Record({
     'id' : IDL.Text,
     'documentVersion' : IDL.Opt(IDL.Text),
@@ -317,19 +340,6 @@ export const idlFactory = ({ IDL }) => {
     'profilePicture' : ProfilePicture,
     'lastSeen' : IDL.Opt(IDL.Int),
     'dashboardSectionsOrdered' : IDL.Vec(IDL.Text),
-  });
-  const Status = IDL.Variant({
-    'ok' : IDL.Null,
-    'expiringSoon' : IDL.Null,
-    'expired' : IDL.Null,
-  });
-  const Component = IDL.Record({
-    'status' : Status,
-    'validityDate' : IDL.Text,
-    'expirationDate' : IDL.Text,
-    'associatedBenchId' : IDL.Text,
-    'manufacturerReference' : IDL.Text,
-    'componentName' : IDL.Text,
   });
   const ExpiredComponentSummary = IDL.Record({
     'aml' : IDL.Text,
@@ -406,6 +416,16 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'documentExists' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
+    'duplicateComponentToBench' : IDL.Func(
+        [IDL.Text, Component, IDL.Text],
+        [],
+        [],
+      ),
+    'duplicateComponentToBenches' : IDL.Func(
+        [Component, IDL.Vec(IDL.Text)],
+        [],
+        [],
+      ),
     'filterDocumentsByTags' : IDL.Func(
         [IDL.Vec(Tag)],
         [IDL.Vec(Document)],

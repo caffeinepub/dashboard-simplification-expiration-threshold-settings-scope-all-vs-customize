@@ -32,6 +32,7 @@ import { BenchDocumentsEditor } from './components/BenchDocumentsEditor';
 import { BenchHistoryList } from './components/BenchHistoryList';
 import { EditBenchModal } from './components/EditBenchModal';
 import { BenchPhoto } from './components/BenchPhoto';
+import { DuplicateComponentDialog } from './components/DuplicateComponentDialog';
 import type { Component } from '../../backend';
 
 export default function BenchDetailPage() {
@@ -45,6 +46,8 @@ export default function BenchDetailPage() {
   const setComponents = useSetBenchComponents();
   
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+  const [selectedComponentForDuplication, setSelectedComponentForDuplication] = useState<Component | null>(null);
   const [localComponents, setLocalComponents] = useState<Component[]>([]);
   const [isSavingComponents, setIsSavingComponents] = useState(false);
 
@@ -72,6 +75,11 @@ export default function BenchDetailPage() {
     } finally {
       setIsSavingComponents(false);
     }
+  };
+
+  const handleDuplicateComponent = (component: Component) => {
+    setSelectedComponentForDuplication(component);
+    setDuplicateDialogOpen(true);
   };
 
   if (isLoading) {
@@ -217,6 +225,8 @@ export default function BenchDetailPage() {
                 components={localComponents.length > 0 ? localComponents : components}
                 onChange={setLocalComponents}
                 effectiveThreshold={effectiveThreshold}
+                benchId={benchId}
+                onDuplicateComponent={handleDuplicateComponent}
               />
               {localComponents.length > 0 && (
                 <Button onClick={handleSaveComponents} disabled={isSavingComponents} className="w-full">
@@ -251,6 +261,12 @@ export default function BenchDetailPage() {
       </Tabs>
 
       {bench && <EditBenchModal open={editModalOpen} onOpenChange={setEditModalOpen} bench={bench} />}
+      <DuplicateComponentDialog
+        open={duplicateDialogOpen}
+        onOpenChange={setDuplicateDialogOpen}
+        component={selectedComponentForDuplication}
+        currentBenchId={benchId}
+      />
     </div>
   );
 }

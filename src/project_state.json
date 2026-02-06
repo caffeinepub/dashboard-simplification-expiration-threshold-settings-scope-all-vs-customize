@@ -1,27 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project involves an app with entity tag handling and a \"binôme profile\" tab where profile photos should update after being saved.",
+  "summary": "App to manage \"composants\" and assign/duplicate them across existing \"bancs\" without recreating from scratch.",
   "architectural_notes": [],
-  "known_issues": [
-    "Entity tag does not save when adding a new tag (e.g., \"T2I\").",
-    "Profile photo in the \"binôme profile\" tab does not refresh/update after selecting and saving a new photo."
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-fix-profile-saving-so-that-the-selected-updated-profile-picture-predefined-avatar-or-custom-upload-is-not-overwritten-by-a-subsequent-profile-save-and-ensure-any-ui-that-renders-user-avatars-including-the-bin-me-profile-tab-reflects-the-new-picture-immediately-after-a-successful-save",
-      "title": "Fix profile saving so that the selected/updated profile picture (predefined avatar or custom upload) is not overwritten by a subsequent profile save, and ensure any UI that renders user avatars (including the “binôme profile” tab) reflects the new picture immediately after a successful save.",
+      "id": "feature-add-a-post-creation-ui-flow-on-the-bench-detail-page-to-duplicate-an-existing-component-from-the-current-bench-to-one-or-more-other-existing-benches-ui-ux-in-the-components-table-health-book-actions-column-add-an-action-to-open-a-duplicate-copy-flow-for-a-specific-component-the-flow-must-allow-selecting-one-or-multiple-target-benches-from-existing-benches-excluding-the-current-bench-by-default-on-confirm-duplicate-the-selected-component-to-the-selected-benches-using-the-backend-duplication-method-show-success-error-toasts-and-refresh-component-data-for-impacted-benches",
+      "title": "Add a post-creation UI flow on the Bench Detail page to duplicate an existing component from the current bench to one or more other existing benches.\n\nUI/UX:\n- In the components table (Health Book) actions column, add an action to open a “Duplicate / Copy” flow for a specific component.\n- The flow must allow selecting one or multiple target benches from existing benches (excluding the current bench by default).\n- On confirm, duplicate the selected component to the selected benches using the backend duplication method.\n- Show success/error toasts and refresh component data for impacted benches.",
       "reqIds": [
-        "REQ-1"
+        "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-allow-saving-a-user-profile-entity-value-even-when-it-is-a-newly-typed-entity-not-present-in-suggestions-and-ensure-newly-saved-entities-appear-in-entity-suggestions-thereafter-support-and-validate-examples-including-t2i-ivv-qualite-imi-rli",
-      "title": "Allow saving a user profile entity value even when it is a newly typed entity (not present in suggestions), and ensure newly saved entities appear in entity suggestions thereafter. Support and validate examples including: \"T2I\", \"IVV\", \"Qualite\", \"IMI\", \"RLI\".",
+      "id": "feature-add-a-during-creation-ui-flow-in-the-add-new-test-bench-modal-to-allow-extending-duplicating-a-newly-created-component-to-other-existing-benches-behavior-while-adding-a-component-in-the-components-health-book-section-provide-a-control-to-choose-additional-existing-benches-to-also-receive-a-copy-of-that-component-when-the-new-bench-is-created-also-duplicate-the-selected-component-s-into-the-selected-existing-benches-after-the-new-bench-creation-succeeds-the-copied-components-must-have-associatedbenchid-set-to-the-target-bench-ids",
+      "title": "Add a during-creation UI flow in the “Add New Test Bench” modal to allow extending (duplicating) a newly-created component to other existing benches.\n\nBehavior:\n- While adding a component in the Components (Health Book) section, provide a control to choose additional existing benches to also receive a copy of that component.\n- When the new bench is created, also duplicate the selected component(s) into the selected existing benches (after the new bench creation succeeds).\n- The copied components must have `associatedBenchId` set to the target bench IDs.",
       "reqIds": [
-        "REQ-2"
+        "REQ-3"
       ],
       "version": 1
     }
@@ -29,18 +26,20 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Fix entity tag creation/saving when adding a new tag (e.g., \"T2I\"); support/validate tags such as T2I, IVV, Qualite, IMI, RLI.",
+      "summary": "Add ability to extend/duplicate a \"composant\" to other existing \"bancs\" during creation and after creation via a \"copier/dupliquer\" toggle, allowing reassignment without rebuilding from scratch.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Update the profile photo in the \"binôme profile\" tab immediately after a new photo is chosen and saved.",
-      "reqIds": [],
+      "summary": "Add backend support to duplicate an existing component into one or more target benches without requiring the user to recreate it from scratch.\n\nImplementation scope:\n- Add a new shared method that takes a `Component` payload and a list of `targetBenchIds`.\n- For each `targetBenchId`, validate the bench exists, then append a copied component into that bench’s component list in `componentMap`.\n- Ensure the copied component’s `associatedBenchId` is set to the target bench ID (not the source bench).\n- Write a history entry for each target bench indicating a component was duplicated into it.\n- Enforce the same authorization checks as existing component management methods.",
+      "reqIds": [
+        "REQ-1"
+      ],
       "status": "pending"
     }
   ],
-  "projectName": "Fix entity saving for new values and refresh profile photo in binôme profile after update",
+  "projectName": "Allow duplicating a component to other existing benches during creation and after creation",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

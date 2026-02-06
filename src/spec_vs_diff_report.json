@@ -1,60 +1,53 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T21:58:31.567Z",
-  "summary": "Diff adds frontend changes for entity input to accept newly typed values and adds React Query invalidations on profile save; it also includes profile-page avatar state management intended to prevent profile picture reversion. However, the diff summary does not provide clear evidence of backend changes for persisting new entities into suggestions or for admin email-domain rule exceptions, and it does not clearly show invalidation/refetch for public user info used by the “binôme profile” tab.",
+  "generatedAt": "2026-02-06T10:08:30.965Z",
+  "summary": "Diff adds a frontend duplication dialog and wires duplication-related hooks into Bench Detail and Add Bench modal, but the backend duplication method behavior and several acceptance-criteria details are not verifiable from the provided truncated diff summary.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "After a successful save, any UI that displays the user’s avatar via public user info (e.g., the “binôme profile” tab) shows the updated avatar without requiring a hard refresh; React Query caches related to user profile/public user info are invalidated/refetched as needed.",
-      "reason": "The diff shows invalidation for ['currentUserProfile'], ['testBenches'], and ['uniqueEntities'], but does not show any invalidation/refetch of queries for public user info (which the “binôme profile” tab would typically use). No “binôme profile” tab code changes are present in the provided diff summary.",
+      "requirement": "Add backend support (single Motoko actor) to duplicate a Component into one or more target benches with bench-existence validation, authorization checks, per-bench history entries, associatedBenchId rewritten per target, and trapping on unauthorized/missing bench.",
+      "reason": "backend/main.mo is truncated and does not show any new shared duplication method, nor evidence of bench existence validation, history writes, or trap behavior for invalid benches/unauthorized callers.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "requirement": "Typing a new entity value and saving the profile persists that entity on the backend and newly saved entities appear in entity suggestions thereafter (without full page reload).",
-      "reason": "Frontend changes support entering a typed entity and invalidating ['uniqueEntities'], but the backend-side behavior to accept arbitrary entity values and to add new values into the entities suggestions set/list is not evidenced in the truncated backend diff.",
-      "evidence": [
-        "frontend/src/components/profile/EntityTagInput.tsx",
-        "frontend/src/hooks/useQueries.ts",
         "backend/main.mo"
       ]
     },
     {
       "id": "REQ-2",
-      "requirement": "The backend does not reject profile saving for admin users due to email-domain rules when the frontend indicates admins can use any domain.",
-      "reason": "No backend logic change is shown (diff is truncated) demonstrating that admin users bypass email-domain enforcement during profile save.",
+      "requirement": "Invalidate/refresh React Query caches related to bench components so UI reflects duplication without a hard reload (and refresh impacted benches’ component data).",
+      "reason": "DuplicateComponentDialog triggers a mutation and closes with a toast, but the diff summary does not include the implementation of useDuplicateComponentToBenches (or explicit invalidations) showing that bench component queries are invalidated/refetched.",
       "evidence": [
-        "backend/main.mo",
-        "frontend/src/pages/ProfilePage.tsx"
+        "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
+        "frontend/src/hooks/useQueries.ts (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "During Add New Test Bench creation, allow choosing additional existing benches to receive copies of the component(s) being created; after bench creation succeeds, duplicate the selected component(s) into selected benches; show clear error toast if duplication fails without rolling back creation.",
+      "reason": "AddBenchModal introduces selectedBenchesForDuplication state and uses useDuplicateComponentToBenches, but the truncated diff does not show (a) UI that maps duplication targets to specific newly-created component(s), (b) the post-create sequencing that duplicates components after createBench succeeds, or (c) the required error handling behavior when duplication fails.",
+      "evidence": [
+        "frontend/src/pages/Benches/components/AddBenchModal.tsx (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Invalidating the React Query cache for ['testBenches'] on successful profile save.",
-      "reason": "The BuildRequest focuses on profile picture refresh and entity saving/suggestions; it does not ask to refetch test benches when saving a user profile.",
+      "description": "“Rewrite description” functionality in Add Bench modal (rewriteDescription + Sparkles icon + toast).",
+      "reason": "Not requested in the BuildRequest; appears as newly added behavior in the modified AddBenchModal.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts"
-      ]
-    },
-    {
-      "description": "Introducing/using an avatar cache-buster hook (useAvatarCacheBuster).",
-      "reason": "Cache-busting implementation details were not explicitly requested (only that the updated avatar appears immediately). This is an additional mechanism beyond the stated requirements.",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/pages/Benches/components/AddBenchModal.tsx (truncated)"
       ]
     }
   ],
-  "confidence": 0.56,
+  "confidence": 0.58,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/profile/EntityTagInput.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/ProfilePage.tsx",
+    "frontend/src/pages/Benches/BenchDetailPage.tsx",
+    "frontend/src/pages/Benches/components/AddBenchModal.tsx",
+    "frontend/src/pages/Benches/components/BenchComponentsTableEditor.tsx",
+    "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
     "project_state.json"
   ]
 }

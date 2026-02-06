@@ -111,6 +111,8 @@ export interface backendInterface {
     createDocument(id: string, productDisplayName: string, version: Version, category: string, fileReference: ExternalBlob, semanticVersion: string, tags: Array<Tag>, documentVersion: string | null): Promise<void>;
     createTestBench(id: string, name: string, serialNumber: string, agileCode: string, plmAgileUrl: string, decawebUrl: string, description: string, photo: ExternalBlob, photoUrl: string | null, tags: Array<Tag>): Promise<void>;
     documentExists(documentId: string): Promise<boolean>;
+    duplicateComponentToBench(_benchId: string, _component: Component, targetBenchId: string): Promise<void>;
+    duplicateComponentToBenches(component: Component, targetBenchIds: Array<string>): Promise<void>;
     filterDocumentsByTags(tags: Array<Tag>): Promise<Array<Document>>;
     findExpiringDocuments(daysRemaining: bigint | null): Promise<Array<Document>>;
     getAllEntities(): Promise<Array<string>>;

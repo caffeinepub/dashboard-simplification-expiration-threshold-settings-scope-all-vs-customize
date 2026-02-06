@@ -1,13 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Ensure profile updates persist correctly (especially profile photos and entity values) and that avatar changes are reflected immediately across the UI.
+**Goal:** Let users duplicate (copy) a component to one or more other existing test benches, both during bench creation and after a bench/component already exists.
 
 **Planned changes:**
-- Fix profile save logic so the selected avatar (predefined or uploaded) is not overwritten by subsequent saves.
-- Ensure avatar displays that rely on public user info (including the “binôme profile” tab) refresh immediately after a successful profile save.
-- Invalidate/refetch relevant React Query caches after profile updates so changes appear without a hard refresh.
-- Allow saving newly typed “entity” values (not only suggested ones) and ensure newly saved entities appear in suggestions afterward.
-- Align backend validation with frontend rules so admin users are not blocked from saving due to email-domain constraints.
+- Backend: Add an authorized duplication method that takes a `Component` payload plus `targetBenchIds`, validates target benches exist, appends copied components to each target bench with `associatedBenchId` set to the target bench, and writes a history entry per affected bench.
+- Bench Detail page: Add a “Duplicate / Copy” action for a component in the components (Health Book) table to select one/more target benches (excluding current bench by default), confirm duplication, show success/error toasts, and refresh relevant data.
+- Add New Test Bench modal: While adding component(s), add a control to optionally select existing benches that should also receive copies; after the new bench is created successfully, duplicate the selected component(s) into the selected existing benches and surface any duplication errors via toasts.
 
-**User-visible outcome:** Users can change their profile picture (avatar or uploaded photo) and see it update immediately everywhere (including the binôme profile tab), and they can save newly typed entity values (e.g., “T2I”, “IVV”, “Qualite”, “IMI”, “RLI”) which then show up in entity suggestions.
+**User-visible outcome:** Users can copy a component to other existing benches either from an existing bench’s component list or while creating a new bench, without recreating the component from scratch; target benches show the duplicated component and a history entry for the duplication.
