@@ -1,56 +1,39 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T20:07:30.849Z",
-  "summary": "Diff adds new backend UserProfile fields plus a Motoko migration module, and introduces a frontend I18nProvider to load/persist language and update UI immediately. The Profile page appears extended with the new fields and improved styling, but key backend partial-update preservation and frontend save payload changes are not fully verifiable from the truncated diff. Diff summary also indicates unrelated dashboard/chart features and broader global theming changes not requested.",
+  "generatedAt": "2026-02-06T21:14:08.221Z",
+  "summary": "The diff does not show implementation of the requested Test Bench i18n localization work or the default-language-to-English behavior. Only `backend/main.mo` (with no visible language-related changes in the provided excerpt) and `project_state.json` were modified.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Update all backend profile-related methods that construct or update a UserProfile (including getCallerUserProfile defaults and partial-update methods like setLanguageTag, setProfilePicture, updateExpirationPreferences, updateDashboardSectionsOrder) so they preserve all profile fields when updating a single property.",
-      "reason": "While UserProfile is extended with username/displayName/avatarUrl/bio, the diff is truncated before showing the implementations of the profile update methods; therefore it is not possible to confirm that partial updates preserve all fields and do not reset the new ones.",
+      "requirement": "Fully localize the entire Test Bench experience by replacing all hardcoded user-facing strings on Test Bench pages/subcomponents with i18n keys, and add complete en-US and fr-FR translations for all used keys.",
+      "reason": "No frontend Test Bench pages/components or i18n translation files were modified in the diff. There is no evidence of replacing hardcoded strings with `t(...)` calls or adding translation entries.",
       "evidence": [
-        "backend/main.mo (truncated after type definitions; no shown implementations of setLanguageTag/setProfilePicture/updateExpirationPreferences/updateDashboardSectionsOrder/getCallerUserProfile)"
+        "File diff summary shows only modified files: `backend/main.mo`, `project_state.json`; no `frontend/src/...` changes present."
       ]
     },
     {
-      "id": "REQ-3",
-      "requirement": "Ensure the Profile page includes the new fields when saving the profile so they are persisted in the backend and restored automatically after login/logout.",
-      "reason": "ProfilePage state and initialization for the new fields are visible, but the diff is truncated before showing the save/submit handler payload sent via useSaveCallerUserProfile, so it cannot be confirmed that username/displayName/avatarUrl/bio are actually persisted.",
+      "id": "REQ-2",
+      "requirement": "Set English (en-US) as the default UI language for first-time users and persist explicit language choice; backend should default to en-US for users without stored preference.",
+      "reason": "The diff shows no changes to frontend initialization logic (e.g., localStorage handling) and no visible changes in the provided `backend/main.mo` excerpt related to `getLanguageTag()` or default `UserProfile.languageTag`.",
       "evidence": [
-        "frontend/src/pages/ProfilePage.tsx (truncated; initialization shown, but save handler/payload not shown)"
+        "File diff summary shows no frontend files modified.",
+        "`backend/main.mo` excerpt includes type definitions (including `UserProfile.languageTag`) but no shown logic changes for defaults or getLanguageTag/getCallerUserProfile behavior."
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Dashboard analytics/visualizations changes including a persistent chart type selector and ensuring a 'charts' section is always visible.",
-      "reason": "BuildRequest is focused on user profile persistence and instant language switching plus Profile page theming; it does not request dashboard chart features or section-merging behavior.",
+      "description": "Updating internal tracking metadata in `project_state.json` (adding/altering feature request entries and statuses).",
+      "reason": "The BuildRequest does not ask to modify `project_state.json`; it is not part of the stated requirements or constraints for implementing i18n/default-language behavior.",
       "evidence": [
-        "frontend-file-summaries.txt (entry for \"frontend/src/pages/DashboardPage.tsx\": \"chart type selector (Bar/Line) with persistence\", \"analytics visualizations including charts section\", \"automatic merging of default sections...\")"
-      ]
-    },
-    {
-      "description": "Global enterprise theme overhaul (global index.css OKLCH theme and tailwind design system changes) beyond the Profile page.",
-      "reason": "REQ-5 asks for a coherent visual theme for the Profile experience specifically; applying/altering global styling and tailwind tokens across the entire app is not explicitly requested.",
-      "evidence": [
-        "frontend-file-summaries.txt (\"frontend/src/index.css\": \"Global styles with OKLCH color system defining enterprise-friendly blue-gray theme...\", \"frontend/tailwind.config.js\": \"extended design system\")"
-      ]
-    },
-    {
-      "description": "Introduction/changes of new AuthGate/AdminGate guards and an AppErrorBoundary at the top level.",
-      "reason": "The BuildRequest does not ask for new route guards or error boundaries; these are additional application-structure features.",
-      "evidence": [
-        "frontend-file-summaries.txt (entries for \"frontend/src/components/auth/AuthGate.tsx\", \"frontend/src/components/admin/AdminGate.tsx\", and \"frontend/src/components/ui/AppErrorBoundary.tsx\")"
+        "project_state.json"
       ]
     }
   ],
-  "confidence": 0.55,
+  "confidence": 0.74,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
-    "frontend-file-summaries.txt",
-    "frontend/src/i18n/I18nProvider.tsx",
-    "frontend/src/pages/ProfilePage.tsx",
     "project_state.json"
   ]
 }

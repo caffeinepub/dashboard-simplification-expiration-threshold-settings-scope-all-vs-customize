@@ -67,18 +67,16 @@ export interface Tag {
 }
 export type Version = bigint;
 export interface PublicUserInfo {
-    name: string;
+    username: string;
     profilePicture: ProfilePicture;
 }
 export interface UserProfile {
     bio: string;
     entity: string;
     username: string;
-    displayName: string;
     languageTag: string;
     thresholdCustomizedBenches: Array<[string, bigint]>;
     userId: string;
-    name: string;
     email: string;
     avatarUrl: string;
     thresholdAllBenches: bigint;

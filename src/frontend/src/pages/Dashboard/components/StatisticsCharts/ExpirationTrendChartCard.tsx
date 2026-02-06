@@ -1,83 +1,87 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { TrendingUp } from 'lucide-react';
-import type { ChartType } from '../../../../hooks/useDashboardChartType';
+import { useI18n } from '../../../../i18n/useI18n';
 
 interface ExpirationTrendChartCardProps {
-  data: Array<{ benchId: string; benchName: string; components: any[] }>;
-  chartType: ChartType;
+  data: Array<{ benchId: string; benchName: string; agileCode: string; serialNumber: string; components: any[] }>;
+  chartType: 'Bar' | 'Line';
 }
 
 export function ExpirationTrendChartCard({ data, chartType }: ExpirationTrendChartCardProps) {
-  const allComponents = data.flatMap((bench) => bench.components);
+  const { t } = useI18n();
 
-  const monthBuckets: Record<string, number> = {};
+  // Group components by month
+  const monthCounts: Record<string, number> = {};
 
-  allComponents.forEach((comp) => {
-    if (!comp.expirationDate) return;
-    try {
-      const date = new Date(comp.expirationDate);
-      if (isNaN(date.getTime())) return;
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      monthBuckets[monthKey] = (monthBuckets[monthKey] || 0) + 1;
-    } catch {
-      // Skip invalid dates
-    }
+  data.forEach((benchData) => {
+    benchData.components.forEach((comp) => {
+      if (comp.expirationDate) {
+        const date = new Date(comp.expirationDate);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        monthCounts[monthKey] = (monthCounts[monthKey] || 0) + 1;
+      }
+    });
   });
 
-  const chartData = Object.entries(monthBuckets)
-    .map(([month, count]) => ({ month, count }))
-    .sort((a, b) => a.month.localeCompare(b.month))
-    .slice(-12);
+  const chartData = Object.entries(monthCounts)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, count]) => ({
+      month,
+      count,
+    }));
 
-  if (chartData.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Expiration Trend Over Time
-          </CardTitle>
-          <CardDescription>Component expirations by month</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-8">
-            No expiration data available
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const isEmpty = chartData.length === 0;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
-          Expiration Trend Over Time
+          {t('charts.expirationTrend')}
         </CardTitle>
-        <CardDescription>Component expirations by month</CardDescription>
+        <CardDescription>{t('charts.expirationTrendDesc')}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          {chartType === 'bar' ? (
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="hsl(var(--primary))" />
-            </BarChart>
-          ) : (
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="count" stroke="hsl(var(--primary))" strokeWidth={2} />
-            </LineChart>
-          )}
-        </ResponsiveContainer>
+        {isEmpty ? (
+          <div className="h-[300px] flex items-center justify-center">
+            <p className="text-sm text-muted-foreground">{t('charts.noData')}</p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            {chartType === 'Bar' ? (
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+                <YAxis stroke="hsl(var(--muted-foreground))" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '6px',
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="count" fill="oklch(0.65 0.15 250)" name={t('charts.components')} />
+              </BarChart>
+            ) : (
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+                <YAxis stroke="hsl(var(--muted-foreground))" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '6px',
+                  }}
+                />
+                <Legend />
+                <Line type="monotone" dataKey="count" stroke="oklch(0.65 0.15 250)" name={t('charts.components')} />
+              </LineChart>
+            )}
+          </ResponsiveContainer>
+        )}
       </CardContent>
     </Card>
   );

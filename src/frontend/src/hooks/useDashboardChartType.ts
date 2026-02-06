@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export type ChartType = 'bar' | 'line';
+export type ChartType = 'Bar' | 'Line';
 
 const STORAGE_KEY = 'dashboard-chart-type';
 
@@ -8,9 +8,9 @@ export function useDashboardChartType() {
   const [chartType, setChartType] = useState<ChartType>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      return (stored === 'bar' || stored === 'line') ? stored : 'bar';
+      return (stored === 'Bar' || stored === 'Line') ? stored : 'Bar';
     } catch {
-      return 'bar';
+      return 'Bar';
     }
   });
 

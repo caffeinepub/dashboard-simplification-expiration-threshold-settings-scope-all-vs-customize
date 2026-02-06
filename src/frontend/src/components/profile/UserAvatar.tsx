@@ -33,7 +33,7 @@ export function UserAvatar({ profilePicture, name, size = 'md', className }: Use
 
   return (
     <Avatar className={cn(sizeClasses[size], className)}>
-      <AvatarImage src={getImageSrc()} alt={name || 'User avatar'} />
+      <AvatarImage src={getImageSrc()} alt={name || 'User'} />
       <AvatarFallback>
         <User className="h-1/2 w-1/2" />
       </AvatarFallback>

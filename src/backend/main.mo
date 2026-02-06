@@ -9,17 +9,15 @@ import Iter "mo:core/Iter";
 import Time "mo:core/Time";
 import List "mo:core/List";
 import Set "mo:core/Set";
-import Migration "migration";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import AccessControl "authorization/access-control";
 
-// Use migration
-(with migration = Migration.run)
+// Specify migration in 'with' clause
+
 actor {
-  // Initialize the user system state
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
   include MixinStorage();
@@ -115,7 +113,7 @@ actor {
   };
 
   type PublicUserInfo = {
-    name : Text;
+    username : Text;
     profilePicture : ProfilePicture;
   };
 
@@ -123,10 +121,8 @@ actor {
     userId : Text;
     email : Text;
     username : Text;
-    displayName : Text;
     bio : Text;
     avatarUrl : Text;
-    name : Text;
     entity : Text;
     expirationThresholdMode : ExpirationThresholdMode;
     thresholdAllBenches : Nat;
@@ -231,10 +227,8 @@ actor {
       userId = currentProfile.userId;
       email = currentProfile.email;
       username = currentProfile.username;
-      displayName = currentProfile.displayName;
       bio = currentProfile.bio;
       avatarUrl = currentProfile.avatarUrl;
-      name = currentProfile.name;
       entity = currentProfile.entity;
       expirationThresholdMode = currentProfile.expirationThresholdMode;
       thresholdAllBenches = currentProfile.thresholdAllBenches;
@@ -272,10 +266,8 @@ actor {
       userId = currentProfile.userId;
       email = currentProfile.email;
       username = currentProfile.username;
-      displayName = currentProfile.displayName;
       bio = currentProfile.bio;
       avatarUrl = currentProfile.avatarUrl;
-      name = currentProfile.name;
       entity = currentProfile.entity;
       expirationThresholdMode = currentProfile.expirationThresholdMode;
       thresholdAllBenches = currentProfile.thresholdAllBenches;
@@ -290,11 +282,12 @@ actor {
   };
 
   public query ({ caller }) func getLanguageTag() : async Text {
-    // No authorization check - accessible to all users including guests
-    // This allows the frontend to get language preference before authentication
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can get language preference");
+    };
     switch (userProfileMap.get(caller)) {
       case (null) {
-        "en-US"; // Default to English if no profile exists
+        "en-US"; // Default to English (US) if no profile exists
       };
       case (?profile) { profile.languageTag };
     };
@@ -324,17 +317,15 @@ actor {
           userId = caller.toText();
           email = "";
           username = "";
-          displayName = "";
           bio = "";
           avatarUrl = "";
-          name = "";
           entity = "";
           expirationThresholdMode = #allBenches;
           thresholdAllBenches = 30;
           thresholdCustomizedBenches = [];
           dashboardSectionsOrdered = defaultSections;
           profilePicture = #avatar("default");
-          languageTag = "en-US";
+          languageTag = "en-US"; // Set default to English (US) in user profile too
           lastSeen = null;
         };
       };
@@ -420,10 +411,8 @@ actor {
       userId = currentProfile.userId;
       email = currentProfile.email;
       username = currentProfile.username;
-      displayName = currentProfile.displayName;
       bio = currentProfile.bio;
       avatarUrl = currentProfile.avatarUrl;
-      name = currentProfile.name;
       entity = currentProfile.entity;
       expirationThresholdMode = currentProfile.expirationThresholdMode;
       thresholdAllBenches = currentProfile.thresholdAllBenches;
@@ -485,10 +474,8 @@ actor {
       userId = currentProfile.userId;
       email = currentProfile.email;
       username = currentProfile.username;
-      displayName = currentProfile.displayName;
       bio = currentProfile.bio;
       avatarUrl = currentProfile.avatarUrl;
-      name = currentProfile.name;
       entity = currentProfile.entity;
       expirationThresholdMode = mode;
       thresholdAllBenches = thresholdAll;
@@ -516,10 +503,8 @@ actor {
       userId = currentProfile.userId;
       email = currentProfile.email;
       username = currentProfile.username;
-      displayName = currentProfile.displayName;
       bio = currentProfile.bio;
       avatarUrl = currentProfile.avatarUrl;
-      name = currentProfile.name;
       entity = currentProfile.entity;
       expirationThresholdMode = currentProfile.expirationThresholdMode;
       thresholdAllBenches = currentProfile.thresholdAllBenches;
@@ -920,11 +905,10 @@ actor {
       case (null) { null };
       case (?profile) {
         ?{
-          name = profile.name;
+          username = profile.username;
           profilePicture = profile.profilePicture;
         };
       };
     };
   };
 };
-

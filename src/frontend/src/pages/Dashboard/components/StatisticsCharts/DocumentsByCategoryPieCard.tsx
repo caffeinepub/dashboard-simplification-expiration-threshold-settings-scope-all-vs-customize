@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { FileText } from 'lucide-react';
+import { useI18n } from '../../../../i18n/useI18n';
 
 interface DocumentsByCategoryPieCardProps {
   data: Array<{ document: any; benchName: string }>;
@@ -14,6 +15,8 @@ const COLORS = {
 };
 
 export function DocumentsByCategoryPieCard({ data }: DocumentsByCategoryPieCardProps) {
+  const { t } = useI18n();
+
   const categoryCounts = data.reduce((acc, item) => {
     const category = item.document.category || 'Unknown';
     acc[category] = (acc[category] || 0) + 1;
@@ -32,14 +35,14 @@ export function DocumentsByCategoryPieCard({ data }: DocumentsByCategoryPieCardP
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Documents by Category
+          {t('charts.documentsByCategory')}
         </CardTitle>
-        <CardDescription>Distribution of documents across categories</CardDescription>
+        <CardDescription>{t('charts.documentsByCategoryDesc')}</CardDescription>
       </CardHeader>
       <CardContent>
         {isEmpty ? (
           <div className="h-[300px] flex items-center justify-center">
-            <p className="text-sm text-muted-foreground">No documents available</p>
+            <p className="text-sm text-muted-foreground">{t('charts.noDocuments')}</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>

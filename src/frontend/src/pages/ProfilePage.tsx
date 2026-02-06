@@ -43,10 +43,8 @@ export default function ProfilePage() {
   const setProfilePictureMutation = useSetProfilePicture();
   const { t, languageTag, setLanguageTag } = useI18n();
 
-  // Extended profile fields
-  const [name, setName] = useState('');
+  // Profile fields (removed name and displayName)
   const [username, setUsername] = useState('');
-  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -55,7 +53,7 @@ export default function ProfilePage() {
   const [globalThreshold, setGlobalThreshold] = useState(30);
   const [selectedBenches, setSelectedBenches] = useState<Set<string>>(new Set());
   const [benchThresholds, setBenchThresholds] = useState<Map<string, number>>(new Map());
-  const [errors, setErrors] = useState<{ name?: string; email?: string; entity?: string; threshold?: string }>({});
+  const [errors, setErrors] = useState<{ username?: string; email?: string; entity?: string; threshold?: string }>({});
 
   // Avatar state
   const [avatarMode, setAvatarMode] = useState<'predefined' | 'custom'>('predefined');
@@ -69,9 +67,7 @@ export default function ProfilePage() {
   // Initialize form when profile loads
   useEffect(() => {
     if (profile) {
-      setName(profile.name);
       setUsername(profile.username || '');
-      setDisplayName(profile.displayName || '');
       setEmail(profile.email);
       setBio(profile.bio || '');
       setAvatarUrl(profile.avatarUrl || '');
@@ -148,21 +144,21 @@ export default function ProfilePage() {
   const handleLanguageChange = async (newLanguageTag: string) => {
     try {
       await setLanguageTag(newLanguageTag);
-      toast.success('Language updated successfully');
+      toast.success(t('profile.languageUpdated'));
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update language');
+      toast.error(error.message || t('profile.languageUpdateFailed'));
     }
   };
 
   const handleSave = async () => {
-    const newErrors: { name?: string; email?: string; entity?: string; threshold?: string } = {};
+    const newErrors: { username?: string; email?: string; entity?: string; threshold?: string } = {};
 
-    if (!name.trim()) {
-      newErrors.name = 'Name is required';
+    if (!username.trim()) {
+      newErrors.username = t('profile.usernameRequired');
     }
 
     if (!entity.trim()) {
-      newErrors.entity = 'Entity is required';
+      newErrors.entity = t('profile.entityRequired');
     }
 
     const emailError = isAdmin ? null : validateEmailAgainstDomain(email, allowedDomain);
@@ -210,12 +206,10 @@ export default function ProfilePage() {
       // Save profile picture first
       await setProfilePictureMutation.mutateAsync(newProfilePicture);
 
-      // Save profile with all fields including new ones
+      // Save profile with all fields (removed name and displayName)
       await saveMutation.mutateAsync({
         userId: identity?.getPrincipal().toString() || '',
-        name: name.trim(),
         username: username.trim(),
-        displayName: displayName.trim(),
         email: email.trim(),
         bio: bio.trim(),
         avatarUrl: avatarUrl.trim(),
@@ -248,9 +242,9 @@ export default function ProfilePage() {
         thresholdCustom: customThresholds,
       });
 
-      toast.success('Profile and preferences saved successfully');
+      toast.success(t('profile.saved'));
     } catch (error: any) {
-      toast.error(error.message || 'Failed to save profile');
+      toast.error(error.message || t('profile.saveFailed'));
     }
   };
 
@@ -259,7 +253,7 @@ export default function ProfilePage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading profile...</p>
+          <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -273,7 +267,7 @@ export default function ProfilePage() {
           {t('profile.title')}
         </h1>
         <p className="text-muted-foreground mt-2">
-          Manage your account information and preferences
+          {t('profile.manageAccount')}
         </p>
       </div>
 
@@ -281,7 +275,7 @@ export default function ProfilePage() {
         <Alert className="mb-6">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Welcome! Please complete your profile to continue.
+            {t('profile.welcomeNew')} {t('profile.completeProfile')}
           </AlertDescription>
         </Alert>
       )}
@@ -289,18 +283,18 @@ export default function ProfilePage() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
+            <CardTitle>{t('profile.information')}</CardTitle>
             <CardDescription>
-              Your profile information is used for identification across the platform
+              {t('profile.informationDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label>Profile Picture</Label>
+              <Label>{t('profile.picture')}</Label>
               <Tabs value={avatarMode} onValueChange={(v) => setAvatarMode(v as 'predefined' | 'custom')}>
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="predefined">Predefined</TabsTrigger>
-                  <TabsTrigger value="custom">Custom Upload</TabsTrigger>
+                  <TabsTrigger value="predefined">{t('profile.predefined')}</TabsTrigger>
+                  <TabsTrigger value="custom">{t('profile.customUpload')}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="predefined" className="space-y-3 mt-4">
                   <PredefinedAvatarPicker selectedId={selectedAvatar} onSelect={setSelectedAvatar} />
@@ -324,13 +318,13 @@ export default function ProfilePage() {
                           }}
                           className="w-full"
                         >
-                          Remove
+                          {t('profile.remove')}
                         </Button>
                       </div>
                     ) : (
                       <label className="cursor-pointer flex flex-col items-center gap-2">
                         <Upload className="h-8 w-8 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Click to upload photo</span>
+                        <span className="text-sm text-muted-foreground">{t('profile.clickToUpload')}</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -344,44 +338,19 @@ export default function ProfilePage() {
               </Tabs>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your full name"
-                />
-                {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username"
-                />
-              </div>
-            </div>
-
             <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name</Label>
+              <Label htmlFor="username">{t('profile.username')} *</Label>
               <Input
-                id="displayName"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Enter your display name"
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username"
               />
-              <p className="text-xs text-muted-foreground">
-                This is how your name will appear to other users
-              </p>
+              {errors.username && <p className="text-sm text-destructive">{errors.username}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">{t('profile.email')} *</Label>
               <Input
                 id="email"
                 type="email"
@@ -398,7 +367,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="avatarUrl">Avatar URL</Label>
+              <Label htmlFor="avatarUrl">{t('profile.avatarUrl')}</Label>
               <Input
                 id="avatarUrl"
                 type="url"
@@ -407,12 +376,12 @@ export default function ProfilePage() {
                 placeholder="https://example.com/avatar.jpg"
               />
               <p className="text-xs text-muted-foreground">
-                Optional: External URL for your avatar image
+                {t('profile.avatarUrlDescription')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
+              <Label htmlFor="bio">{t('profile.bio')}</Label>
               <Textarea
                 id="bio"
                 value={bio}
@@ -421,12 +390,12 @@ export default function ProfilePage() {
                 rows={4}
               />
               <p className="text-xs text-muted-foreground">
-                A brief description about yourself
+                {t('profile.bioDescription')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="entity">Entity *</Label>
+              <Label htmlFor="entity">{t('profile.entity')} *</Label>
               <EntityTagInput
                 value={entity}
                 onChange={setEntity}
@@ -449,7 +418,7 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label htmlFor="language">Language</Label>
+              <Label htmlFor="language">{t('profile.language')}</Label>
               <Select value={languageTag} onValueChange={handleLanguageChange}>
                 <SelectTrigger id="language">
                   <SelectValue placeholder="Select language" />
@@ -465,9 +434,6 @@ export default function ProfilePage() {
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                Changes take effect immediately across the entire application
-              </p>
             </div>
           </CardContent>
         </Card>
@@ -476,76 +442,71 @@ export default function ProfilePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
-              Expiration Thresholds
+              {t('profile.expirationSettings')}
             </CardTitle>
             <CardDescription>
-              Configure when components are considered expiring soon
+              {t('profile.expirationDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <RadioGroup value={thresholdMode} onValueChange={(v) => setThresholdMode(v as 'all' | 'customize')}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="all" id="all" />
-                <Label htmlFor="all" className="font-normal cursor-pointer">
-                  Apply same threshold to all benches
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="customize" id="customize" />
-                <Label htmlFor="customize" className="font-normal cursor-pointer">
-                  Customize threshold per bench
-                </Label>
-              </div>
-            </RadioGroup>
+            <div className="space-y-4">
+              <Label>{t('profile.thresholdMode')}</Label>
+              <RadioGroup value={thresholdMode} onValueChange={(v) => setThresholdMode(v as 'all' | 'customize')}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="all" id="all" />
+                  <Label htmlFor="all" className="font-normal cursor-pointer">
+                    {t('profile.allBenches')}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="customize" id="customize" />
+                  <Label htmlFor="customize" className="font-normal cursor-pointer">
+                    {t('profile.customizeBenches')}
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
 
             <div className="space-y-2">
-              <Label htmlFor="globalThreshold">
-                {thresholdMode === 'all' ? 'Global Threshold (days)' : 'Default Threshold (days)'}
-              </Label>
+              <Label htmlFor="globalThreshold">{t('profile.globalThreshold')}</Label>
               <Input
                 id="globalThreshold"
                 type="number"
                 min="1"
                 max="365"
                 value={globalThreshold}
-                onChange={(e) => setGlobalThreshold(Number(e.target.value))}
+                onChange={(e) => setGlobalThreshold(parseInt(e.target.value) || 30)}
               />
               {errors.threshold && <p className="text-sm text-destructive">{errors.threshold}</p>}
-              <p className="text-xs text-muted-foreground">
-                Components expiring within this many days will be marked as "Expiring Soon"
-              </p>
             </div>
 
             {thresholdMode === 'customize' && (
-              <div className="space-y-3 border rounded-lg p-4">
-                <Label>Select Benches to Customize</Label>
-                <div className="space-y-3 max-h-64 overflow-y-auto">
+              <div className="space-y-4">
+                <Label>{t('profile.selectBenches')}</Label>
+                <div className="space-y-3 max-h-64 overflow-y-auto border rounded-lg p-4">
                   {benches.map((bench) => (
                     <div key={bench.id} className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <Checkbox
-                          id={`bench-${bench.id}`}
+                          id={bench.id}
                           checked={selectedBenches.has(bench.id)}
                           onCheckedChange={(checked) => handleBenchToggle(bench.id, checked as boolean)}
                         />
-                        <Label htmlFor={`bench-${bench.id}`} className="font-normal cursor-pointer flex-1">
+                        <Label htmlFor={bench.id} className="font-normal cursor-pointer flex-1">
                           {bench.name}
                         </Label>
                       </div>
                       {selectedBenches.has(bench.id) && (
-                        <div className="ml-6 space-y-1">
-                          <Label htmlFor={`threshold-${bench.id}`} className="text-xs">
-                            Threshold (days)
-                          </Label>
+                        <div className="ml-6 flex items-center gap-2">
                           <Input
-                            id={`threshold-${bench.id}`}
                             type="number"
                             min="1"
                             max="365"
                             value={benchThresholds.get(bench.id) || globalThreshold}
-                            onChange={(e) => handleBenchThresholdChange(bench.id, Number(e.target.value))}
-                            className="h-8"
+                            onChange={(e) => handleBenchThresholdChange(bench.id, parseInt(e.target.value) || 30)}
+                            className="w-24"
                           />
+                          <span className="text-sm text-muted-foreground">days</span>
                         </div>
                       )}
                     </div>
@@ -556,13 +517,15 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end">
           <Button
             onClick={handleSave}
-            disabled={saveMutation.isPending || updatePreferencesMutation.isPending}
+            disabled={saveMutation.isPending || updatePreferencesMutation.isPending || setProfilePictureMutation.isPending}
             size="lg"
           >
-            {saveMutation.isPending || updatePreferencesMutation.isPending ? 'Saving...' : 'Save Changes'}
+            {saveMutation.isPending || updatePreferencesMutation.isPending || setProfilePictureMutation.isPending
+              ? t('profile.saving')
+              : t('profile.save')}
           </Button>
         </div>
       </div>

@@ -1,13 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Persist full user profile fields (username, display name, avatar URL, bio) and make language switching apply instantly across the app, with language restored automatically across login/logout.
+**Goal:** Fully localize the Test Bench UI (English/French) and default first-time users to English (en-US) while preserving any explicitly chosen language preference.
 
 **Planned changes:**
-- Extend the backend `UserProfile` model to store `username`, `displayName`, `avatarUrl`, and `bio`, and update all profile read/update methods so single-field updates preserve all other fields.
-- Add a safe Motoko canister state migration to initialize the new `UserProfile` fields for existing stored profiles without losing any prior profile data.
-- Update the Profile page UI to view/edit username, display name, email, avatar URL, bio, and language; ensure saving persists these fields and restores them after logout/login.
-- Make language changes from the Profile page update the entire site immediately (no full reload) and ensure the saved language is loaded and applied on authentication state changes (defaulting to `en-US` when no profile exists).
-- Apply a coherent visual theme to the Profile experience (spacing, typography, component styling) to match the rest of the app without changing functionality.
+- Replace all hardcoded user-facing strings on the Test Bench list and detail pages (and their subcomponents) with i18n `t(...)` keys.
+- Add/complete `en-US` and `fr-FR` entries in `frontend/src/i18n/translations.ts` for every Test Bench-related key used.
+- Ensure switching the language selector updates all Test Bench text immediately (no refresh required).
+- Update frontend language initialization to default to `en-US` when there is no valid saved preference (localStorage) and no backend preference.
+- Update backend language/profile defaults in `backend/main.mo` so callers without an existing stored preference/profile receive `languageTag = "en-US"`, while persisting and reusing any explicit user selection.
 
-**User-visible outcome:** Users can edit and save their full profile (including avatar URL and bio), see the chosen language reflected immediately across the app, and have their language and profile details automatically restored after logging out and back in.
+**User-visible outcome:** All Test Bench screens are fully translated via the app’s language selector (English/French), and new users see the UI in English by default until they choose a different language, which is then remembered.

@@ -3,7 +3,7 @@ import { Activity, Clock } from 'lucide-react';
 import type { HistoryEntry } from '../../../backend';
 import { UserAvatar } from '../../../components/profile/UserAvatar';
 import { useGetPublicUserInfo } from '../../../hooks/useQueries';
-import { getAvatarPath } from '../../../utils/avatars';
+import { useI18n } from '../../../i18n/useI18n';
 
 interface BenchHistoryListProps {
   history: HistoryEntry[];
@@ -39,11 +39,11 @@ function HistoryEntryCard({ entry }: { entry: HistoryEntry }) {
               <>
                 <UserAvatar
                   profilePicture={userInfo.profilePicture}
-                  name={userInfo.name}
+                  name={userInfo.username}
                   size="sm"
                   className="h-6 w-6"
                 />
-                <span>{userInfo.name}</span>
+                <span>{userInfo.username || formatPrincipal(entry.user.toString())}</span>
               </>
             ) : (
               <span>{formatPrincipal(entry.user.toString())}</span>
@@ -61,6 +61,7 @@ function HistoryEntryCard({ entry }: { entry: HistoryEntry }) {
 }
 
 export function BenchHistoryList({ history }: BenchHistoryListProps) {
+  const { t } = useI18n();
   const sortedHistory = [...history].sort((a, b) => Number(b.timestamp - a.timestamp));
 
   if (sortedHistory.length === 0) {
@@ -68,7 +69,7 @@ export function BenchHistoryList({ history }: BenchHistoryListProps) {
       <Card>
         <CardContent className="py-12 text-center">
           <Activity className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">No history available yet</p>
+          <p className="text-muted-foreground">{t('benches.noHistory')}</p>
         </CardContent>
       </Card>
     );

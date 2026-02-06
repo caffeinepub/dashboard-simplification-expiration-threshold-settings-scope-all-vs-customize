@@ -23,6 +23,7 @@ import { HealthGaugeCard } from './Dashboard/components/StatisticsCharts/HealthG
 import { DocumentsByCategoryPieCard } from './Dashboard/components/StatisticsCharts/DocumentsByCategoryPieCard';
 import { ComponentsByStatusPieCard } from './Dashboard/components/StatisticsCharts/ComponentsByStatusPieCard';
 import { useDashboardChartType, type ChartType } from '../hooks/useDashboardChartType';
+import { useI18n } from '../i18n/useI18n';
 
 const DEFAULT_SECTIONS = ['statistics', 'charts', 'criticalComponents', 'expiringComponents', 'documents', 'quickActions'];
 
@@ -34,6 +35,7 @@ export default function DashboardPage() {
   const { data: allDocuments = [] } = useGetAllDocuments();
   const updateSectionsOrder = useUpdateDashboardSectionsOrder();
   const { chartType, setChartType } = useDashboardChartType();
+  const { t } = useI18n();
 
   const [isReordering, setIsReordering] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<string[]>(DEFAULT_SECTIONS);
@@ -70,10 +72,10 @@ export default function DashboardPage() {
   const handleDownload = async (doc: any) => {
     try {
       await downloadDocument(doc.document.fileReference, doc.document.productDisplayName);
-      toast.success(`Downloaded ${doc.document.productDisplayName}`);
+      toast.success(t('dashboard.downloaded'));
     } catch (error: any) {
       console.error('Failed to download document:', error);
-      toast.error(error.message || 'Failed to download document');
+      toast.error(error.message || t('dashboard.downloadFailed'));
     }
   };
 
@@ -90,11 +92,11 @@ export default function DashboardPage() {
   const handleSaveOrder = async () => {
     try {
       await updateSectionsOrder.mutateAsync(sectionOrder);
-      toast.success('Dashboard layout saved');
+      toast.success(t('dashboard.layoutSaved'));
       setIsReordering(false);
     } catch (error: any) {
       console.error('Failed to save layout:', error);
-      toast.error(error.message || 'Failed to save layout');
+      toast.error(error.message || t('dashboard.layoutSaveFailed'));
     }
   };
 
@@ -129,52 +131,52 @@ export default function DashboardPage() {
           <div key={sectionId} className="space-y-4">
             {isReordering && (
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Statistics</h2>
+                <h2 className="text-lg font-semibold">{t('dashboard.statistics')}</h2>
                 {reorderControls}
               </div>
             )}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Test Benches</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('dashboard.totalBenches')}</CardTitle>
                   <TestTube2 className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{totalBenches}</div>
-                  <p className="text-xs text-muted-foreground">Active test benches</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.activeBenches')}</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Critical Components</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('dashboard.criticalComponents')}</CardTitle>
                   <AlertTriangle className="h-4 w-4 text-destructive" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-destructive">{criticalComponents.length}</div>
-                  <p className="text-xs text-muted-foreground">Expired components</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.expiredComponents')}</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('dashboard.expiringSoon')}</CardTitle>
                   <TrendingUp className="h-4 w-4 text-orange-500" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-orange-500">{expiringSoonComponents.length}</div>
-                  <p className="text-xs text-muted-foreground">Based on your threshold settings</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.basedOnThreshold')}</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Documents</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('dashboard.documents')}</CardTitle>
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{allDocuments.length}</div>
-                  <p className="text-xs text-muted-foreground">Total documents</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.totalDocuments')}</p>
                 </CardContent>
               </Card>
             </div>
@@ -187,21 +189,21 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               {isReordering ? (
                 <>
-                  <h2 className="text-lg font-semibold">Charts & Analytics</h2>
+                  <h2 className="text-lg font-semibold">{t('dashboard.chartsAnalytics')}</h2>
                   {reorderControls}
                 </>
               ) : (
                 <>
-                  <h2 className="text-lg font-semibold">Charts & Analytics</h2>
+                  <h2 className="text-lg font-semibold">{t('dashboard.chartsAnalytics')}</h2>
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="chart-type" className="text-sm">Chart type:</Label>
+                    <Label htmlFor="chart-type" className="text-sm">{t('dashboard.chartType')}</Label>
                     <Select value={chartType} onValueChange={(value) => setChartType(value as ChartType)}>
                       <SelectTrigger id="chart-type" className="w-[120px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="bar">Bar</SelectItem>
-                        <SelectItem value="line">Line</SelectItem>
+                        <SelectItem value="Bar">{t('dashboard.bar')}</SelectItem>
+                        <SelectItem value="Line">{t('dashboard.line')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -209,14 +211,14 @@ export default function DashboardPage() {
               )}
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              <ExpiredByBenchChartCard data={allBenchComponents} chartType={chartType} />
+              <ExpiredByBenchChartCard data={allBenchComponents} profile={profile ?? null} chartType={chartType} />
               <ExpirationTrendChartCard data={allBenchComponents} chartType={chartType} />
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <DocumentsByCategoryPieCard data={allDocuments} />
               <ComponentsByStatusPieCard data={allBenchComponents} profile={profile ?? null} />
             </div>
-            <HealthGaugeCard data={allBenchComponents} />
+            <HealthGaugeCard data={allBenchComponents} profile={profile ?? null} />
           </div>
         );
 
@@ -228,23 +230,23 @@ export default function DashboardPage() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <AlertTriangle className="h-5 w-5 text-destructive" />
-                    Critical Components
+                    {t('dashboard.criticalComponentsTitle')}
                   </CardTitle>
-                  <CardDescription>Components that have expired</CardDescription>
+                  <CardDescription>{t('dashboard.criticalComponentsDesc')}</CardDescription>
                 </div>
                 {reorderControls}
               </div>
             </CardHeader>
             <CardContent>
               {criticalComponents.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No critical components</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard.noCritical')}</p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Equipment Name</TableHead>
-                      <TableHead>Bench</TableHead>
-                      <TableHead>AGILE Number</TableHead>
+                      <TableHead>{t('dashboard.equipmentName')}</TableHead>
+                      <TableHead>{t('dashboard.bench')}</TableHead>
+                      <TableHead>{t('dashboard.agileNumber')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -270,23 +272,23 @@ export default function DashboardPage() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-orange-500" />
-                    Expiring Soon
+                    {t('dashboard.expiringSoonTitle')}
                   </CardTitle>
-                  <CardDescription>Components approaching expiration</CardDescription>
+                  <CardDescription>{t('dashboard.expiringSoonDesc')}</CardDescription>
                 </div>
                 {reorderControls}
               </div>
             </CardHeader>
             <CardContent>
               {expiringSoonComponents.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No components expiring soon</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard.noExpiring')}</p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Equipment Name</TableHead>
-                      <TableHead>Bench</TableHead>
-                      <TableHead>AGILE Number</TableHead>
+                      <TableHead>{t('dashboard.equipmentName')}</TableHead>
+                      <TableHead>{t('dashboard.bench')}</TableHead>
+                      <TableHead>{t('dashboard.agileNumber')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -312,35 +314,33 @@ export default function DashboardPage() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5" />
-                    Documents
+                    {t('dashboard.documentsTitle')}
                   </CardTitle>
-                  <CardDescription>All documents across test benches</CardDescription>
+                  <CardDescription>{t('dashboard.documentsDesc')}</CardDescription>
                 </div>
                 {reorderControls}
               </div>
             </CardHeader>
             <CardContent>
               {allDocuments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No documents available</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard.noDocuments')}</p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Document Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Version</TableHead>
-                      <TableHead>Bench</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('dashboard.documentName')}</TableHead>
+                      <TableHead>{t('dashboard.category')}</TableHead>
+                      <TableHead>{t('dashboard.version')}</TableHead>
+                      <TableHead>{t('dashboard.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {allDocuments.map((doc, idx) => (
+                    {allDocuments.slice(0, 10).map((doc, idx) => (
                       <TableRow key={idx}>
                         <TableCell className="font-medium">{doc.document.productDisplayName}</TableCell>
                         <TableCell>{doc.document.category}</TableCell>
-                        <TableCell>{doc.document.documentVersion || '—'}</TableCell>
-                        <TableCell>{doc.benchName}</TableCell>
-                        <TableCell className="text-right">
+                        <TableCell>{doc.document.documentVersion || 'N/A'}</TableCell>
+                        <TableCell>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -364,24 +364,28 @@ export default function DashboardPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Quick Actions</CardTitle>
-                  <CardDescription>Common tasks and navigation</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    {t('dashboard.quickActions')}
+                  </CardTitle>
+                  <CardDescription>{t('dashboard.quickActionsDesc')}</CardDescription>
                 </div>
                 {reorderControls}
               </div>
             </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              <Button onClick={() => navigate({ to: '/benches/new' })}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Bench +
-              </Button>
-              <Button variant="outline" onClick={() => navigate({ to: '/benches' })}>
-                <TestTube2 className="h-4 w-4 mr-2" />
-                View All Test Benches
-              </Button>
-              <Button variant="outline" onClick={() => navigate({ to: '/profile' })}>
-                Manage Preferences
-              </Button>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={() => navigate({ to: '/benches/new' })}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t('dashboard.newBench')}
+                </Button>
+                <Button variant="outline" onClick={() => navigate({ to: '/benches' })}>
+                  {t('dashboard.viewAllBenches')}
+                </Button>
+                <Button variant="outline" onClick={() => navigate({ to: '/profile' })}>
+                  {t('dashboard.managePreferences')}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         );
@@ -396,38 +400,35 @@ export default function DashboardPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
+          <p className="text-muted-foreground">{t('dashboard.loading')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Activity className="h-8 w-8" />
-            Maintenance Dashboard
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Overview of test bench health and preventive maintenance status
+          <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
+          <p className="text-muted-foreground mt-2">
+            {t('dashboard.description')}
           </p>
         </div>
         <div className="flex gap-2">
           {isReordering ? (
             <>
               <Button variant="outline" onClick={() => setIsReordering(false)}>
-                Cancel
+                {t('dashboard.cancel')}
               </Button>
-              <Button onClick={handleSaveOrder} disabled={updateSectionsOrder.isPending}>
-                Save Layout
+              <Button onClick={handleSaveOrder}>
+                {t('dashboard.saveLayout')}
               </Button>
             </>
           ) : (
             <Button variant="outline" onClick={() => setIsReordering(true)}>
               <Edit className="h-4 w-4 mr-2" />
-              Reorder Layout
+              {t('dashboard.reorderLayout')}
             </Button>
           )}
         </div>

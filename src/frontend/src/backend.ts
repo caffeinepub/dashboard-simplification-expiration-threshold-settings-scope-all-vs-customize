@@ -149,18 +149,16 @@ export interface Tag {
 }
 export type Version = bigint;
 export interface PublicUserInfo {
-    name: string;
+    username: string;
     profilePicture: ProfilePicture;
 }
 export interface UserProfile {
     bio: string;
     entity: string;
     username: string;
-    displayName: string;
     languageTag: string;
     thresholdCustomizedBenches: Array<[string, bigint]>;
     userId: string;
-    name: string;
     email: string;
     avatarUrl: string;
     thresholdAllBenches: bigint;
@@ -1010,11 +1008,9 @@ async function from_candid_record_n28(_uploadFile: (file: ExternalBlob) => Promi
     bio: string;
     entity: string;
     username: string;
-    displayName: string;
     languageTag: string;
     thresholdCustomizedBenches: Array<[string, bigint]>;
     userId: string;
-    name: string;
     email: string;
     avatarUrl: string;
     thresholdAllBenches: bigint;
@@ -1026,11 +1022,9 @@ async function from_candid_record_n28(_uploadFile: (file: ExternalBlob) => Promi
     bio: string;
     entity: string;
     username: string;
-    displayName: string;
     languageTag: string;
     thresholdCustomizedBenches: Array<[string, bigint]>;
     userId: string;
-    name: string;
     email: string;
     avatarUrl: string;
     thresholdAllBenches: bigint;
@@ -1043,11 +1037,9 @@ async function from_candid_record_n28(_uploadFile: (file: ExternalBlob) => Promi
         bio: value.bio,
         entity: value.entity,
         username: value.username,
-        displayName: value.displayName,
         languageTag: value.languageTag,
         thresholdCustomizedBenches: value.thresholdCustomizedBenches,
         userId: value.userId,
-        name: value.name,
         email: value.email,
         avatarUrl: value.avatarUrl,
         thresholdAllBenches: value.thresholdAllBenches,
@@ -1082,14 +1074,14 @@ function from_candid_record_n38(_uploadFile: (file: ExternalBlob) => Promise<Uin
     };
 }
 async function from_candid_record_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    name: string;
+    username: string;
     profilePicture: _ProfilePicture;
 }): Promise<{
-    name: string;
+    username: string;
     profilePicture: ProfilePicture;
 }> {
     return {
-        name: value.name,
+        username: value.username,
         profilePicture: await from_candid_ProfilePicture_n31(_uploadFile, _downloadFile, value.profilePicture)
     };
 }
@@ -1231,11 +1223,9 @@ async function to_candid_record_n48(_uploadFile: (file: ExternalBlob) => Promise
     bio: string;
     entity: string;
     username: string;
-    displayName: string;
     languageTag: string;
     thresholdCustomizedBenches: Array<[string, bigint]>;
     userId: string;
-    name: string;
     email: string;
     avatarUrl: string;
     thresholdAllBenches: bigint;
@@ -1247,11 +1237,9 @@ async function to_candid_record_n48(_uploadFile: (file: ExternalBlob) => Promise
     bio: string;
     entity: string;
     username: string;
-    displayName: string;
     languageTag: string;
     thresholdCustomizedBenches: Array<[string, bigint]>;
     userId: string;
-    name: string;
     email: string;
     avatarUrl: string;
     thresholdAllBenches: bigint;
@@ -1264,11 +1252,9 @@ async function to_candid_record_n48(_uploadFile: (file: ExternalBlob) => Promise
         bio: value.bio,
         entity: value.entity,
         username: value.username,
-        displayName: value.displayName,
         languageTag: value.languageTag,
         thresholdCustomizedBenches: value.thresholdCustomizedBenches,
         userId: value.userId,
-        name: value.name,
         email: value.email,
         avatarUrl: value.avatarUrl,
         thresholdAllBenches: value.thresholdAllBenches,

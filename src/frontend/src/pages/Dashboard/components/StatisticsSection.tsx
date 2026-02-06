@@ -5,13 +5,15 @@ import { DraggableList } from '@/components/dnd/DraggableList';
 import { useDraggableOrder } from '@/components/dnd/useDraggableOrder';
 import { CriticalityChartCard } from './StatisticsCharts/CriticalityChartCard';
 import { DeadlineChartCard } from './StatisticsCharts/DeadlineChartCard';
+import type { UserProfile } from '../../../backend';
 
 interface StatisticsSectionProps {
   totalBenches: number;
   criticalCount: number;
   expiringSoonCount: number;
   documentsCount: number;
-  allBenchComponents: Array<{ benchId: string; benchName: string; agileCode: string; components: any[] }>;
+  allBenchComponents: Array<{ benchId: string; benchName: string; agileCode: string; serialNumber: string; components: any[] }>;
+  profile: UserProfile | null;
 }
 
 interface StatCard {
@@ -28,6 +30,7 @@ export function StatisticsSection({
   expiringSoonCount,
   documentsCount,
   allBenchComponents,
+  profile,
 }: StatisticsSectionProps) {
   const defaultCards: StatCard[] = [
     {
@@ -97,12 +100,12 @@ export function StatisticsSection({
     {
       id: 'criticality-chart',
       type: 'chart',
-      component: <CriticalityChartCard allBenchComponents={allBenchComponents} />,
+      component: <CriticalityChartCard data={allBenchComponents} profile={profile} />,
     },
     {
       id: 'deadline-chart',
       type: 'chart',
-      component: <DeadlineChartCard allBenchComponents={allBenchComponents} />,
+      component: <DeadlineChartCard data={allBenchComponents} />,
     },
   ];
 

@@ -85,11 +85,9 @@ export const UserProfile = IDL.Record({
   'bio' : IDL.Text,
   'entity' : IDL.Text,
   'username' : IDL.Text,
-  'displayName' : IDL.Text,
   'languageTag' : IDL.Text,
   'thresholdCustomizedBenches' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
   'userId' : IDL.Text,
-  'name' : IDL.Text,
   'email' : IDL.Text,
   'avatarUrl' : IDL.Text,
   'thresholdAllBenches' : IDL.Nat,
@@ -99,7 +97,7 @@ export const UserProfile = IDL.Record({
   'dashboardSectionsOrdered' : IDL.Vec(IDL.Text),
 });
 export const PublicUserInfo = IDL.Record({
-  'name' : IDL.Text,
+  'username' : IDL.Text,
   'profilePicture' : ProfilePicture,
 });
 
@@ -326,11 +324,9 @@ export const idlFactory = ({ IDL }) => {
     'bio' : IDL.Text,
     'entity' : IDL.Text,
     'username' : IDL.Text,
-    'displayName' : IDL.Text,
     'languageTag' : IDL.Text,
     'thresholdCustomizedBenches' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat)),
     'userId' : IDL.Text,
-    'name' : IDL.Text,
     'email' : IDL.Text,
     'avatarUrl' : IDL.Text,
     'thresholdAllBenches' : IDL.Nat,
@@ -340,7 +336,7 @@ export const idlFactory = ({ IDL }) => {
     'dashboardSectionsOrdered' : IDL.Vec(IDL.Text),
   });
   const PublicUserInfo = IDL.Record({
-    'name' : IDL.Text,
+    'username' : IDL.Text,
     'profilePicture' : ProfilePicture,
   });
   

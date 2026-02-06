@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { Activity } from 'lucide-react';
 import { getEffectiveThreshold, computeExpirationStatus } from '../../../../utils/expirationSettings';
 import type { UserProfile } from '../../../../backend';
+import { useI18n } from '../../../../i18n/useI18n';
 
 interface ComponentsByStatusPieCardProps {
   data: Array<{ benchId: string; benchName: string; agileCode: string; serialNumber: string; components: any[] }>;
@@ -16,6 +17,7 @@ const COLORS = {
 };
 
 export function ComponentsByStatusPieCard({ data, profile }: ComponentsByStatusPieCardProps) {
+  const { t } = useI18n();
   const statusCounts = { ok: 0, expiringSoon: 0, expired: 0 };
 
   data.forEach((benchData) => {
@@ -27,9 +29,9 @@ export function ComponentsByStatusPieCard({ data, profile }: ComponentsByStatusP
   });
 
   const chartData = [
-    { name: 'OK', value: statusCounts.ok },
-    { name: 'Expiring Soon', value: statusCounts.expiringSoon },
-    { name: 'Expired', value: statusCounts.expired },
+    { name: t('charts.ok'), value: statusCounts.ok },
+    { name: t('charts.expiringSoon'), value: statusCounts.expiringSoon },
+    { name: t('charts.expired'), value: statusCounts.expired },
   ].filter((item) => item.value > 0);
 
   const isEmpty = chartData.length === 0;
@@ -39,14 +41,14 @@ export function ComponentsByStatusPieCard({ data, profile }: ComponentsByStatusP
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Activity className="h-5 w-5" />
-          Components by Status
+          {t('charts.componentsByStatus')}
         </CardTitle>
-        <CardDescription>Health status distribution across all components</CardDescription>
+        <CardDescription>{t('charts.componentsByStatusDesc')}</CardDescription>
       </CardHeader>
       <CardContent>
         {isEmpty ? (
           <div className="h-[300px] flex items-center justify-center">
-            <p className="text-sm text-muted-foreground">No components available</p>
+            <p className="text-sm text-muted-foreground">{t('charts.noComponents')}</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
@@ -65,9 +67,9 @@ export function ComponentsByStatusPieCard({ data, profile }: ComponentsByStatusP
                   <Cell
                     key={`cell-${index}`}
                     fill={
-                      entry.name === 'OK'
+                      entry.name === t('charts.ok')
                         ? COLORS.ok
-                        : entry.name === 'Expiring Soon'
+                        : entry.name === t('charts.expiringSoon')
                         ? COLORS.expiringSoon
                         : COLORS.expired
                     }

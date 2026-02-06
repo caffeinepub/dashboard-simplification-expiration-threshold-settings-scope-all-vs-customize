@@ -1,105 +1,57 @@
 {
   "kind": "build_request",
-  "title": "Persist full user profile fields and instant language switching across login/logout",
+  "title": "Fully translate Test Bench pages and default new users to English",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Extend the backend `UserProfile` data model to persist these additional profile fields for each user: `username`, `displayName`, `avatarUrl`, and `bio` (in addition to the existing fields including `languageTag`). Update all backend profile-related methods that construct or update a `UserProfile` (including `getCallerUserProfile` defaults and any partial-update methods like `setLanguageTag`, `setProfilePicture`, `updateExpirationPreferences`, and `updateDashboardSectionsOrder`) so they preserve all profile fields when updating a single property.",
-      "target": "backend",
+      "text": "Fully localize the entire Test Bench experience by replacing all hardcoded user-facing strings on Test Bench pages and their subcomponents with i18n translation keys, and ensure complete English and French translations exist for those keys.",
+      "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "All you mentionned"
+          "1. Tous"
         ]
       },
       "acceptanceCriteria": [
-        "Backend can store and return `username`, `displayName`, `avatarUrl`, and `bio` as part of `UserProfile` for the caller.",
-        "Calling backend methods that update only one profile attribute (e.g., language) does not erase or reset other profile attributes.",
-        "`getCallerUserProfile()` returns a non-null default profile structure that includes valid default values for the new fields."
+        "All user-facing text on the Test Bench list page and Test Bench detail page is rendered via the i18n `t(...)` function (no hardcoded English/French strings remain in those pages).",
+        "All user-facing text in Test Bench-related UI components used by those pages (e.g., create/edit bench modals, bench overview, history, documents, components editors, empty/loading/error states, button/label text) is rendered via the i18n `t(...)` function.",
+        "`frontend/src/i18n/translations.ts` contains corresponding translation entries for both `en-US` and `fr-FR` for every key used by the Test Bench pages/components.",
+        "Switching the language selector updates all Test Bench page text immediately without requiring a refresh."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add a conditional Motoko state migration for existing canister state to safely populate the new `UserProfile` fields (`username`, `displayName`, `avatarUrl`, `bio`) for previously stored profiles, preserving all existing user profile data (including `languageTag`) and all other actor state.",
-      "target": "backend",
+      "text": "Set English (en-US) as the default UI language for first-time users (i.e., users without an existing saved language preference) and keep persisting the user’s explicit language choice once selected.",
+      "target": "both",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "All you mentionned"
+          "2. Oui"
         ]
       },
       "acceptanceCriteria": [
-        "Upgrading the canister does not trap due to missing new `UserProfile` fields in existing stored profiles.",
-        "After upgrade, existing users retain their previous profile data (including `languageTag`, `profilePicture`, thresholds, etc.), and the new fields are initialized to sensible defaults (e.g., empty text)."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Update the Profile page UI so the user can view and edit all requested profile fields: username, display name, email, avatar URL, bio, and language. Ensure these fields are included when saving the profile so they are persisted in the backend and restored automatically after login/logout.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "All you mentionned"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Profile page contains input controls for username, display name, email, avatar URL, and bio (in addition to the existing language selector).",
-        "Saving the profile persists the new fields to the backend (verified by reloading the app or logging out/in and seeing the values restored).",
-        "User-facing labels/help text for the new fields are in English."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Ensure that changing the language from the Profile page updates the entire site immediately without a full page reload and that the selected language persists across login/logout by loading the user’s saved language from the backend upon authentication state changes.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "après sauvegard du profil et le choix de la langue, TOUT le site doit se mettre a jour avec cette langue et sauvegarder les préférences utilisateurs apres connexion/déconnexion."
-        ]
-      },
-      "acceptanceCriteria": [
-        "When the user changes language in the Profile page, visible translatable UI text across the app updates immediately (no manual refresh).",
-        "After logout and subsequent login, the app loads the user’s saved language from the backend and applies it automatically.",
-        "If no profile exists, the app uses the default language (en-US) consistently."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Create and apply a coherent visual theme (colors, typography, spacing, and component styling) for the Profile experience so it looks consistent with the rest of the app, without changing product functionality.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Rebuild it."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Profile page uses consistent spacing, typography, and component styling aligned with a single chosen theme.",
-        "Theme is applied consistently within the Profile page sections (profile info, language, preferences) without introducing new features."
+        "Frontend default language initialization uses `en-US` when no valid saved preference exists in localStorage and no backend preference exists.",
+        "Backend `getLanguageTag()` returns `en-US` when the caller has no stored profile/language preference (instead of returning French).",
+        "Backend `getCallerUserProfile()` default profile (when no profile exists yet) uses `languageTag = \"en-US\"`.",
+        "After a signed-in user selects a different language, the preference is persisted and is used on subsequent visits/sessions (i.e., it no longer falls back to `en-US`)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in `backend/main.mo`; do not introduce additional backend services.",
-    "Do not edit files under `frontend/src/components/ui` or any other paths listed as immutable in SYSTEM_CONTEXT.",
-    "Do not introduce third-party authentication beyond Internet Identity."
+    "Use English for any user-facing text introduced/updated as part of this change (translation values for `en-US`).",
+    "Do not modify files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything in `frontend/src/components/ui` (compose them instead).",
+    "Respect the single-actor Motoko backend architecture; keep language preference logic within `backend/main.mo`.",
+    "Only add a state migration (`backend/migration.mo`) if a persisted state schema change is required (changing defaults alone should not require migration)."
   ],
   "nonGoals": [
-    "Implementing additional preference types beyond the explicitly requested profile fields and language (e.g., notifications, geolocation).",
-    "Adding real-time communication (WebSockets/chat) or external databases/services."
+    "Adding new languages beyond those already supported.",
+    "Changing authentication (Internet Identity) behavior.",
+    "Redesigning non-Test-Bench pages beyond what is necessary to keep i18n consistent."
   ],
   "imageRequirements": {
     "required": [],

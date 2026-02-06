@@ -42,7 +42,7 @@ export interface HistoryEntry {
 export type ProfilePicture = { 'custom' : ExternalBlob } |
   { 'avatar' : string };
 export interface PublicUserInfo {
-  'name' : string,
+  'username' : string,
   'profilePicture' : ProfilePicture,
 }
 export type Status = { 'ok' : null } |
@@ -68,11 +68,9 @@ export interface UserProfile {
   'bio' : string,
   'entity' : string,
   'username' : string,
-  'displayName' : string,
   'languageTag' : string,
   'thresholdCustomizedBenches' : Array<[string, bigint]>,
   'userId' : string,
-  'name' : string,
   'email' : string,
   'avatarUrl' : string,
   'thresholdAllBenches' : bigint,
