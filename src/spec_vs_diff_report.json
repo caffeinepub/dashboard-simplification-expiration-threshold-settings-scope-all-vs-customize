@@ -1,48 +1,78 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T11:24:08.309Z",
-  "summary": "The diff clearly shows frontend React Query cache invalidation/refetch-related changes in `frontend/src/hooks/useQueries.ts` (and mentions a duplication hook in the file summaries), but the backend duplication persistence fix required by REQ-1 is not evidenced in the provided truncated backend diff. Some REQ-2 acceptance criteria (error toast behavior) are also not evidenced in the shown diffs.",
-  "missing_requirements": [
-    {
-      "id": "REQ-1",
-      "requirement": "Fix component duplication/reassignment so duplicating a component from Bench A to Bench B persists under Bench B and is returned by getComponents(destinationBenchId), with associatedBenchId == BenchB.id, and no backend trap for valid actions.",
-      "reason": "The backend diff for `backend/main.mo` is truncated and does not show any implementation or changes to duplication/reassignment logic, component persistence under destination bench, `getComponents`, or trap-prevention logic for valid duplication actions.",
-      "evidence": [
-        "backend/main.mo (truncated; shows types/maps and unrelated code, but no duplication/getComponents changes visible)"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "requirement": "If the duplication fails, the UI shows an error toast and does not show a success toast.",
-      "reason": "The provided diffs do not show any UI toast logic or failure-handling logic for the duplication flow; `frontend/src/hooks/useQueries.ts` is truncated before any duplication-specific mutation is visible, and no component/page code is shown with toast handling.",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts (truncated; duplication mutation not visible)",
-        "frontend-file-summaries.txt (mentions duplication dialog/hook but does not provide code evidence of toast behavior)"
-      ]
-    }
-  ],
+  "generatedAt": "2026-02-06T12:37:58.973Z",
+  "summary": "BuildRequest contains no stated requirements or acceptance criteria. The diff shows multiple functional additions/changes across backend and frontend (authorization, profile/dashboard features, bench UI enhancements, component duplication behavior). With no requirements, there are no identifiable missing requirements; most changes appear unrequested relative to the empty BuildRequest.",
+  "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Broader React Query invalidation of `['benchComponents']` on updating expiration preferences.",
-      "reason": "REQ-2 is specifically about invalidating/refetching destination bench component queries after duplication. The diff shows (in the visible portion) `useUpdateExpirationPreferences` invalidating `['benchComponents']`, which is unrelated to duplication per the BuildRequest.",
+      "description": "Implemented/modified authorization and access control checks for test bench access (e.g., permission-gated getAllTestBenches).",
+      "reason": "No requirements were provided in the BuildRequest; this behavior is not requested.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts (onSuccess in useUpdateExpirationPreferences invalidates { queryKey: ['benchComponents'] })"
+        "backend/main.mo"
       ]
     },
     {
-      "description": "Modification/addition of `project_state.json` content/versioning.",
-      "reason": "The BuildRequest does not ask for changes to project metadata/state files; `project_state.json` is listed as modified in the diff summary without a corresponding requirement.",
+      "description": "Added/modified component duplication UX (dialog to duplicate a component to other benches) and bench detail integration with refetch callback.",
+      "reason": "No requirements were provided in the BuildRequest; this behavior is not requested.",
       "evidence": [
-        "project_state.json"
+        "frontend/src/pages/Benches/BenchDetailPage.tsx",
+        "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Added/modified React Query hooks for backend operations, including a duplication mutation that delays and forces refetches to update destination benches instantly.",
+      "reason": "No requirements were provided in the BuildRequest; this behavior is not requested.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Added/modified user profile management features (avatar selection/upload, entity selection autocomplete, corporate email validation, expiration preferences, dashboard section ordering).",
+      "reason": "No requirements were provided in the BuildRequest; these capabilities are not requested.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Added/modified dashboard analytics/charts section with persistence and default section merging.",
+      "reason": "No requirements were provided in the BuildRequest; this feature is not requested.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Added/modified bench list/detail UI enhancements (BenchPhoto, external link buttons for PLM Agile/Decaweb, tabbed Health Book/Documents/History interface, edit/remove actions).",
+      "reason": "No requirements were provided in the BuildRequest; these UI changes are not requested.",
+      "evidence": [
+        "frontend/src/pages/Benches/BenchDetailPage.tsx",
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Added/modified admin-only gating and an administration page with bench/document/user management panels.",
+      "reason": "No requirements were provided in the BuildRequest; this functionality is not requested.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Added/modified global styling/theme system and Tailwind design tokens/fonts.",
+      "reason": "No requirements were provided in the BuildRequest; style system changes are not requested.",
+      "evidence": [
+        "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.56,
+  "confidence": 0.74,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/Benches/BenchDetailPage.tsx",
+    "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
     "project_state.json"
   ]
 }

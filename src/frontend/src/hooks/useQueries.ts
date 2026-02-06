@@ -447,25 +447,31 @@ export function useDuplicateComponentToBenches() {
   return useMutation({
     mutationFn: async (params: { component: Component; targetBenchIds: string[] }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.duplicateComponentToBenches(params.component, params.targetBenchIds);
+      await actor.duplicateComponentToBenches(params.component, params.targetBenchIds);
+      
+      // Add a small delay to ensure backend has fully processed the duplication
+      await new Promise(resolve => setTimeout(resolve, 300));
     },
     onSuccess: async (_, variables) => {
-      // Invalidate and refetch all affected benches to ensure immediate data availability
-      const refetchPromises = variables.targetBenchIds.map(async (benchId) => {
-        // Invalidate the queries
+      // Invalidate all affected bench component queries
+      for (const benchId of variables.targetBenchIds) {
         queryClient.invalidateQueries({ queryKey: ['benchComponents', benchId] });
         queryClient.invalidateQueries({ queryKey: ['benchHistory', benchId] });
-        
-        // Proactively refetch to ensure data is ready when navigating
-        await queryClient.refetchQueries({ queryKey: ['benchComponents', benchId] });
-      });
-
-      // Wait for all refetches to complete
-      await Promise.all(refetchPromises);
-
+      }
+      
       // Invalidate global queries
       queryClient.invalidateQueries({ queryKey: ['benchComponents'] });
       queryClient.invalidateQueries({ queryKey: ['expiredComponentsSummary'] });
+      
+      // Force immediate refetch of all destination benches to ensure data is ready
+      const refetchPromises = variables.targetBenchIds.map(async (benchId) => {
+        await queryClient.refetchQueries({ 
+          queryKey: ['benchComponents', benchId],
+          type: 'active'
+        });
+      });
+      
+      await Promise.all(refetchPromises);
     },
   });
 }

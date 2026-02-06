@@ -1,25 +1,4 @@
 {
   "kind": "feature_evidence_report",
-  "features": [
-    {
-      "featureId": "feature-ensure-the-frontend-duplication-flow-refreshes-and-displays-up-to-date-destination-bench-component-data-after-duplication-so-users-can-navigate-to-the-destination-bench-and-immediately-see-the-duplicated-component-in-the-health-book",
-      "featureTitle": "Ensure the frontend duplication flow refreshes and displays up-to-date destination bench component data after duplication, so users can navigate to the destination bench and immediately see the duplicated component in the Health Book.",
-      "files": [
-        "frontend/src/hooks/useQueries.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    }
-  ]
+  "features": []
 }

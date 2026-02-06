@@ -1,28 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Refresh destination bench Health Book after component duplication",
-  "requirements": [
-    {
-      "id": "REQ-2",
-      "summary": "Ensure component duplication triggers React Query invalidation and refetch/prefetch of destination bench component data so the Health Book is up to date immediately after navigation.",
-      "acceptanceCriteria": [
-        "After a successful duplication, React Query invalidates/refetches ['benchComponents', destinationBenchId] for each selected destination bench.",
-        "Navigating to a destination bench immediately after duplication shows the duplicated component in the Health Book without requiring a hard refresh.",
-        "If the duplication fails, the UI shows an error toast and does not show a success toast."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Update the useDuplicateComponentToBenches mutation onSuccess handling to (1) invalidate ['benchComponents', benchId] for each target bench and (2) proactively refetch/prefetch those same queries so the destination bench Health Book is immediately up-to-date upon navigation; keep existing invalidations for history/summary."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
-          "operation": "modify",
-          "description": "Ensure the duplication UI flow relies on the mutation's success/failure outcome (success toast only after mutateAsync resolves; error toast on catch), and avoid any extra UI state that could imply success on failure; keep selection reset/close behavior after success."
-        }
-      ]
-    }
-  ]
+  "title": "Untitled request",
+  "requirements": []
 }

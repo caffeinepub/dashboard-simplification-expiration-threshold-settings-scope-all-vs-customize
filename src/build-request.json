@@ -1,65 +1,12 @@
 {
   "kind": "build_request",
-  "title": "Fix component duplication so duplicated equipment appears in destination bench Health Book",
-  "priority": "high",
-  "requirements": [
-    {
-      "id": "REQ-1",
-      "text": "Fix the component duplication/reassignment behavior so that when a user duplicates an equipment/component from one bench to another, the duplicated component is persisted under the destination bench and is returned by `getComponents(destinationBenchId)` (so it is visible in the destination bench Health Book).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "Quand je duplique un équipement pour le réaffecter à un autre banc ca marche pas car je le vois pas ensuite dans son Health book. Corrige ca. Merci."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Given Bench A contains component X, when duplicating X to Bench B, then calling `getComponents(BenchB)` returns a list that includes a copy of X.",
-        "The duplicated component stored for Bench B has `associatedBenchId == BenchB.id`.",
-        "No backend trap occurs for valid duplication actions (authorized user, existing source bench, existing destination bench)."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Ensure the frontend duplication flow refreshes and displays up-to-date destination bench component data after duplication, so users can navigate to the destination bench and immediately see the duplicated component in the Health Book.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "Quand je duplique un équipement pour le réaffecter à un autre banc ca marche pas car je le vois pas ensuite dans son Health book. Corrige ca. Merci."
-        ]
-      },
-      "acceptanceCriteria": [
-        "After a successful duplication, React Query invalidates/refetches `['benchComponents', destinationBenchId]` for each selected destination bench.",
-        "Navigating to a destination bench immediately after duplication shows the duplicated component in the Health Book without requiring a hard refresh.",
-        "If the duplication fails, the UI shows an error toast and does not show a success toast."
-      ]
-    }
-  ],
-  "constraints": [
-    "Backend must remain a single Motoko actor in `backend/main.mo`.",
-    "Do not modify any frontend files under `frontend/src/components/ui` or other immutable paths listed in SYSTEM_CONTEXT."
-  ],
-  "nonGoals": [
-    "Do not add new product features (e.g., bulk move, merge, or delete-on-duplicate).",
-    "Do not introduce new backend services or external databases."
-  ],
+  "title": "Untitled request",
+  "priority": "normal",
+  "requirements": [],
+  "constraints": [],
+  "nonGoals": [],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

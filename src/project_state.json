@@ -1,41 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Equipment management app: duplication flow to reassign equipment to another bench, with equipment expected to appear in the target bench’s Health book.",
+  "summary": "New project",
   "architectural_notes": [
-    "Duplication + reassignment flow must update bench/equipment associations and ensure the Health book view/index reflects the new assignment."
+    "Health Book section must refresh instantly after component duplication or bench reassignment (real-time UI/data sync)."
   ],
   "known_issues": [
-    "Bug: After duplicating an equipment and reassigning it to another bench, it is not visible in the destination bench’s Health book."
+    "Duplicated/reassigned components do not appear in the destination bench’s Health Book section."
   ],
   "isFixRequest": true,
-  "existing_features": [
-    {
-      "id": "feature-ensure-the-frontend-duplication-flow-refreshes-and-displays-up-to-date-destination-bench-component-data-after-duplication-so-users-can-navigate-to-the-destination-bench-and-immediately-see-the-duplicated-component-in-the-health-book",
-      "title": "Ensure the frontend duplication flow refreshes and displays up-to-date destination bench component data after duplication, so users can navigate to the destination bench and immediately see the duplicated component in the Health Book.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    }
-  ],
+  "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Fix duplication/reassignment: duplicated equipment does not appear in the destination bench Health book after reassigning.",
+      "summary": "Fix: When duplicating/reassigning a component to another bench, update the destination bench Health Book section instantly so the component appears correctly",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Fix the component duplication/reassignment behavior so that when a user duplicates an equipment/component from one bench to another, the duplicated component is persisted under the destination bench and is returned by `getComponents(destinationBenchId)` (so it is visible in the destination bench Health Book).",
-      "reqIds": [
-        "REQ-1"
-      ],
       "status": "pending"
     }
   ],
-  "projectName": "Fix component duplication so duplicated equipment appears in destination bench Health Book",
+  "projectName": "Untitled request",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

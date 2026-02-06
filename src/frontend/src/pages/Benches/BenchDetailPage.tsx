@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -40,7 +40,7 @@ export default function BenchDetailPage() {
   const navigate = useNavigate();
   const { data: bench, isLoading } = useGetTestBench(benchId);
   const { data: profile } = useGetCallerUserProfile();
-  const { data: components = [] } = useGetBenchComponents(benchId);
+  const { data: components = [], refetch: refetchComponents } = useGetBenchComponents(benchId);
   const { data: history = [] } = useGetBenchHistory(benchId);
   const removeBench = useRemoveTestBench();
   const setComponents = useSetBenchComponents();
@@ -52,6 +52,13 @@ export default function BenchDetailPage() {
   const [isSavingComponents, setIsSavingComponents] = useState(false);
 
   const effectiveThreshold = getEffectiveThreshold(profile ?? null, benchId);
+
+  // Reset local components when server components change
+  useEffect(() => {
+    if (components.length > 0 && localComponents.length === 0) {
+      setLocalComponents([]);
+    }
+  }, [components]);
 
   const handleRemoveBench = async () => {
     try {
@@ -69,6 +76,7 @@ export default function BenchDetailPage() {
     try {
       await setComponents.mutateAsync({ benchId, components: localComponents });
       toast.success('Components saved successfully');
+      setLocalComponents([]);
     } catch (error: any) {
       console.error('Failed to save components:', error);
       toast.error(error.message || 'Failed to save components');
@@ -80,6 +88,11 @@ export default function BenchDetailPage() {
   const handleDuplicateComponent = (component: Component) => {
     setSelectedComponentForDuplication(component);
     setDuplicateDialogOpen(true);
+  };
+
+  const handleDuplicateSuccess = async () => {
+    // Refetch components for this bench to ensure we have the latest data
+    await refetchComponents();
   };
 
   if (isLoading) {
@@ -266,6 +279,7 @@ export default function BenchDetailPage() {
         onOpenChange={setDuplicateDialogOpen}
         component={selectedComponentForDuplication}
         currentBenchId={benchId}
+        onSuccess={handleDuplicateSuccess}
       />
     </div>
   );

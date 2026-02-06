@@ -1,35 +1,15 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T11:24:08.312Z",
+  "generatedAt": "2026-02-06T12:37:58.976Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 1,
-    "items": [
-      {
-        "id": "REQ-1",
-        "summary": "Fix the component duplication/reassignment behavior so that when a user duplicates an equipment/component from one bench to another, the duplicated component is persisted under the destination bench and is returned by `getComponents(destinationBenchId)` (so it is visible in the destination bench Health Book).",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Ensure the frontend duplication flow refreshes and displays up-to-date destination bench component data after duplication, so users can navigate to the destination bench and immediately see the duplicated component in the Health Book.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts"
-        ]
-      }
-    ]
+    "total": 0,
+    "implemented": 0,
+    "items": []
   },
   "changedFiles": [
     "backend/main.mo",
@@ -38,6 +18,8 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/Benches/BenchDetailPage.tsx",
+    "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

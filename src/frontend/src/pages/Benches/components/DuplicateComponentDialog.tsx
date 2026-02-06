@@ -21,6 +21,7 @@ interface DuplicateComponentDialogProps {
   onOpenChange: (open: boolean) => void;
   component: Component | null;
   currentBenchId: string;
+  onSuccess?: () => void;
 }
 
 export function DuplicateComponentDialog({
@@ -28,6 +29,7 @@ export function DuplicateComponentDialog({
   onOpenChange,
   component,
   currentBenchId,
+  onSuccess,
 }: DuplicateComponentDialogProps) {
   const [selectedBenchIds, setSelectedBenchIds] = useState<string[]>([]);
   const { data: allBenches = [] } = useGetAllTestBenches();
@@ -53,11 +55,18 @@ export function DuplicateComponentDialog({
         component,
         targetBenchIds: selectedBenchIds,
       });
+      
       toast.success(
         `Component duplicated to ${selectedBenchIds.length} bench${selectedBenchIds.length > 1 ? 'es' : ''}`
       );
+      
       setSelectedBenchIds([]);
       onOpenChange(false);
+      
+      // Call success callback to trigger refetch on parent
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
       console.error('Failed to duplicate component:', error);
       toast.error(error.message || 'Failed to duplicate component');
@@ -78,7 +87,7 @@ export function DuplicateComponentDialog({
           <DialogTitle>Duplicate Component to Other Benches</DialogTitle>
           <DialogDescription>
             Select one or more benches to copy "{component?.componentName}" to. The component will be
-            added to each selected bench.
+            added to each selected bench's Health Book immediately.
           </DialogDescription>
         </DialogHeader>
 
