@@ -1,11 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Apply a user’s saved Profile language selection immediately across the entire app UI (without reload) and persist/restore it via the backend user profile.
+**Goal:** Complete i18n coverage for the Admin area and the Bench detail History view, ensuring all user-facing text and timestamps follow the currently selected app language.
 
 **Planned changes:**
-- Update the Profile “Save” flow so the newly selected language is applied instantly to all currently visible UI text (navigation, pages, sections, tabs, buttons, dialogs, placeholders, toasts, footer) without requiring a refresh.
-- Audit the protected app shell and main pages (Dashboard, Benches, Bench Details, Profile, Admin) to replace remaining hard-coded user-facing strings with i18n translation keys so runtime language switching updates all text consistently.
-- Persist the selected language to the backend user profile `languageTag` and restore it on sign-in; default to `en-US` when no stored `languageTag` exists.
+- Replace hardcoded Admin page header/title/description and tab labels (Benches, Documents, Users) in `frontend/src/pages/Admin/AdminPage.tsx` with `useI18n().t(...)` translation keys.
+- Localize all remaining user-facing strings in `frontend/src/pages/Admin/components/AdminBenchesPanel.tsx` and `frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx`, including loading/empty states, section text, dialogs, fallbacks, and toast messages.
+- Localize Bench history action labels in `frontend/src/pages/Benches/components/BenchHistoryList.tsx` by mapping stored `entry.action` values to i18n keys with a safe fallback to the raw string when unknown.
+- Format Bench history timestamps using the currently selected app locale (not the browser default) so date/time formatting updates when switching language.
+- Extend `frontend/src/i18n/translations.ts` with all required new Admin and history translation keys, providing values for both `fr-FR` and `en-US`.
 
-**User-visible outcome:** After selecting a language in Profile and clicking Save, the whole app immediately switches to that language (including toasts), stays consistent when navigating, and loads in the last saved language after signing out/in.
+**User-visible outcome:** Switching between supported languages immediately updates all Admin labels/messages and Bench History action labels and timestamp formatting, without needing a page refresh.

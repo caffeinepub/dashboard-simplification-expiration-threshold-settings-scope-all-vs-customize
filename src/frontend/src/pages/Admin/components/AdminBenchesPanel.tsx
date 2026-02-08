@@ -14,8 +14,10 @@ import {
 import { useGetAllTestBenches, useRemoveTestBench } from '../../../hooks/useQueries';
 import { Trash2, TestTube2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useI18n } from '../../../i18n/useI18n';
 
 export function AdminBenchesPanel() {
+  const { t } = useI18n();
   const { data: benches = [], isLoading } = useGetAllTestBenches();
   const removeBench = useRemoveTestBench();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -31,10 +33,10 @@ export function AdminBenchesPanel() {
 
     try {
       await removeBench.mutateAsync(benchToDelete.id);
-      toast.success(`Deleted bench: ${benchToDelete.name}`);
+      toast.success(t('admin.benchesDeleteSuccess').replace('{name}', benchToDelete.name));
     } catch (error: any) {
       console.error('Failed to delete bench:', error);
-      toast.error(error.message || 'Failed to delete bench');
+      toast.error(error.message || t('admin.benchesDeleteFailed'));
     } finally {
       setDeleteDialogOpen(false);
       setBenchToDelete(null);
@@ -47,7 +49,7 @@ export function AdminBenchesPanel() {
         <CardContent className="pt-6">
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading benches...</p>
+            <p className="text-muted-foreground">{t('admin.benchesLoading')}</p>
           </div>
         </CardContent>
       </Card>
@@ -58,14 +60,14 @@ export function AdminBenchesPanel() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Bench Management</CardTitle>
+          <CardTitle>{t('admin.benchesTitle')}</CardTitle>
           <CardDescription>
-            View and delete test benches ({benches.length} total)
+            {t('admin.benchesDescription').replace('{count}', benches.length.toString())}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {benches.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">No benches found</p>
+            <p className="text-sm text-muted-foreground text-center py-8">{t('admin.benchesEmpty')}</p>
           ) : (
             <div className="space-y-2">
               {benches.map((bench) => (
@@ -78,7 +80,7 @@ export function AdminBenchesPanel() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{bench.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {bench.agileCode || 'No AGILE code'}
+                        {bench.agileCode || t('admin.benchesNoAgile')}
                       </p>
                     </div>
                   </div>
@@ -99,19 +101,18 @@ export function AdminBenchesPanel() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Bench</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.benchesDeleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{benchToDelete?.name}"? This will also delete all
-              associated components and documents. This action cannot be undone.
+              {t('admin.benchesDeleteDesc').replace('{name}', benchToDelete?.name || '')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setBenchToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setBenchToDelete(null)}>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

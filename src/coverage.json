@@ -1,79 +1,85 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T12:07:11.027Z",
+  "generatedAt": "2026-02-08T12:24:29.447Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 5,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-3",
-        "summary": "When the user selects a language in the Profile page and clicks Save, apply that language immediately across the entire app UI (pages, sections, tabs, buttons, dialogs, placeholders, toasts, and footer) without requiring a reload.",
+        "id": "REQ-1",
+        "summary": "Localize the Admin page header and tab labels by replacing hardcoded strings in `frontend/src/pages/Admin/AdminPage.tsx` with `useI18n().t(...)` keys (Admin title, description, and the tabs: Benches/Documents/Users).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/ProfilePage.tsx",
-          "frontend/src/i18n/I18nProvider.tsx",
-          "frontend/src/components/layout/AppShell.tsx"
+          "frontend/src/pages/Admin/AdminPage.tsx",
+          "frontend/src/i18n/translations.ts"
         ],
         "matchedFiles": [
-          "frontend/src/pages/ProfilePage.tsx",
-          "frontend/src/i18n/I18nProvider.tsx",
-          "frontend/src/components/layout/AppShell.tsx"
+          "frontend/src/pages/Admin/AdminPage.tsx",
+          "frontend/src/i18n/translations.ts"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Localize all remaining user-facing strings in the Admin panels (`frontend/src/pages/Admin/components/AdminBenchesPanel.tsx` and `frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx`), including: loading states, empty states, section titles/descriptions, dialog titles/descriptions/buttons, fallback texts (e.g., missing AGILE code), and toast success/error messages.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/Admin/components/AdminBenchesPanel.tsx",
+          "frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx",
+          "frontend/src/i18n/translations.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/Admin/components/AdminBenchesPanel.tsx",
+          "frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx",
+          "frontend/src/i18n/translations.ts"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Ensure the bench history view is localized when viewing a bench after clicking “View details”: in `frontend/src/pages/Benches/components/BenchHistoryList.tsx`, display localized labels for history entry actions (and any other user-facing history strings) instead of rendering the raw `entry.action` text directly. Implement a robust mapping that can translate existing stored action strings (e.g., previously-written values) and falls back to the raw string if unknown.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/Benches/components/BenchHistoryList.tsx",
+          "frontend/src/i18n/translations.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/i18n/translations.ts"
         ]
       },
       {
         "id": "REQ-4",
-        "summary": "Audit and replace any remaining hard-coded user-facing strings in the protected app shell and main pages with i18n translation keys so that a language change updates all visible UI text consistently.",
-        "status": "implemented",
+        "summary": "Use the current app language/locale when formatting timestamps in the bench history list so dates render according to the selected language (e.g., `toLocaleString(currentLocale)`), rather than the browser default locale.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/layout/AppShell.tsx",
-          "frontend/src/pages/SignInPage.tsx",
-          "frontend/src/components/admin/AdminGate.tsx",
-          "frontend/src/components/AppErrorBoundary.tsx",
-          "frontend/src/i18n/translations.ts"
+          "frontend/src/pages/Benches/components/BenchHistoryList.tsx"
         ],
-        "matchedFiles": [
-          "frontend/src/components/layout/AppShell.tsx",
-          "frontend/src/pages/SignInPage.tsx",
-          "frontend/src/components/admin/AdminGate.tsx",
-          "frontend/src/i18n/translations.ts"
-        ]
+        "matchedFiles": []
       },
       {
         "id": "REQ-5",
-        "summary": "Ensure the selected language is persisted to the backend user profile languageTag and correctly restored on sign-in so the app loads in the last saved language.",
+        "summary": "Extend the i18n key set in `frontend/src/i18n/translations.ts` to include all new Admin and history-related translation keys required by REQ-1/REQ-2/REQ-3, and provide values for both `fr-FR` and `en-US`. Use English text for the `en-US` values.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/i18n/I18nProvider.tsx",
-          "frontend/src/pages/ProfilePage.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/i18n/translations.ts"
         ],
         "matchedFiles": [
-          "frontend/src/i18n/I18nProvider.tsx",
-          "frontend/src/pages/ProfilePage.tsx"
+          "frontend/src/i18n/translations.ts"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/components/admin/AdminGate.tsx",
-    "frontend/src/components/layout/AppShell.tsx",
-    "frontend/src/components/theme/ThemeToggle.tsx",
-    "frontend/src/i18n/I18nProvider.tsx",
     "frontend/src/i18n/translations.ts",
-    "frontend/src/pages/ProfilePage.tsx",
-    "frontend/src/pages/SignInPage.tsx",
+    "frontend/src/pages/Admin/AdminPage.tsx",
+    "frontend/src/pages/Admin/components/AdminBenchesPanel.tsx",
+    "frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

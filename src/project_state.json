@@ -1,35 +1,41 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project includes global internationalization so changing/saving a user’s language preference automatically translates the entire site UI.",
-  "architectural_notes": [
-    "Adopt a single global i18n solution initialized at app startup (e.g., react-i18next) and call i18n.changeLanguage(newLang) immediately after the user saves their language preference so all UI rerenders in the selected language."
-  ],
+  "summary": "New project",
+  "architectural_notes": [],
   "known_issues": [
-    "Users encounter a persistent 'Backend Connection Error' on login (frontend cannot connect to backend).",
-    "Deployment/build occasionally fails with a 'Deployment error' after attempting to redeploy an expired draft."
+    "Administration tab and its sections (Documents, Benches, Users) are not translated/localized.",
+    "Bench history view (after clicking \"see details\") is not translated/localized."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-when-the-user-selects-a-language-in-the-profile-page-and-clicks-save-apply-that-language-immediately-across-the-entire-app-ui-pages-sections-tabs-buttons-dialogs-placeholders-toasts-and-footer-without-requiring-a-reload",
-      "title": "When the user selects a language in the Profile page and clicks Save, apply that language immediately across the entire app UI (pages, sections, tabs, buttons, dialogs, placeholders, toasts, and footer) without requiring a reload.",
+      "id": "feature-localize-the-admin-page-header-and-tab-labels-by-replacing-hardcoded-strings-in-frontend-src-pages-admin-adminpage-tsx-with-usei18n-t-keys-admin-title-description-and-the-tabs-benches-documents-users",
+      "title": "Localize the Admin page header and tab labels by replacing hardcoded strings in `frontend/src/pages/Admin/AdminPage.tsx` with `useI18n().t(...)` keys (Admin title, description, and the tabs: Benches/Documents/Users).",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-localize-all-remaining-user-facing-strings-in-the-admin-panels-frontend-src-pages-admin-components-adminbenchespanel-tsx-and-frontend-src-pages-admin-components-admindocumentspanel-tsx-including-loading-states-empty-states-section-titles-descriptions-dialog-titles-descriptions-buttons-fallback-texts-e-g-missing-agile-code-and-toast-success-error-messages",
+      "title": "Localize all remaining user-facing strings in the Admin panels (`frontend/src/pages/Admin/components/AdminBenchesPanel.tsx` and `frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx`), including: loading states, empty states, section titles/descriptions, dialog titles/descriptions/buttons, fallback texts (e.g., missing AGILE code), and toast success/error messages.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-bench-history-view-is-localized-when-viewing-a-bench-after-clicking-view-details-in-frontend-src-pages-benches-components-benchhistorylist-tsx-display-localized-labels-for-history-entry-actions-and-any-other-user-facing-history-strings-instead-of-rendering-the-raw-entry-action-text-directly-implement-a-robust-mapping-that-can-translate-existing-stored-action-strings-e-g-previously-written-values-and-falls-back-to-the-raw-string-if-unknown",
+      "title": "Ensure the bench history view is localized when viewing a bench after clicking “View details”: in `frontend/src/pages/Benches/components/BenchHistoryList.tsx`, display localized labels for history entry actions (and any other user-facing history strings) instead of rendering the raw `entry.action` text directly. Implement a robust mapping that can translate existing stored action strings (e.g., previously-written values) and falls back to the raw string if unknown.",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
     },
     {
-      "id": "feature-audit-and-replace-any-remaining-hard-coded-user-facing-strings-in-the-protected-app-shell-and-main-pages-with-i18n-translation-keys-so-that-a-language-change-updates-all-visible-ui-text-consistently",
-      "title": "Audit and replace any remaining hard-coded user-facing strings in the protected app shell and main pages with i18n translation keys so that a language change updates all visible UI text consistently.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-the-selected-language-is-persisted-to-the-backend-user-profile-languagetag-and-correctly-restored-on-sign-in-so-the-app-loads-in-the-last-saved-language",
-      "title": "Ensure the selected language is persisted to the backend user profile languageTag and correctly restored on sign-in so the app loads in the last saved language.",
+      "id": "feature-extend-the-i18n-key-set-in-frontend-src-i18n-translations-ts-to-include-all-new-admin-and-history-related-translation-keys-required-by-req-1-req-2-req-3-and-provide-values-for-both-fr-fr-and-en-us-use-english-text-for-the-en-us-values",
+      "title": "Extend the i18n key set in `frontend/src/i18n/translations.ts` to include all new Admin and history-related translation keys required by REQ-1/REQ-2/REQ-3, and provide values for both `fr-FR` and `en-US`. Use English text for the `en-US` values.",
       "reqIds": [
         "REQ-5"
       ],
@@ -38,13 +44,15 @@
   ],
   "new_feature_requests": [
     {
-      "id": "AR-1",
-      "summary": "Implement global i18n so when a user selects a language and saves it in their profile, the entire site (pages/sections/tabs/buttons) updates automatically without reload.",
-      "reqIds": [],
+      "id": "AR-4",
+      "summary": "Use the current app language/locale when formatting timestamps in the bench history list so dates render according to the selected language (e.g., `toLocaleString(currentLocale)`), rather than the browser default locale.",
+      "reqIds": [
+        "REQ-4"
+      ],
       "status": "pending"
     }
   ],
-  "projectName": "Ensure profile language selection instantly translates the entire UI after saving",
+  "projectName": "Complete i18n coverage for Admin area and Bench history view",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

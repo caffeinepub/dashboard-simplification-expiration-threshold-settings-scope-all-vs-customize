@@ -1,74 +1,118 @@
 {
   "kind": "build_request",
-  "title": "Ensure profile language selection instantly translates the entire UI after saving",
+  "title": "Complete i18n coverage for Admin area and Bench history view",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-3",
-      "text": "When the user selects a language in the Profile page and clicks Save, apply that language immediately across the entire app UI (pages, sections, tabs, buttons, dialogs, placeholders, toasts, and footer) without requiring a reload.",
+      "id": "REQ-1",
+      "text": "Localize the Admin page header and tab labels by replacing hardcoded strings in `frontend/src/pages/Admin/AdminPage.tsx` with `useI18n().t(...)` keys (Admin title, description, and the tabs: Benches/Documents/Users).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-2"
+          "msg-1"
         ],
         "quotes": [
-          "Quand je sélectionne une langue et que je fais save dans le profil utilisateur, il faut que TOUT le site se traduise automatiquement ! Vraiment tout, e.g les pages, les sections, les onglets, les boutons.",
-          "Oui."
+          "Cest presque bon. Mais tout l'onglet Administration n'est pas traduit. Idem pour les sections quil contient comme Documents ou Benches ou Users."
         ]
       },
       "acceptanceCriteria": [
-        "From the Profile page, selecting a different language and then clicking Save causes currently visible navigation labels, page titles, tabs, buttons, and helper texts to update to the new language immediately (no page reload).",
-        "After saving, navigating to other pages (Dashboard, Benches, Admin, etc.) shows the new language consistently.",
-        "Toast messages triggered immediately after Save display in the newly selected language."
+        "When switching app language, the Admin page title, description, and the three tab labels update immediately without a refresh.",
+        "No user-facing English/French literals remain in `AdminPage.tsx` for these strings (they use `t(...)`)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Localize all remaining user-facing strings in the Admin panels (`frontend/src/pages/Admin/components/AdminBenchesPanel.tsx` and `frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx`), including: loading states, empty states, section titles/descriptions, dialog titles/descriptions/buttons, fallback texts (e.g., missing AGILE code), and toast success/error messages.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Mais tout l'onglet Administration n'est pas traduit. Idem pour les sections quil contient comme Documents ou Benches ou Users."
+        ]
+      },
+      "acceptanceCriteria": [
+        "All visible text in the Benches and Documents admin panels is translated via i18n keys, including confirmation dialog text and toast messages.",
+        "Switching language updates these labels and messages immediately.",
+        "No untranslated strings such as \"Loading benches...\", \"Bench Management\", \"Delete Bench\", \"Loading documents...\", \"Document Management\", etc. remain in those files."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Ensure the bench history view is localized when viewing a bench after clicking “View details”: in `frontend/src/pages/Benches/components/BenchHistoryList.tsx`, display localized labels for history entry actions (and any other user-facing history strings) instead of rendering the raw `entry.action` text directly. Implement a robust mapping that can translate existing stored action strings (e.g., previously-written values) and falls back to the raw string if unknown.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Idem quand on accede a l'historique dun banc après avoir cliqué sur voir les details."
+        ]
+      },
+      "acceptanceCriteria": [
+        "In the Bench detail page > History tab, the action line shown for each history entry is localized according to the current UI language.",
+        "Existing history entries already stored in state remain readable and are translated when a known action mapping exists.",
+        "Unknown/unmapped actions still render (fallback) rather than breaking the history list UI."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Audit and replace any remaining hard-coded user-facing strings in the protected app shell and main pages with i18n translation keys so that a language change updates all visible UI text consistently.",
+      "text": "Use the current app language/locale when formatting timestamps in the bench history list so dates render according to the selected language (e.g., `toLocaleString(currentLocale)`), rather than the browser default locale.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "il faut que TOUT le site se traduise automatiquement ! Vraiment tout"
+          "Idem quand on accede a l'historique dun banc après avoir cliqué sur voir les details."
         ]
       },
       "acceptanceCriteria": [
-        "No user-facing labels in the header navigation, footer, and the main pages (Dashboard, Benches, Bench Details, Profile, Admin) remain hard-coded in a single language if translation keys exist or can be added.",
-        "Switching languages updates those texts without refresh."
+        "Bench history timestamps change formatting appropriately when switching between supported languages (French vs English), without requiring a refresh."
       ]
     },
     {
       "id": "REQ-5",
-      "text": "Ensure the selected language is persisted to the backend user profile languageTag and correctly restored on sign-in so the app loads in the last saved language.",
-      "target": "both",
+      "text": "Extend the i18n key set in `frontend/src/i18n/translations.ts` to include all new Admin and history-related translation keys required by REQ-1/REQ-2/REQ-3, and provide values for both `fr-FR` and `en-US`. Use English text for the `en-US` values.",
+      "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Quand je sélectionne une langue et que je fais save dans le profil utilisateur..."
+          "Use English for any user-facing text in the build request."
         ]
       },
       "acceptanceCriteria": [
-        "After setting a language and saving, signing out and signing back in loads the UI in that language.",
-        "If the backend has no stored languageTag for the user, the app defaults to English (en-US) and remains functional."
+        "TypeScript compiles with the updated `TranslationKey` union including the new keys.",
+        "Both `fr-FR` and `en-US` dictionaries contain the new keys with appropriate translations.",
+        "No runtime `Missing translation`/undefined text occurs for the Admin area and bench history view."
       ]
     }
   ],
   "constraints": [
-    "Use English for any user-facing text added in this change request (translation keys may map to other languages as needed).",
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files in frontend/src/components/ui (compose instead of editing).",
-    "Backend changes must respect the single-actor Motoko architecture (all logic in backend/main.mo); only add backend/migration.mo if a state migration is strictly required."
+    "Do not modify any files under `frontend/src/components/ui` (read-only shadcn components).",
+    "Do not edit immutable hook entrypoints listed in SYSTEM_CONTEXT (compose around them instead).",
+    "Backend must remain single-actor; no new backend services/databases."
   ],
   "nonGoals": [
-    "Fixing the intermittent deployment/build errors.",
-    "Fixing the 'Backend Connection Error' issue unless it is directly caused by the language persistence changes."
+    "Adding new Admin features or changing authorization logic.",
+    "Changing the persisted language mechanism beyond what is necessary to translate the specified screens.",
+    "Rewriting backend history storage format (unless explicitly required to fix localization; prefer frontend mapping for existing stored history)."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }
