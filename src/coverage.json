@@ -1,44 +1,50 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T15:10:02.266Z",
+  "generatedAt": "2026-02-08T16:00:27.192Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 2,
-    "implemented": 1,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Ensure the entire \"Add bench\" flow is localized when opened (the modal opened from the Benches list \"Add new\" button), by replacing all user-facing strings in `frontend/src/pages/Benches/components/AddBenchModal.tsx` with `useI18n().t(...)` calls and adding any missing translation keys.",
-        "status": "missing",
+        "summary": "Deploy the current approved build (Draft Version 36) to production as an Internet Computer canister upgrade, without making further feature/code changes.",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/Benches/components/AddBenchModal.tsx",
-          "frontend/src/i18n/translations.ts"
+          "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
+          "frontend/README_PRODUCTION_ENV.md"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
+          "frontend/README_PRODUCTION_ENV.md"
+        ]
       },
       {
         "id": "REQ-2",
-        "summary": "Add support for additional UI languages (Russian, Simplified Chinese, Japanese, Turkish) by extending `frontend/src/i18n/languages.ts` with language tags and display names, and extending `frontend/src/i18n/translations.ts` to include translation dictionaries for the new languages for all existing `TranslationKey` entries (plus any new keys added for the Add Bench modal).",
+        "summary": "After production deployment, perform a basic smoke test of the critical flows mentioned in the latest iteration: Internet Identity login/logout behavior and user profile persistence across refresh/relogin.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/i18n/languages.ts",
-          "frontend/src/i18n/translations.ts"
+          "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md"
         ],
         "matchedFiles": [
-          "frontend/src/i18n/languages.ts"
+          "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/i18n/languages.ts",
+    "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
+    "frontend/README_PRODUCTION_ENV.md",
+    "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

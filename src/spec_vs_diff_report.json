@@ -1,39 +1,50 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T15:10:02.263Z",
-  "summary": "Implemented RU/ZH/JA/TR entries in `frontend/src/i18n/languages.ts`, but did not implement Add Bench modal localization or add translation dictionaries for the new languages. An unrelated `project_state.json` update was included.",
+  "generatedAt": "2026-02-08T16:00:27.189Z",
+  "summary": "The diff primarily adds production deployment/smoke-test documentation, but it also includes a backend code modification despite the request to deploy the already-approved Draft Version 36 without further code changes. There is no evidence in the diff of an actual production canister upgrade being executed or a smoke test being performed (only checklists/scripts were added).",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Localize the entire “Add bench” modal flow by replacing all user-facing strings in `frontend/src/pages/Benches/components/AddBenchModal.tsx` with `useI18n().t(...)` calls and adding any missing translation keys (including labels, placeholders, helper/validation text, buttons, loading/uploading text, toast messages).",
-      "reason": "The diff shows no modifications to `AddBenchModal.tsx` and no evidence of string replacements or new translation keys being added for the modal.",
+      "requirement": "Deploy the current approved build (Draft Version 36) to production as an Internet Computer canister upgrade, without making further feature/code changes.",
+      "reason": "The diff contains documentation for deployment, but no evidence of a production canister upgrade being performed (e.g., release/deploy configuration changes, CI/CD changes, or recorded deployment outcome). Also, the backend code was modified, which conflicts with the requirement to deploy without further code changes.",
       "evidence": [
-        "<file-diff>: only 2 modified files listed; `frontend/src/pages/Benches/components/AddBenchModal.tsx` not among them"
+        "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
+        "backend/main.mo"
       ]
     },
     {
       "id": "REQ-2",
-      "requirement": "Add RU/ZH/JA/TR support by extending `frontend/src/i18n/languages.ts` AND extending `frontend/src/i18n/translations.ts` with complete dictionaries for the new languages for all existing `TranslationKey` entries (plus any new Add Bench keys).",
-      "reason": "`languages.ts` was updated with the new language codes, but `frontend/src/i18n/translations.ts` was not modified/added in the diff, so the required translation dictionaries are missing.",
+      "requirement": "After production deployment, perform a basic smoke test of Internet Identity login/logout and user profile persistence across refresh/relogin.",
+      "reason": "A smoke test script/checklist was added, but there is no evidence the smoke test was actually executed or that results were recorded (no logs/results/verification artifacts in the diff).",
       "evidence": [
-        "frontend/src/i18n/languages.ts",
-        "<file-diff>: `frontend/src/i18n/translations.ts` not among modified files"
+        "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Updated `project_state.json` with new_feature_requests entries unrelated to runtime localization implementation.",
-      "reason": "The BuildRequest only asked for frontend i18n changes (AddBenchModal localization, languages.ts, translations.ts). Modifying `project_state.json` is not requested and does not contribute to the specified acceptance criteria.",
+      "description": "Backend code changes in backend/main.mo (implementation changes beyond deployment documentation).",
+      "reason": "The BuildRequest explicitly states to deploy the approved Draft Version 36 without making further feature/code changes; modifying backend code is out of scope for a pure deployment promotion.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "description": "Project tracking/state update marking deployment/smoke-test items as 'pending' in project_state.json.",
+      "reason": "The BuildRequest asks to deploy and then smoke test; adding/altering internal tracking metadata was not requested as part of the deployment deliverable.",
       "evidence": [
         "project_state.json"
       ]
     }
   ],
-  "confidence": 0.84,
+  "confidence": 0.74,
   "changed_files": [
-    "frontend/src/i18n/languages.ts",
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
+    "frontend/README_PRODUCTION_ENV.md",
+    "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md",
     "project_state.json"
   ]
 }

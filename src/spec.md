@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Fully localize the “Add bench” modal flow and add Russian, Simplified Chinese, Japanese, and Turkish as selectable UI languages.
+**Goal:** Deploy the approved Draft Version 36 to production as an Internet Computer canister upgrade, with no additional feature or code changes, then validate key authentication and profile persistence flows.
 
 **Planned changes:**
-- Replace all user-facing strings in `frontend/src/pages/Benches/components/AddBenchModal.tsx` with `useI18n().t(...)` calls and add any missing translation keys for the full Add Bench modal flow (labels, placeholders, helper/validation text, buttons, loading/uploading text, and toast messages).
-- Extend `frontend/src/i18n/languages.ts` to include RU/ZH/JA/TR language tags and display names.
-- Extend `frontend/src/i18n/translations.ts` to provide complete translation dictionaries for RU/ZH/JA/TR covering all existing `TranslationKey` entries plus any new keys added for the Add Bench modal.
+- Deploy the current approved codebase (Draft Version 36) to production via canister upgrade.
+- Perform a basic post-deploy smoke test: Internet Identity login/logout and user profile persistence across refresh and relogin.
 
-**User-visible outcome:** When a non-English language is selected, the Add Bench modal is fully translated, and users can switch the UI language to Russian, Simplified Chinese, Japanese, or Turkish from the Profile language selector.
+**User-visible outcome:** The production site runs Draft Version 36; users can sign in with Internet Identity, access protected areas, and see profile updates persist after refresh and after logging out/in.

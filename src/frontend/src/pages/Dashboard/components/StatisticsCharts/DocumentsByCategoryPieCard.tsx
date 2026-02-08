@@ -4,7 +4,7 @@ import { FileText } from 'lucide-react';
 import { useI18n } from '../../../../i18n/useI18n';
 
 interface DocumentsByCategoryPieCardProps {
-  data: Array<{ document: any; benchName: string }>;
+  data: Array<{ document: any; benchNames: string[] }>;
 }
 
 const COLORS = {

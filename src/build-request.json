@@ -1,53 +1,54 @@
 {
   "kind": "build_request",
-  "title": "Fix Add Bench localization and add RU/ZH/JA/TR UI languages",
+  "title": "Deploy approved Draft Version 36 to production",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Ensure the entire \"Add bench\" flow is localized when opened (the modal opened from the Benches list \"Add new\" button), by replacing all user-facing strings in `frontend/src/pages/Benches/components/AddBenchModal.tsx` with `useI18n().t(...)` calls and adding any missing translation keys.",
-      "target": "frontend",
+      "text": "Deploy the current approved build (Draft Version 36) to production as an Internet Computer canister upgrade, without making further feature/code changes.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-3"
         ],
         "quotes": [
-          "Quand je clique sur Ajouter banc je veux aussi que la page soit traduite."
+          "It is perfect, deploy it."
         ]
       },
       "acceptanceCriteria": [
-        "With a non-English language selected, opening the Add Bench modal shows translated UI for: title/description, all field labels, placeholders, helper texts, validation errors, button labels, loading/uploading text, and toast messages.",
-        "The Add Bench modal contains no hardcoded English/French UI strings except for non-user-facing/internal values (e.g., IDs).",
-        "If a translation key is missing for the active language, the UI does not crash (it may fall back to showing the key, consistent with the current i18n behavior)."
+        "A production deployment is performed using the current codebase corresponding to Draft Version 36.",
+        "The canister upgrade completes successfully (no traps during preupgrade/postupgrade, if applicable).",
+        "The production frontend loads and connects to the production backend canister successfully."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add support for additional UI languages (Russian, Simplified Chinese, Japanese, Turkish) by extending `frontend/src/i18n/languages.ts` with language tags and display names, and extending `frontend/src/i18n/translations.ts` to include translation dictionaries for the new languages for all existing `TranslationKey` entries (plus any new keys added for the Add Bench modal).",
-      "target": "frontend",
+      "text": "After production deployment, perform a basic smoke test of the critical flows mentioned in the latest iteration: Internet Identity login/logout behavior and user profile persistence across refresh/relogin.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-2",
+          "msg-3"
         ],
         "quotes": [
-          "Pense enfin a rajouter plus de langues comme le russe, le chinois, le japonais et le turc"
+          "does the updated version feel closer to what you needed, especially around profile persistence and login behavior?",
+          "It is perfect, deploy it."
         ]
       },
       "acceptanceCriteria": [
-        "The language selector (Profile page) shows the newly supported languages and allows selecting them without warnings about unsupported languages.",
-        "For each new language tag, `translations[tag]` exists and contains values for all `TranslationKey` entries used by the app (including new Add Bench keys), so the UI does not display raw keys for common screens (Dashboard, Benches list, Bench details, Profile, Admin).",
-        "User language choice continues to persist via existing `actor.setLanguageTag` / `actor.getLanguageTag` behavior (no backend changes required)."
+        "A user can sign in via Internet Identity and reach protected routes (e.g., Dashboard).",
+        "A user can update their profile and the changes persist after a full page refresh.",
+        "A user can log out and log back in and still see their persisted profile data.",
+        "No new runtime errors are observed in the UI during the smoke test."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under `frontend/src/components/ui` (compose existing UI components instead).",
-    "Do not edit files listed in `frontend.immutablePaths` in SYSTEM_CONTEXT."
+    "Do not edit files under frontend/src/components/ui or any other frontend immutable paths listed in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Implementing automatic language detection from the browser/device.",
-    "Adding right-to-left (RTL) layout support.",
-    "Changing backend storage schema for language preferences."
+    "Implement new features or UI redesigns.",
+    "Refactor backend/frontend architecture beyond what is required to deploy the already-approved build."
   ],
   "imageRequirements": {
     "required": [],

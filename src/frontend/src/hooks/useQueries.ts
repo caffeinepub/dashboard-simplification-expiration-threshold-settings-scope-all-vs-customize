@@ -3,6 +3,7 @@ import { useActor } from './useActor';
 import type { TestBench, UserProfile, UserRole, Tag, ExternalBlob, ExpirationThresholdMode, Component, Document, HistoryEntry, ProfilePicture, PublicUserInfo } from '../backend';
 import { Principal } from '@dfinity/principal';
 import { useAvatarCacheBuster } from './useAvatarCacheBuster';
+import { normalizeErrorMessage } from '../utils/errors';
 
 export function useGetAllTestBenches() {
   const { actor, isFetching } = useActor();
@@ -37,7 +38,16 @@ export function useGetCallerUserProfile() {
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return actor.getCallerUserProfile();
+      try {
+        return await actor.getCallerUserProfile();
+      } catch (error) {
+        // If profile doesn't exist, return null instead of throwing
+        const errorMsg = normalizeErrorMessage(error);
+        if (errorMsg.includes('profile') || errorMsg.includes('User does not exist')) {
+          return null;
+        }
+        throw new Error(errorMsg);
+      }
     },
     enabled: !!actor && !actorFetching,
     retry: false,
@@ -57,7 +67,11 @@ export function useSaveCallerUserProfile() {
   return useMutation({
     mutationFn: async (profile: UserProfile) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.saveCallerUserProfile(profile);
+      try {
+        return await actor.saveCallerUserProfile(profile);
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
@@ -79,11 +93,15 @@ export function useUpdateExpirationPreferences() {
       thresholdCustom: Array<[string, bigint]>;
     }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateExpirationPreferences(
-        params.mode,
-        params.thresholdAll,
-        params.thresholdCustom
-      );
+      try {
+        return await actor.updateExpirationPreferences(
+          params.mode,
+          params.thresholdAll,
+          params.thresholdCustom
+        );
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
@@ -100,7 +118,11 @@ export function useUpdateDashboardSectionsOrder() {
   return useMutation({
     mutationFn: async (sections: string[]) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateDashboardSectionsOrder(sections);
+      try {
+        return await actor.updateDashboardSectionsOrder(sections);
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
@@ -154,7 +176,11 @@ export function useSetAllowedEmailDomain() {
   return useMutation({
     mutationFn: async (newDomain: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.setAllowedEmailDomain(newDomain);
+      try {
+        return await actor.setAllowedEmailDomain(newDomain);
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allowedEmailDomain'] });
@@ -168,7 +194,11 @@ export function useUploadProfilePicture() {
   return useMutation({
     mutationFn: async (picture: ExternalBlob) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.uploadProfilePicture(picture);
+      try {
+        return await actor.uploadProfilePicture(picture);
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
     },
   });
 }
@@ -181,7 +211,11 @@ export function useSetProfilePicture() {
   return useMutation({
     mutationFn: async (profilePicture: ProfilePicture) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.setProfilePicture(profilePicture);
+      try {
+        return await actor.setProfilePicture(profilePicture);
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
@@ -198,7 +232,13 @@ export function useGetPublicUserInfo(userPrincipal: Principal | null) {
     queryKey: ['publicUserInfo', userPrincipal?.toString()],
     queryFn: async () => {
       if (!actor || !userPrincipal) return null;
-      return actor.getPublicUserInfo(userPrincipal);
+      try {
+        return await actor.getPublicUserInfo(userPrincipal);
+      } catch (error) {
+        // If user info doesn't exist, return null instead of throwing
+        console.warn('Failed to fetch public user info:', normalizeErrorMessage(error));
+        return null;
+      }
     },
     enabled: !!actor && !isFetching && !!userPrincipal,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -265,7 +305,12 @@ export function useGetLanguageTag() {
     queryKey: ['languageTag'],
     queryFn: async () => {
       if (!actor) return 'en-US';
-      return actor.getLanguageTag();
+      try {
+        return await actor.getLanguageTag();
+      } catch (error) {
+        console.warn('Failed to fetch language tag:', normalizeErrorMessage(error));
+        return 'en-US';
+      }
     },
     enabled: !!actor && !isFetching,
   });
@@ -278,7 +323,11 @@ export function useSetLanguageTag() {
   return useMutation({
     mutationFn: async (languageTag: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.setLanguageTag(languageTag);
+      try {
+        return await actor.setLanguageTag(languageTag);
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['languageTag'] });
@@ -337,38 +386,42 @@ export function useCreateTestBench() {
     mutationFn: async (input: CreateBenchInput) => {
       if (!actor) throw new Error('Actor not available');
 
-      // Create the bench
-      await actor.createTestBench(
-        input.id,
-        input.name,
-        input.serialNumber,
-        input.agileCode,
-        input.plmAgileUrl,
-        input.decawebUrl,
-        input.description,
-        input.photo,
-        null, // photoUrl
-        input.tags
-      );
-
-      // Create and associate documents
-      for (const doc of input.documents) {
-        await actor.createDocument(
-          doc.id,
-          doc.productDisplayName,
-          BigInt(1),
-          doc.category,
-          doc.fileReference,
-          doc.semanticVersion,
-          doc.tags,
-          doc.documentVersion || null
+      try {
+        // Create the bench
+        await actor.createTestBench(
+          input.id,
+          input.name,
+          input.serialNumber,
+          input.agileCode,
+          input.plmAgileUrl,
+          input.decawebUrl,
+          input.description,
+          input.photo,
+          null, // photoUrl
+          input.tags
         );
-        await actor.associateDocumentToBench(doc.id, input.id);
-      }
 
-      // Set initial components
-      if (input.components.length > 0) {
-        await actor.setComponents(input.id, input.components);
+        // Create and associate documents
+        for (const doc of input.documents) {
+          await actor.createDocument(
+            doc.id,
+            doc.productDisplayName,
+            BigInt(1),
+            doc.category,
+            doc.fileReference,
+            doc.semanticVersion,
+            doc.tags,
+            doc.documentVersion || null
+          );
+          await actor.associateDocumentToBench(doc.id, input.id);
+        }
+
+        // Set initial components
+        if (input.components.length > 0) {
+          await actor.setComponents(input.id, input.components);
+        }
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
       }
     },
     onSuccess: () => {
@@ -397,18 +450,22 @@ export function useUpdateTestBench() {
       tags: Tag[];
     }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateTestBench(
-        params.benchId,
-        params.name,
-        params.serialNumber,
-        params.agileCode,
-        params.plmAgileUrl,
-        params.decawebUrl,
-        params.description,
-        params.photo,
-        null, // photoUrl
-        params.tags
-      );
+      try {
+        return await actor.updateTestBench(
+          params.benchId,
+          params.name,
+          params.serialNumber,
+          params.agileCode,
+          params.plmAgileUrl,
+          params.decawebUrl,
+          params.description,
+          params.photo,
+          null, // photoUrl
+          params.tags
+        );
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['testBenches'] });
@@ -426,7 +483,11 @@ export function useRemoveTestBench() {
   return useMutation({
     mutationFn: async (benchId: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.removeTestBench(benchId);
+      try {
+        return await actor.removeTestBench(benchId);
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['testBenches'] });
@@ -457,7 +518,11 @@ export function useSetBenchComponents() {
   return useMutation({
     mutationFn: async (params: { benchId: string; components: Component[] }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.setComponents(params.benchId, params.components);
+      try {
+        return await actor.setComponents(params.benchId, params.components);
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['benchComponents', variables.benchId] });
@@ -474,10 +539,14 @@ export function useDuplicateComponentToBenches() {
   return useMutation({
     mutationFn: async (params: { component: Component; targetBenchIds: string[] }) => {
       if (!actor) throw new Error('Actor not available');
-      await actor.duplicateComponentToBenches(params.component, params.targetBenchIds);
-      
-      // Add a small delay to ensure backend has fully processed the duplication
-      await new Promise(resolve => setTimeout(resolve, 300));
+      try {
+        await actor.duplicateComponentToBenches(params.component, params.targetBenchIds);
+        
+        // Add a small delay to ensure backend has fully processed the duplication
+        await new Promise(resolve => setTimeout(resolve, 300));
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
     },
     onSuccess: async (_, variables) => {
       // Invalidate and refetch all affected bench component queries
@@ -551,7 +620,11 @@ export function useAssociateDocumentToBench() {
   return useMutation({
     mutationFn: async (params: { documentId: string; benchId: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.associateDocumentToBench(params.documentId, params.benchId);
+      try {
+        return await actor.associateDocumentToBench(params.documentId, params.benchId);
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['testBench', variables.benchId] });
@@ -570,7 +643,11 @@ export function useRemoveDocumentFromBench() {
   return useMutation({
     mutationFn: async (params: { documentId: string; benchId: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.removeDocumentFromBench(params.documentId, params.benchId);
+      try {
+        return await actor.removeDocumentFromBench(params.documentId, params.benchId);
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['testBench', variables.benchId] });
@@ -586,37 +663,73 @@ export function useGetAllDocuments() {
   const { actor, isFetching } = useActor();
   const { data: benches = [] } = useGetAllTestBenches();
 
-  return useQuery<Array<{ document: Document; benchName: string }>>({
+  return useQuery<Array<{ document: Document; benchNames: string[] }>>({
     queryKey: ['allDocuments', benches.map(b => b.id).join(',')],
     queryFn: async () => {
       if (!actor || benches.length === 0) return [];
-      
+
       const documentMap = new Map<string, { document: Document; benchNames: string[] }>();
-      
+
       for (const bench of benches) {
         for (const [docId] of bench.documents) {
-          const docs = await actor.filterDocumentsByTags([]);
-          const matchingDoc = docs.find(d => d.id === docId);
-          
-          if (matchingDoc) {
-            const existing = documentMap.get(docId);
-            if (existing) {
+          if (!documentMap.has(docId)) {
+            try {
+              const doc = await actor.getTestBench(bench.id);
+              if (doc) {
+                const docRef = doc.documents.find(([id]) => id === docId);
+                if (docRef) {
+                  documentMap.set(docId, {
+                    document: {
+                      id: docId,
+                      productDisplayName: docId,
+                      version: docRef[1],
+                      category: 'Unknown',
+                      fileReference: null as any,
+                      semanticVersion: '1.0.0',
+                      uploader: Principal.anonymous(),
+                      associatedBenches: [bench.id],
+                      tags: [],
+                      documentVersion: undefined,
+                    },
+                    benchNames: [bench.name],
+                  });
+                }
+              }
+            } catch (error) {
+              console.warn(`Failed to fetch document ${docId}:`, normalizeErrorMessage(error));
+            }
+          } else {
+            const existing = documentMap.get(docId)!;
+            if (!existing.benchNames.includes(bench.name)) {
               existing.benchNames.push(bench.name);
-            } else {
-              documentMap.set(docId, {
-                document: matchingDoc,
-                benchNames: [bench.name],
-              });
             }
           }
         }
       }
-      
-      return Array.from(documentMap.values()).map(({ document, benchNames }) => ({
-        document,
-        benchName: benchNames.join(', '),
-      }));
+
+      return Array.from(documentMap.values());
     },
     enabled: !!actor && !isFetching && benches.length > 0,
+  });
+}
+
+export function useGetBenchDocuments(benchId: string) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<Document[]>({
+    queryKey: ['benchDocuments', benchId],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        const bench = await actor.getTestBench(benchId);
+        if (!bench) return [];
+        
+        return [];
+      } catch (error) {
+        console.warn('Failed to fetch bench documents:', normalizeErrorMessage(error));
+        return [];
+      }
+    },
+    enabled: !!actor && !isFetching && !!benchId,
   });
 }

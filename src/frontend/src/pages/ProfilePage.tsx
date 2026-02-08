@@ -28,12 +28,13 @@ import { PredefinedAvatarPicker } from '../components/profile/PredefinedAvatarPi
 import { EntityTagInput } from '../components/profile/EntityTagInput';
 import { useI18n } from '../i18n/useI18n';
 import { SUPPORTED_LANGUAGES } from '../i18n/languages';
+import { normalizeErrorMessage } from '../utils/errors';
 
 const DEFAULT_SECTIONS = ['statistics', 'charts', 'criticalComponents', 'expiringComponents', 'documents', 'quickActions'];
 
 export default function ProfilePage() {
   const { identity } = useInternetIdentity();
-  const { data: profile, isLoading, isFetched } = useGetCallerUserProfile();
+  const { data: profile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
   const { data: benches = [] } = useGetAllTestBenches();
   const { data: allowedDomain = 'safrangroup.com' } = useGetAllowedEmailDomain();
   const { data: isAdmin = false } = useIsCallerAdmin();
@@ -43,7 +44,7 @@ export default function ProfilePage() {
   const setProfilePictureMutation = useSetProfilePicture();
   const { t, languageTag, setLanguageTag } = useI18n();
 
-  // Profile fields (removed name, displayName, and avatarUrl)
+  // Profile fields
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
@@ -70,7 +71,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (profile) {
       setUsername(profile.username || '');
-      setEmail(profile.email);
+      setEmail(profile.email || '');
       setBio(profile.bio || '');
       setEntity(profile.entity || '');
       setGlobalThreshold(Number(profile.thresholdAllBenches));
@@ -208,27 +209,10 @@ export default function ProfilePage() {
         newProfilePicture = { __kind__: 'avatar', avatar: 'duck' };
       }
 
-      // Save profile picture first
+      // Save profile picture first (this will create the user profile if it doesn't exist)
       await setProfilePictureMutation.mutateAsync(newProfilePicture);
 
-      // Save profile with all fields (preserve existing avatarUrl from loaded profile)
-      await saveMutation.mutateAsync({
-        userId: identity?.getPrincipal().toString() || '',
-        username: username.trim(),
-        email: email.trim(),
-        bio: bio.trim(),
-        avatarUrl: profile?.avatarUrl || '', // Preserve existing avatarUrl
-        entity: entity.trim(),
-        expirationThresholdMode: profile?.expirationThresholdMode || ExpirationThresholdMode.allBenches,
-        thresholdAllBenches: profile?.thresholdAllBenches || BigInt(30),
-        thresholdCustomizedBenches: profile?.thresholdCustomizedBenches || [],
-        dashboardSectionsOrdered: profile?.dashboardSectionsOrdered || DEFAULT_SECTIONS,
-        profilePicture: newProfilePicture,
-        languageTag: stagedLanguage, // Use staged language
-        lastSeen: profile?.lastSeen,
-      });
-
-      // Save expiration preferences
+      // Build expiration preferences
       const mode = thresholdMode === 'all' 
         ? ExpirationThresholdMode.allBenches 
         : ExpirationThresholdMode.customizedBenches;
@@ -241,6 +225,24 @@ export default function ProfilePage() {
             ])
           : [];
 
+      // Save profile with all fields
+      await saveMutation.mutateAsync({
+        userId: identity?.getPrincipal().toString() || '',
+        username: username.trim(),
+        email: email.trim(),
+        bio: bio.trim(),
+        avatarUrl: profile?.avatarUrl || '',
+        entity: entity.trim(),
+        expirationThresholdMode: mode,
+        thresholdAllBenches: BigInt(globalThreshold),
+        thresholdCustomizedBenches: customThresholds,
+        dashboardSectionsOrdered: profile?.dashboardSectionsOrdered || DEFAULT_SECTIONS,
+        profilePicture: newProfilePicture,
+        languageTag: stagedLanguage,
+        lastSeen: profile?.lastSeen,
+      });
+
+      // Save expiration preferences separately
       await updatePreferencesMutation.mutateAsync({
         mode,
         thresholdAll: BigInt(globalThreshold),
@@ -255,11 +257,13 @@ export default function ProfilePage() {
       // Show success toast in the NEW language
       toast.success(t('profile.saved'));
     } catch (error: any) {
-      toast.error(error.message || t('profile.saveFailed'));
+      const errorMessage = normalizeErrorMessage(error);
+      toast.error(errorMessage);
+      console.error('Profile save error:', error);
     }
   };
 
-  if (isLoading) {
+  if (profileLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -502,11 +506,11 @@ export default function ProfilePage() {
                       <div key={bench.id} className="space-y-2">
                         <div className="flex items-center space-x-2">
                           <Checkbox
-                            id={`bench-${bench.id}`}
+                            id={bench.id}
                             checked={selectedBenches.has(bench.id)}
                             onCheckedChange={(checked) => handleBenchToggle(bench.id, checked as boolean)}
                           />
-                          <Label htmlFor={`bench-${bench.id}`} className="font-normal cursor-pointer flex-1">
+                          <Label htmlFor={bench.id} className="font-normal cursor-pointer flex-1">
                             {bench.name}
                           </Label>
                         </div>

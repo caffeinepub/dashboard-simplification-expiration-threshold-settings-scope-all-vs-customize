@@ -1,27 +1,35 @@
-import Array "mo:core/Array";
 import Map "mo:core/Map";
-import Text "mo:core/Text";
-import Nat "mo:core/Nat";
-import Order "mo:core/Order";
-import Principal "mo:core/Principal";
-import Runtime "mo:core/Runtime";
-import Iter "mo:core/Iter";
-import Time "mo:core/Time";
-import List "mo:core/List";
 import Set "mo:core/Set";
+import List "mo:core/List";
+import Array "mo:core/Array";
+import Text "mo:core/Text";
+import Iter "mo:core/Iter";
+import Nat "mo:core/Nat";
+import Time "mo:core/Time";
+import Runtime "mo:core/Runtime";
+import Principal "mo:core/Principal";
+import Order "mo:core/Order";
 
-
-import MixinAuthorization "authorization/MixinAuthorization";
-import MixinStorage "blob-storage/Mixin";
-import Storage "blob-storage/Storage";
 import AccessControl "authorization/access-control";
+import Storage "blob-storage/Storage";
+import MixinStorage "blob-storage/Mixin";
+import MixinAuthorization "authorization/MixinAuthorization";
 
-// Apply migration on upgrade
+// IMPORTANT: Migration is defined in main file, but implementation is in respective migration module!
 
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
   include MixinStorage();
+
+  var allowedEmailDomain = "safrangroup.com";
+
+  let userProfileMap = Map.empty<Principal, UserProfile>();
+  let entitiesSet = Set.empty<Text>();
+  let documentMap = Map.empty<Text, Document>();
+  let testBenchMap = Map.empty<Text, TestBench>();
+  let componentMap = Map.empty<Text, [Component]>();
+  let historyMap = Map.empty<Text, [HistoryEntry]>();
 
   type Version = Nat;
 
@@ -140,13 +148,35 @@ actor {
     };
   };
 
-  let testBenchMap = Map.empty<Text, TestBench>();
-  let documentMap = Map.empty<Text, Document>();
-  let componentMap = Map.empty<Text, [Component]>();
-  let historyMap = Map.empty<Text, [HistoryEntry]>();
-  let userProfileMap = Map.empty<Principal, UserProfile>();
-  let entitiesSet = Set.empty<Text>();
-  var allowedEmailDomain = "safrangroup.com";
+  private func getDefaultProfile(caller : Principal) : UserProfile {
+    let defaultSections = [
+      "dashboardGeneralStatsChart",
+      "dashboardTotalBenchesChart",
+      "dashboardExpiredComponentsChart",
+      "dashboardThresholdBreakdownChart",
+      "dashboardExpiringSoonChart",
+      "dashboardDrillDownChart",
+      "statistics",
+      "documents",
+      "benches",
+      "quickActions",
+    ];
+    {
+      userId = caller.toText();
+      email = "";
+      username = "";
+      bio = "";
+      avatarUrl = "";
+      entity = "";
+      expirationThresholdMode = #allBenches;
+      thresholdAllBenches = 30;
+      thresholdCustomizedBenches = [];
+      dashboardSectionsOrdered = defaultSections;
+      profilePicture = #avatar("default");
+      languageTag = "en-US";
+      lastSeen = null;
+    };
+  };
 
   public query ({ caller }) func getAllTestBenches() : async [TestBench] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -220,7 +250,7 @@ actor {
     };
 
     let currentProfile = switch (userProfileMap.get(caller)) {
-      case (null) { Runtime.trap("User profile does not exist") };
+      case (null) { getDefaultProfile(caller) };
       case (?profile) { profile };
     };
 
@@ -259,7 +289,7 @@ actor {
     };
 
     let currentProfile = switch (userProfileMap.get(caller)) {
-      case (null) { Runtime.trap("User profile does not exist") };
+      case (null) { getDefaultProfile(caller) };
       case (?profile) { profile };
     };
 
@@ -288,7 +318,7 @@ actor {
     };
     switch (userProfileMap.get(caller)) {
       case (null) {
-        "en-US"; // Default to English (US) if no profile exists
+        "en-US";
       };
       case (?profile) { profile.languageTag };
     };
@@ -301,34 +331,7 @@ actor {
 
     switch (userProfileMap.get(caller)) {
       case (null) {
-        // Default dashboard structure
-        let defaultSections = [
-          "dashboardGeneralStatsChart",
-          "dashboardTotalBenchesChart",
-          "dashboardExpiredComponentsChart",
-          "dashboardThresholdBreakdownChart",
-          "dashboardExpiringSoonChart",
-          "dashboardDrillDownChart",
-          "statistics",
-          "documents",
-          "benches",
-          "quickActions",
-        ];
-        ?{
-          userId = caller.toText();
-          email = "";
-          username = "";
-          bio = "";
-          avatarUrl = "";
-          entity = "";
-          expirationThresholdMode = #allBenches;
-          thresholdAllBenches = 30;
-          thresholdCustomizedBenches = [];
-          dashboardSectionsOrdered = defaultSections;
-          profilePicture = #avatar("default");
-          languageTag = "en-US"; // Set default to English (US) in user profile too
-          lastSeen = null;
-        };
+        ?getDefaultProfile(caller);
       };
       case (profile) { profile };
     };
@@ -392,7 +395,7 @@ actor {
     switch (currentProfile.lastSeen) {
       case (null) { false };
       case (?lastSeen) {
-        let onlineThreshold = 5 * 60 * 1_000_000_000; // 5 minutes in nanoseconds
+        let onlineThreshold = 5 * 60 * 1_000_000_000;
         Time.now() - lastSeen <= onlineThreshold;
       };
     };
@@ -404,7 +407,7 @@ actor {
     };
 
     let currentProfile = switch (userProfileMap.get(caller)) {
-      case (null) { return };
+      case (null) { getDefaultProfile(caller) };
       case (?profile) { profile };
     };
 
@@ -441,7 +444,6 @@ actor {
     result.toArray();
   };
 
-  // Deprecated for backward compatibility only - can be removed in the future
   public query ({ caller }) func getAllEntities() : async [Text] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view all entities");
@@ -467,7 +469,7 @@ actor {
     };
 
     let currentProfile = switch (userProfileMap.get(caller)) {
-      case (null) { Runtime.trap("User profile does not exist") };
+      case (null) { getDefaultProfile(caller) };
       case (?profile) { profile };
     };
 
@@ -496,7 +498,7 @@ actor {
     };
 
     let currentProfile = switch (userProfileMap.get(caller)) {
-      case (null) { Runtime.trap("User profile does not exist") };
+      case (null) { getDefaultProfile(caller) };
       case (?profile) { profile };
     };
 
@@ -588,7 +590,7 @@ actor {
       id = bench.id;
       name;
       serialNumber;
-      agileCode;
+      agileCode = agileCode;
       plmAgileUrl;
       decawebUrl;
       description;

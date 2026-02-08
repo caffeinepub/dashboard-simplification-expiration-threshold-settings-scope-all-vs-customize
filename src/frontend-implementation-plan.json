@@ -1,47 +1,43 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Add Bench modal localization and add RU/ZH/JA/TR translations",
+  "title": "Production release: Deploy Draft Version 36 (frontend-only plan)",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Localize the full Add Bench modal flow by replacing all user-facing strings in AddBenchModal with i18n translation lookups and adding missing translation keys.",
+      "summary": "Prepare the frontend release artifact and deployment notes for promoting Draft Version 36 to production without code changes.",
       "acceptanceCriteria": [
-        "With a non-English language selected, opening the Add Bench modal shows translated UI for: title/description, all field labels, placeholders, helper texts, validation errors, button labels, loading/uploading text, and toast messages.",
-        "The Add Bench modal contains no hardcoded English/French UI strings except for non-user-facing/internal values (e.g., IDs).",
-        "If a translation key is missing for the active language, the UI does not crash (it may fall back to showing the key, consistent with the current i18n behavior)."
+        "A production deployment is performed using the current codebase corresponding to Draft Version 36.",
+        "The canister upgrade completes successfully (no traps during preupgrade/postupgrade, if applicable).",
+        "The production frontend loads and connects to the production backend canister successfully."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/Benches/components/AddBenchModal.tsx",
-          "operation": "modify",
-          "description": "Import and use useI18n().t(...) for all user-facing strings in the modal (header/title/description, upload/progress labels, field labels/placeholders/help text, validation messages, duplication section copy, footer buttons, and all toast success/error messages), and remove remaining hardcoded UI strings while preserving internal/non-user-facing values."
+          "path": "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
+          "operation": "create",
+          "description": "Add a production deployment checklist focused on frontend release steps only (build, environment variable verification, canister IDs wiring expectations, and post-deploy verification that the SPA loads). Include a note that no feature/code changes are to be made for Draft Version 36; this file is documentation only."
         },
         {
-          "path": "frontend/src/i18n/translations.ts",
-          "operation": "modify",
-          "description": "Add any missing TranslationKey entries required by the Add Bench modal (including validation, helper copy, upload/progress and toast messages) and provide translations for existing languages so the modal is fully localized."
+          "path": "frontend/README_PRODUCTION_ENV.md",
+          "operation": "create",
+          "description": "Document the required production environment variables as consumed by the current frontend (e.g., II_* and CANISTER_* variables used by the existing configuration and Vite environment injection) and how to confirm they are correctly set during deployment."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Add RU/ZH/JA/TR as supported UI languages and provide complete translation dictionaries for all TranslationKey entries.",
+      "summary": "Add a repeatable frontend smoke-test checklist for Internet Identity login/logout and user profile persistence across refresh/relogin.",
       "acceptanceCriteria": [
-        "The language selector (Profile page) shows the newly supported languages and allows selecting them without warnings about unsupported languages.",
-        "For each new language tag, translations[tag] exists and contains values for all TranslationKey entries used by the app (including new Add Bench keys), so the UI does not display raw keys for common screens (Dashboard, Benches list, Bench details, Profile, Admin).",
-        "User language choice continues to persist via existing actor.setLanguageTag / actor.getLanguageTag behavior (no backend changes required)."
+        "A user can sign in via Internet Identity and reach protected routes (e.g., Dashboard).",
+        "A user can update their profile and the changes persist after a full page refresh.",
+        "A user can log out and log back in and still see their persisted profile data.",
+        "No new runtime errors are observed in the UI during the smoke test."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/i18n/languages.ts",
-          "operation": "modify",
-          "description": "Extend SUPPORTED_LANGUAGES with Russian, Simplified Chinese, Japanese, and Turkish entries (language tags and display names) so they appear in the Profile language selector and pass supported-language validation."
-        },
-        {
-          "path": "frontend/src/i18n/translations.ts",
-          "operation": "modify",
-          "description": "Add complete translation dictionaries for the new language tags (e.g., ru-RU, zh-CN, ja-JP, tr-TR) ensuring every TranslationKey has a value (including any new Add Bench keys) to avoid raw-key display on common screens."
+          "path": "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md",
+          "operation": "create",
+          "description": "Create a concise smoke-test script that explicitly validates: (1) Internet Identity sign-in from the Sign In page, (2) protected-route access via the AuthGate flow (e.g., Dashboard/Profile), (3) profile save and persistence after full refresh, (4) logout clears cached data and re-login still retrieves persisted profile. Reference the app’s existing authentication/profile flow (authorization component patterns via useInternetIdentity, useActor, and useGetCallerUserProfile). Verify the component's usage instructions before implementing."
         }
       ]
     }

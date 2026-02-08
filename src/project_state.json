@@ -1,47 +1,32 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Deployment approved; current build includes profile persistence and updated login behavior (Draft Version 36).",
   "architectural_notes": [
-    "Internationalization: ensure language selection applies consistently across all pages/views, including the Add Bench flow."
+    "Draft Version 36 deployed/approved (includes profile persistence and login behavior updates)."
   ],
-  "known_issues": [
-    "Add Bench ('Ajouter banc') page is not translated when accessed/clicked."
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-add-support-for-additional-ui-languages-russian-simplified-chinese-japanese-turkish-by-extending-frontend-src-i18n-languages-ts-with-language-tags-and-display-names-and-extending-frontend-src-i18n-translations-ts-to-include-translation-dictionaries-for-the-new-languages-for-all-existing-translationkey-entries-plus-any-new-keys-added-for-the-add-bench-modal",
-      "title": "Add support for additional UI languages (Russian, Simplified Chinese, Japanese, Turkish) by extending `frontend/src/i18n/languages.ts` with language tags and display names, and extending `frontend/src/i18n/translations.ts` to include translation dictionaries for the new languages for all existing `TranslationKey` entries (plus any new keys added for the Add Bench modal).",
+      "id": "feature-deploy-the-current-approved-build-draft-version-36-to-production-as-an-internet-computer-canister-upgrade-without-making-further-feature-code-changes",
+      "title": "Deploy the current approved build (Draft Version 36) to production as an Internet Computer canister upgrade, without making further feature/code changes.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-after-production-deployment-perform-a-basic-smoke-test-of-the-critical-flows-mentioned-in-the-latest-iteration-internet-identity-login-logout-behavior-and-user-profile-persistence-across-refresh-relogin",
+      "title": "After production deployment, perform a basic smoke test of the critical flows mentioned in the latest iteration: Internet Identity login/logout behavior and user profile persistence across refresh/relogin.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Ensure the 'Ajouter banc' (Add bench) page is translated when opened/clicked",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Add additional UI languages: Russian, Chinese, Japanese, and Turkish",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Ensure the entire \"Add bench\" flow is localized when opened (the modal opened from the Benches list \"Add new\" button), by replacing all user-facing strings in `frontend/src/pages/Benches/components/AddBenchModal.tsx` with `useI18n().t(...)` calls and adding any missing translation keys.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Fix Add Bench localization and add RU/ZH/JA/TR UI languages",
+  "new_feature_requests": [],
+  "projectName": "Deploy approved Draft Version 36 to production",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

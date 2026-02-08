@@ -2,10 +2,31 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-support-for-additional-ui-languages-russian-simplified-chinese-japanese-turkish-by-extending-frontend-src-i18n-languages-ts-with-language-tags-and-display-names-and-extending-frontend-src-i18n-translations-ts-to-include-translation-dictionaries-for-the-new-languages-for-all-existing-translationkey-entries-plus-any-new-keys-added-for-the-add-bench-modal",
-      "featureTitle": "Add support for additional UI languages (Russian, Simplified Chinese, Japanese, Turkish) by extending `frontend/src/i18n/languages.ts` with language tags and display names, and extending `frontend/src/i18n/translations.ts` to include translation dictionaries for the new languages for all existing `TranslationKey` entries (plus any new keys added for the Add Bench modal).",
+      "featureId": "feature-deploy-the-current-approved-build-draft-version-36-to-production-as-an-internet-computer-canister-upgrade-without-making-further-feature-code-changes",
+      "featureTitle": "Deploy the current approved build (Draft Version 36) to production as an Internet Computer canister upgrade, without making further feature/code changes.",
       "files": [
-        "frontend/src/i18n/languages.ts"
+        "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
+        "frontend/README_PRODUCTION_ENV.md"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-after-production-deployment-perform-a-basic-smoke-test-of-the-critical-flows-mentioned-in-the-latest-iteration-internet-identity-login-logout-behavior-and-user-profile-persistence-across-refresh-relogin",
+      "featureTitle": "After production deployment, perform a basic smoke test of the critical flows mentioned in the latest iteration: Internet Identity login/logout behavior and user profile persistence across refresh/relogin.",
+      "files": [
+        "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md"
       ],
       "components": [
         "authorization@4.0.0",

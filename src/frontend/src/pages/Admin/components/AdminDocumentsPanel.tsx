@@ -61,7 +61,7 @@ export function AdminDocumentsPanel() {
                       {item.document.category}
                       {item.document.documentVersion && ` • v${item.document.documentVersion}`}
                       {' • '}
-                      {item.benchName}
+                      {item.benchNames.join(', ')}
                     </p>
                   </div>
                 </div>
