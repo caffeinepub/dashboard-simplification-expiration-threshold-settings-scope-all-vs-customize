@@ -1,102 +1,47 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Complete i18n coverage for Admin area and Bench history view",
+  "title": "Fix Add Bench modal localization and add RU/ZH/JA/TR translations",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Replace hardcoded Admin page header/title/description and tab labels with i18n keys via useI18n().t(...)",
+      "summary": "Localize the full Add Bench modal flow by replacing all user-facing strings in AddBenchModal with i18n translation lookups and adding missing translation keys.",
       "acceptanceCriteria": [
-        "When switching app language, the Admin page title, description, and the three tab labels update immediately without a refresh.",
-        "No user-facing English/French literals remain in `AdminPage.tsx` for these strings (they use `t(...)`)."
+        "With a non-English language selected, opening the Add Bench modal shows translated UI for: title/description, all field labels, placeholders, helper texts, validation errors, button labels, loading/uploading text, and toast messages.",
+        "The Add Bench modal contains no hardcoded English/French UI strings except for non-user-facing/internal values (e.g., IDs).",
+        "If a translation key is missing for the active language, the UI does not crash (it may fall back to showing the key, consistent with the current i18n behavior)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/Admin/AdminPage.tsx",
+          "path": "frontend/src/pages/Benches/components/AddBenchModal.tsx",
           "operation": "modify",
-          "description": "Import/use `useI18n()` and replace the hardcoded Admin header/title/description and the three tab labels (Benches/Documents/Users) with `t(...)` keys. Ensure all these strings are derived from i18n so they react to language changes immediately."
+          "description": "Import and use useI18n().t(...) for all user-facing strings in the modal (header/title/description, upload/progress labels, field labels/placeholders/help text, validation messages, duplication section copy, footer buttons, and all toast success/error messages), and remove remaining hardcoded UI strings while preserving internal/non-user-facing values."
         },
         {
           "path": "frontend/src/i18n/translations.ts",
           "operation": "modify",
-          "description": "Add new translation keys for the Admin page title/description and tab labels, and populate both `fr-FR` and `en-US` values."
+          "description": "Add any missing TranslationKey entries required by the Add Bench modal (including validation, helper copy, upload/progress and toast messages) and provide translations for existing languages so the modal is fully localized."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Localize all remaining user-facing strings in Admin Benches/Documents panels including loading/empty states, dialogs, fallbacks, and toasts",
+      "summary": "Add RU/ZH/JA/TR as supported UI languages and provide complete translation dictionaries for all TranslationKey entries.",
       "acceptanceCriteria": [
-        "All visible text in the Benches and Documents admin panels is translated via i18n keys, including confirmation dialog text and toast messages.",
-        "Switching language updates these labels and messages immediately.",
-        "No untranslated strings such as \"Loading benches...\", \"Bench Management\", \"Delete Bench\", \"Loading documents...\", \"Document Management\", etc. remain in those files."
+        "The language selector (Profile page) shows the newly supported languages and allows selecting them without warnings about unsupported languages.",
+        "For each new language tag, translations[tag] exists and contains values for all TranslationKey entries used by the app (including new Add Bench keys), so the UI does not display raw keys for common screens (Dashboard, Benches list, Bench details, Profile, Admin).",
+        "User language choice continues to persist via existing actor.setLanguageTag / actor.getLanguageTag behavior (no backend changes required)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/Admin/components/AdminBenchesPanel.tsx",
+          "path": "frontend/src/i18n/languages.ts",
           "operation": "modify",
-          "description": "Import/use `useI18n()` and replace all user-facing strings with `t(...)` keys: loading state text, section title/description, empty state, AGILE fallback text, delete dialog title/description/button labels, and toast success/error messages. Where dynamic values are needed (e.g., bench name), use a translation string that includes a placeholder and replace it in code (e.g., `{name}`)."
-        },
-        {
-          "path": "frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx",
-          "operation": "modify",
-          "description": "Import/use `useI18n()` and replace all user-facing strings with `t(...)` keys: loading state text, section title/description, empty state, and toast success/error messages for downloads. Where dynamic values are needed (e.g., product name), use a translation string with a placeholder and replace it in code."
+          "description": "Extend SUPPORTED_LANGUAGES with Russian, Simplified Chinese, Japanese, and Turkish entries (language tags and display names) so they appear in the Profile language selector and pass supported-language validation."
         },
         {
           "path": "frontend/src/i18n/translations.ts",
           "operation": "modify",
-          "description": "Add translation keys required by the Admin benches/documents panels (loading/empty states, management titles/descriptions, delete confirmation dialog strings, AGILE fallback, and toast success/error messages) with values for both `fr-FR` and `en-US` (English for `en-US`)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Localize bench history action labels by mapping stored action strings to i18n keys with safe fallbacks",
-      "acceptanceCriteria": [
-        "In the Bench detail page > History tab, the action line shown for each history entry is localized according to the current UI language.",
-        "Existing history entries already stored in state remain readable and are translated when a known action mapping exists.",
-        "Unknown/unmapped actions still render (fallback) rather than breaking the history list UI."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/Benches/components/BenchHistoryList.tsx",
-          "operation": "modify",
-          "description": "Replace rendering of raw `entry.action` with a robust translation mapping: normalize the stored action string, translate known actions via `t(...)` keys, and fall back to the raw string when unknown. Ensure the mapping supports previously stored action strings/variants without breaking the UI."
-        },
-        {
-          "path": "frontend/src/i18n/translations.ts",
-          "operation": "modify",
-          "description": "Add history-related translation keys used by the BenchHistoryList action mapping (for all known/expected action labels) with values for both `fr-FR` and `en-US`."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Format bench history timestamps using the current app language/locale rather than browser default",
-      "acceptanceCriteria": [
-        "Bench history timestamps change formatting appropriately when switching between supported languages (French vs English), without requiring a refresh."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/Benches/components/BenchHistoryList.tsx",
-          "operation": "modify",
-          "description": "Use the current i18n language tag (from `useI18n()`) when formatting timestamps (e.g., `toLocaleString(currentLocale)`), and ensure this is reactive so switching language updates timestamp formatting immediately."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Extend the i18n translation key set to cover all new Admin and history strings with fr-FR and en-US values",
-      "acceptanceCriteria": [
-        "TypeScript compiles with the updated `TranslationKey` union including the new keys.",
-        "Both `fr-FR` and `en-US` dictionaries contain the new keys with appropriate translations.",
-        "No runtime `Missing translation`/undefined text occurs for the Admin area and bench history view."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/i18n/translations.ts",
-          "operation": "modify",
-          "description": "Update `TranslationKey` to include all new keys introduced by REQ-1/REQ-2/REQ-3 and add corresponding entries in both `fr-FR` and `en-US` dictionaries (use English text for `en-US`). Ensure any placeholder-based strings are consistent across locales."
+          "description": "Add complete translation dictionaries for the new language tags (e.g., ru-RU, zh-CN, ja-JP, tr-TR) ensuring every TranslationKey has a value (including any new Add Bench keys) to avoid raw-key display on common screens."
         }
       ]
     }

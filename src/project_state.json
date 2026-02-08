@@ -2,57 +2,46 @@
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
   "summary": "New project",
-  "architectural_notes": [],
+  "architectural_notes": [
+    "Internationalization: ensure language selection applies consistently across all pages/views, including the Add Bench flow."
+  ],
   "known_issues": [
-    "Administration tab and its sections (Documents, Benches, Users) are not translated/localized.",
-    "Bench history view (after clicking \"see details\") is not translated/localized."
+    "Add Bench ('Ajouter banc') page is not translated when accessed/clicked."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-localize-the-admin-page-header-and-tab-labels-by-replacing-hardcoded-strings-in-frontend-src-pages-admin-adminpage-tsx-with-usei18n-t-keys-admin-title-description-and-the-tabs-benches-documents-users",
-      "title": "Localize the Admin page header and tab labels by replacing hardcoded strings in `frontend/src/pages/Admin/AdminPage.tsx` with `useI18n().t(...)` keys (Admin title, description, and the tabs: Benches/Documents/Users).",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-localize-all-remaining-user-facing-strings-in-the-admin-panels-frontend-src-pages-admin-components-adminbenchespanel-tsx-and-frontend-src-pages-admin-components-admindocumentspanel-tsx-including-loading-states-empty-states-section-titles-descriptions-dialog-titles-descriptions-buttons-fallback-texts-e-g-missing-agile-code-and-toast-success-error-messages",
-      "title": "Localize all remaining user-facing strings in the Admin panels (`frontend/src/pages/Admin/components/AdminBenchesPanel.tsx` and `frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx`), including: loading states, empty states, section titles/descriptions, dialog titles/descriptions/buttons, fallback texts (e.g., missing AGILE code), and toast success/error messages.",
+      "id": "feature-add-support-for-additional-ui-languages-russian-simplified-chinese-japanese-turkish-by-extending-frontend-src-i18n-languages-ts-with-language-tags-and-display-names-and-extending-frontend-src-i18n-translations-ts-to-include-translation-dictionaries-for-the-new-languages-for-all-existing-translationkey-entries-plus-any-new-keys-added-for-the-add-bench-modal",
+      "title": "Add support for additional UI languages (Russian, Simplified Chinese, Japanese, Turkish) by extending `frontend/src/i18n/languages.ts` with language tags and display names, and extending `frontend/src/i18n/translations.ts` to include translation dictionaries for the new languages for all existing `TranslationKey` entries (plus any new keys added for the Add Bench modal).",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-the-bench-history-view-is-localized-when-viewing-a-bench-after-clicking-view-details-in-frontend-src-pages-benches-components-benchhistorylist-tsx-display-localized-labels-for-history-entry-actions-and-any-other-user-facing-history-strings-instead-of-rendering-the-raw-entry-action-text-directly-implement-a-robust-mapping-that-can-translate-existing-stored-action-strings-e-g-previously-written-values-and-falls-back-to-the-raw-string-if-unknown",
-      "title": "Ensure the bench history view is localized when viewing a bench after clicking “View details”: in `frontend/src/pages/Benches/components/BenchHistoryList.tsx`, display localized labels for history entry actions (and any other user-facing history strings) instead of rendering the raw `entry.action` text directly. Implement a robust mapping that can translate existing stored action strings (e.g., previously-written values) and falls back to the raw string if unknown.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-extend-the-i18n-key-set-in-frontend-src-i18n-translations-ts-to-include-all-new-admin-and-history-related-translation-keys-required-by-req-1-req-2-req-3-and-provide-values-for-both-fr-fr-and-en-us-use-english-text-for-the-en-us-values",
-      "title": "Extend the i18n key set in `frontend/src/i18n/translations.ts` to include all new Admin and history-related translation keys required by REQ-1/REQ-2/REQ-3, and provide values for both `fr-FR` and `en-US`. Use English text for the `en-US` values.",
-      "reqIds": [
-        "REQ-5"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [
     {
-      "id": "AR-4",
-      "summary": "Use the current app language/locale when formatting timestamps in the bench history list so dates render according to the selected language (e.g., `toLocaleString(currentLocale)`), rather than the browser default locale.",
+      "id": "AR-1",
+      "summary": "Ensure the 'Ajouter banc' (Add bench) page is translated when opened/clicked",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Add additional UI languages: Russian, Chinese, Japanese, and Turkish",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Ensure the entire \"Add bench\" flow is localized when opened (the modal opened from the Benches list \"Add new\" button), by replacing all user-facing strings in `frontend/src/pages/Benches/components/AddBenchModal.tsx` with `useI18n().t(...)` calls and adding any missing translation keys.",
       "reqIds": [
-        "REQ-4"
+        "REQ-1"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Complete i18n coverage for Admin area and Bench history view",
+  "projectName": "Fix Add Bench localization and add RU/ZH/JA/TR UI languages",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

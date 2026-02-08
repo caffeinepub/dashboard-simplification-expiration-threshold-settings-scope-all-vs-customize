@@ -1,73 +1,35 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T12:24:29.447Z",
+  "generatedAt": "2026-02-08T15:10:02.266Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
-    "implemented": 4,
+    "total": 2,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Localize the Admin page header and tab labels by replacing hardcoded strings in `frontend/src/pages/Admin/AdminPage.tsx` with `useI18n().t(...)` keys (Admin title, description, and the tabs: Benches/Documents/Users).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/Admin/AdminPage.tsx",
-          "frontend/src/i18n/translations.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/Admin/AdminPage.tsx",
-          "frontend/src/i18n/translations.ts"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Localize all remaining user-facing strings in the Admin panels (`frontend/src/pages/Admin/components/AdminBenchesPanel.tsx` and `frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx`), including: loading states, empty states, section titles/descriptions, dialog titles/descriptions/buttons, fallback texts (e.g., missing AGILE code), and toast success/error messages.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/Admin/components/AdminBenchesPanel.tsx",
-          "frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx",
-          "frontend/src/i18n/translations.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/Admin/components/AdminBenchesPanel.tsx",
-          "frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx",
-          "frontend/src/i18n/translations.ts"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Ensure the bench history view is localized when viewing a bench after clicking “View details”: in `frontend/src/pages/Benches/components/BenchHistoryList.tsx`, display localized labels for history entry actions (and any other user-facing history strings) instead of rendering the raw `entry.action` text directly. Implement a robust mapping that can translate existing stored action strings (e.g., previously-written values) and falls back to the raw string if unknown.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/Benches/components/BenchHistoryList.tsx",
-          "frontend/src/i18n/translations.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/i18n/translations.ts"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Use the current app language/locale when formatting timestamps in the bench history list so dates render according to the selected language (e.g., `toLocaleString(currentLocale)`), rather than the browser default locale.",
+        "summary": "Ensure the entire \"Add bench\" flow is localized when opened (the modal opened from the Benches list \"Add new\" button), by replacing all user-facing strings in `frontend/src/pages/Benches/components/AddBenchModal.tsx` with `useI18n().t(...)` calls and adding any missing translation keys.",
         "status": "missing",
         "plannedFiles": [
-          "frontend/src/pages/Benches/components/BenchHistoryList.tsx"
+          "frontend/src/pages/Benches/components/AddBenchModal.tsx",
+          "frontend/src/i18n/translations.ts"
         ],
         "matchedFiles": []
       },
       {
-        "id": "REQ-5",
-        "summary": "Extend the i18n key set in `frontend/src/i18n/translations.ts` to include all new Admin and history-related translation keys required by REQ-1/REQ-2/REQ-3, and provide values for both `fr-FR` and `en-US`. Use English text for the `en-US` values.",
+        "id": "REQ-2",
+        "summary": "Add support for additional UI languages (Russian, Simplified Chinese, Japanese, Turkish) by extending `frontend/src/i18n/languages.ts` with language tags and display names, and extending `frontend/src/i18n/translations.ts` to include translation dictionaries for the new languages for all existing `TranslationKey` entries (plus any new keys added for the Add Bench modal).",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/i18n/languages.ts",
           "frontend/src/i18n/translations.ts"
         ],
         "matchedFiles": [
-          "frontend/src/i18n/translations.ts"
+          "frontend/src/i18n/languages.ts"
         ]
       }
     ]
@@ -76,10 +38,7 @@
     "build-request.json",
     "feature_evidence.json",
     "frontend-implementation-plan.json",
-    "frontend/src/i18n/translations.ts",
-    "frontend/src/pages/Admin/AdminPage.tsx",
-    "frontend/src/pages/Admin/components/AdminBenchesPanel.tsx",
-    "frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx",
+    "frontend/src/i18n/languages.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

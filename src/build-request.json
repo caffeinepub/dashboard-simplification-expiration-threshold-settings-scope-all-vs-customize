@@ -1,105 +1,53 @@
 {
   "kind": "build_request",
-  "title": "Complete i18n coverage for Admin area and Bench history view",
+  "title": "Fix Add Bench localization and add RU/ZH/JA/TR UI languages",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Localize the Admin page header and tab labels by replacing hardcoded strings in `frontend/src/pages/Admin/AdminPage.tsx` with `useI18n().t(...)` keys (Admin title, description, and the tabs: Benches/Documents/Users).",
+      "text": "Ensure the entire \"Add bench\" flow is localized when opened (the modal opened from the Benches list \"Add new\" button), by replacing all user-facing strings in `frontend/src/pages/Benches/components/AddBenchModal.tsx` with `useI18n().t(...)` calls and adding any missing translation keys.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Cest presque bon. Mais tout l'onglet Administration n'est pas traduit. Idem pour les sections quil contient comme Documents ou Benches ou Users."
+          "Quand je clique sur Ajouter banc je veux aussi que la page soit traduite."
         ]
       },
       "acceptanceCriteria": [
-        "When switching app language, the Admin page title, description, and the three tab labels update immediately without a refresh.",
-        "No user-facing English/French literals remain in `AdminPage.tsx` for these strings (they use `t(...)`)."
+        "With a non-English language selected, opening the Add Bench modal shows translated UI for: title/description, all field labels, placeholders, helper texts, validation errors, button labels, loading/uploading text, and toast messages.",
+        "The Add Bench modal contains no hardcoded English/French UI strings except for non-user-facing/internal values (e.g., IDs).",
+        "If a translation key is missing for the active language, the UI does not crash (it may fall back to showing the key, consistent with the current i18n behavior)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Localize all remaining user-facing strings in the Admin panels (`frontend/src/pages/Admin/components/AdminBenchesPanel.tsx` and `frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx`), including: loading states, empty states, section titles/descriptions, dialog titles/descriptions/buttons, fallback texts (e.g., missing AGILE code), and toast success/error messages.",
+      "text": "Add support for additional UI languages (Russian, Simplified Chinese, Japanese, Turkish) by extending `frontend/src/i18n/languages.ts` with language tags and display names, and extending `frontend/src/i18n/translations.ts` to include translation dictionaries for the new languages for all existing `TranslationKey` entries (plus any new keys added for the Add Bench modal).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Mais tout l'onglet Administration n'est pas traduit. Idem pour les sections quil contient comme Documents ou Benches ou Users."
+          "Pense enfin a rajouter plus de langues comme le russe, le chinois, le japonais et le turc"
         ]
       },
       "acceptanceCriteria": [
-        "All visible text in the Benches and Documents admin panels is translated via i18n keys, including confirmation dialog text and toast messages.",
-        "Switching language updates these labels and messages immediately.",
-        "No untranslated strings such as \"Loading benches...\", \"Bench Management\", \"Delete Bench\", \"Loading documents...\", \"Document Management\", etc. remain in those files."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Ensure the bench history view is localized when viewing a bench after clicking “View details”: in `frontend/src/pages/Benches/components/BenchHistoryList.tsx`, display localized labels for history entry actions (and any other user-facing history strings) instead of rendering the raw `entry.action` text directly. Implement a robust mapping that can translate existing stored action strings (e.g., previously-written values) and falls back to the raw string if unknown.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Idem quand on accede a l'historique dun banc après avoir cliqué sur voir les details."
-        ]
-      },
-      "acceptanceCriteria": [
-        "In the Bench detail page > History tab, the action line shown for each history entry is localized according to the current UI language.",
-        "Existing history entries already stored in state remain readable and are translated when a known action mapping exists.",
-        "Unknown/unmapped actions still render (fallback) rather than breaking the history list UI."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Use the current app language/locale when formatting timestamps in the bench history list so dates render according to the selected language (e.g., `toLocaleString(currentLocale)`), rather than the browser default locale.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Idem quand on accede a l'historique dun banc après avoir cliqué sur voir les details."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Bench history timestamps change formatting appropriately when switching between supported languages (French vs English), without requiring a refresh."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Extend the i18n key set in `frontend/src/i18n/translations.ts` to include all new Admin and history-related translation keys required by REQ-1/REQ-2/REQ-3, and provide values for both `fr-FR` and `en-US`. Use English text for the `en-US` values.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Use English for any user-facing text in the build request."
-        ]
-      },
-      "acceptanceCriteria": [
-        "TypeScript compiles with the updated `TranslationKey` union including the new keys.",
-        "Both `fr-FR` and `en-US` dictionaries contain the new keys with appropriate translations.",
-        "No runtime `Missing translation`/undefined text occurs for the Admin area and bench history view."
+        "The language selector (Profile page) shows the newly supported languages and allows selecting them without warnings about unsupported languages.",
+        "For each new language tag, `translations[tag]` exists and contains values for all `TranslationKey` entries used by the app (including new Add Bench keys), so the UI does not display raw keys for common screens (Dashboard, Benches list, Bench details, Profile, Admin).",
+        "User language choice continues to persist via existing `actor.setLanguageTag` / `actor.getLanguageTag` behavior (no backend changes required)."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under `frontend/src/components/ui` (read-only shadcn components).",
-    "Do not edit immutable hook entrypoints listed in SYSTEM_CONTEXT (compose around them instead).",
-    "Backend must remain single-actor; no new backend services/databases."
+    "Do not edit files under `frontend/src/components/ui` (compose existing UI components instead).",
+    "Do not edit files listed in `frontend.immutablePaths` in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Adding new Admin features or changing authorization logic.",
-    "Changing the persisted language mechanism beyond what is necessary to translate the specified screens.",
-    "Rewriting backend history storage format (unless explicitly required to fix localization; prefer frontend mapping for existing stored history)."
+    "Implementing automatic language detection from the browser/device.",
+    "Adding right-to-left (RTL) layout support.",
+    "Changing backend storage schema for language preferences."
   ],
   "imageRequirements": {
     "required": [],

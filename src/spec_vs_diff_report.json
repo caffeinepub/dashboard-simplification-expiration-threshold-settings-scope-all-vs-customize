@@ -1,61 +1,39 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T12:24:29.444Z",
-  "summary": "REQ-1 appears implemented (AdminPage header + tab labels now use i18n keys). REQ-3 and REQ-4 show no evidence of implementation (no changes to BenchHistoryList). REQ-2 is partially evidenced but the AdminBenchesPanel diff is truncated and AdminDocumentsPanel still contains some hardcoded UI literals (e.g., version prefix). REQ-5 is partially evidenced (new TranslationKey entries shown) but translation dictionary values for en-US/fr-FR are not visible in the truncated diff.",
+  "generatedAt": "2026-02-08T15:10:02.263Z",
+  "summary": "Implemented RU/ZH/JA/TR entries in `frontend/src/i18n/languages.ts`, but did not implement Add Bench modal localization or add translation dictionaries for the new languages. An unrelated `project_state.json` update was included.",
   "missing_requirements": [
     {
-      "id": "REQ-2",
-      "requirement": "Localize all remaining user-facing strings in AdminBenchesPanel and AdminDocumentsPanel, including dialog buttons and other UI text.",
-      "reason": "AdminBenchesPanel is truncated so confirmation dialog button labels and any remaining strings cannot be verified. Additionally, AdminDocumentsPanel still includes a hardcoded version prefix string (`v`) and separator literals that are user-facing.",
+      "id": "REQ-1",
+      "requirement": "Localize the entire “Add bench” modal flow by replacing all user-facing strings in `frontend/src/pages/Benches/components/AddBenchModal.tsx` with `useI18n().t(...)` calls and adding any missing translation keys (including labels, placeholders, helper/validation text, buttons, loading/uploading text, toast messages).",
+      "reason": "The diff shows no modifications to `AddBenchModal.tsx` and no evidence of string replacements or new translation keys being added for the modal.",
       "evidence": [
-        "frontend/src/pages/Admin/components/AdminBenchesPanel.tsx (truncated)",
-        "frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx"
+        "<file-diff>: only 2 modified files listed; `frontend/src/pages/Benches/components/AddBenchModal.tsx` not among them"
       ]
     },
     {
-      "id": "REQ-3",
-      "requirement": "Localize bench history action labels in BenchHistoryList using a robust mapping with fallback to raw strings.",
-      "reason": "No diff entry shows any modifications to `frontend/src/pages/Benches/components/BenchHistoryList.tsx` or any new mapping logic for `entry.action` localization.",
-      "evidence": []
-    },
-    {
-      "id": "REQ-4",
-      "requirement": "Format bench history timestamps using the current app language/locale (e.g., toLocaleString(currentLocale)).",
-      "reason": "No diff entry shows any modifications to bench history timestamp formatting or use of the current locale in the history list component.",
-      "evidence": []
-    },
-    {
-      "id": "REQ-5",
-      "requirement": "Add required Admin + history translation keys and provide values for both fr-FR and en-US so no missing translations occur.",
-      "reason": "The diff shows many new `TranslationKey` union entries, but the file is truncated and does not show the actual en-US and fr-FR dictionary values for the new keys, so completeness cannot be verified from the provided diff.",
+      "id": "REQ-2",
+      "requirement": "Add RU/ZH/JA/TR support by extending `frontend/src/i18n/languages.ts` AND extending `frontend/src/i18n/translations.ts` with complete dictionaries for the new languages for all existing `TranslationKey` entries (plus any new Add Bench keys).",
+      "reason": "`languages.ts` was updated with the new language codes, but `frontend/src/i18n/translations.ts` was not modified/added in the diff, so the required translation dictionaries are missing.",
       "evidence": [
-        "frontend/src/i18n/translations.ts (truncated)"
+        "frontend/src/i18n/languages.ts",
+        "<file-diff>: `frontend/src/i18n/translations.ts` not among modified files"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added many admin-related translation keys that are not explicitly requested by REQ-1/REQ-2 (e.g., permissions/profile/dashboard-related admin keys).",
-      "reason": "BuildRequest only calls out Admin header/tabs and Benches/Documents panels plus bench history localization. The diff shows additional admin keys such as `admin.checkingPermissions`, `admin.accessDenied`, `admin.loadingProfile`, `admin.dashboardLayout`, etc., which are not mentioned as required scope.",
-      "evidence": [
-        "frontend/src/i18n/translations.ts (truncated)"
-      ]
-    },
-    {
-      "description": "Modified/added tracking entries in project_state.json marking new feature requests as pending.",
-      "reason": "BuildRequest does not mention updating `project_state.json`; this appears to be auxiliary metadata rather than a requested product change.",
+      "description": "Updated `project_state.json` with new_feature_requests entries unrelated to runtime localization implementation.",
+      "reason": "The BuildRequest only asked for frontend i18n changes (AddBenchModal localization, languages.ts, translations.ts). Modifying `project_state.json` is not requested and does not contribute to the specified acceptance criteria.",
       "evidence": [
         "project_state.json"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.84,
   "changed_files": [
-    "frontend/src/i18n/translations.ts",
-    "frontend/src/pages/Admin/AdminPage.tsx",
-    "frontend/src/pages/Admin/components/AdminBenchesPanel.tsx",
-    "frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx",
+    "frontend/src/i18n/languages.ts",
     "project_state.json"
   ]
 }

@@ -2,33 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-localize-the-admin-page-header-and-tab-labels-by-replacing-hardcoded-strings-in-frontend-src-pages-admin-adminpage-tsx-with-usei18n-t-keys-admin-title-description-and-the-tabs-benches-documents-users",
-      "featureTitle": "Localize the Admin page header and tab labels by replacing hardcoded strings in `frontend/src/pages/Admin/AdminPage.tsx` with `useI18n().t(...)` keys (Admin title, description, and the tabs: Benches/Documents/Users).",
+      "featureId": "feature-add-support-for-additional-ui-languages-russian-simplified-chinese-japanese-turkish-by-extending-frontend-src-i18n-languages-ts-with-language-tags-and-display-names-and-extending-frontend-src-i18n-translations-ts-to-include-translation-dictionaries-for-the-new-languages-for-all-existing-translationkey-entries-plus-any-new-keys-added-for-the-add-bench-modal",
+      "featureTitle": "Add support for additional UI languages (Russian, Simplified Chinese, Japanese, Turkish) by extending `frontend/src/i18n/languages.ts` with language tags and display names, and extending `frontend/src/i18n/translations.ts` to include translation dictionaries for the new languages for all existing `TranslationKey` entries (plus any new keys added for the Add Bench modal).",
       "files": [
-        "frontend/src/i18n/translations.ts",
-        "frontend/src/pages/Admin/AdminPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-localize-all-remaining-user-facing-strings-in-the-admin-panels-frontend-src-pages-admin-components-adminbenchespanel-tsx-and-frontend-src-pages-admin-components-admindocumentspanel-tsx-including-loading-states-empty-states-section-titles-descriptions-dialog-titles-descriptions-buttons-fallback-texts-e-g-missing-agile-code-and-toast-success-error-messages",
-      "featureTitle": "Localize all remaining user-facing strings in the Admin panels (`frontend/src/pages/Admin/components/AdminBenchesPanel.tsx` and `frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx`), including: loading states, empty states, section titles/descriptions, dialog titles/descriptions/buttons, fallback texts (e.g., missing AGILE code), and toast success/error messages.",
-      "files": [
-        "frontend/src/i18n/translations.ts",
-        "frontend/src/pages/Admin/components/AdminBenchesPanel.tsx",
-        "frontend/src/pages/Admin/components/AdminDocumentsPanel.tsx"
+        "frontend/src/i18n/languages.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -41,46 +18,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-the-bench-history-view-is-localized-when-viewing-a-bench-after-clicking-view-details-in-frontend-src-pages-benches-components-benchhistorylist-tsx-display-localized-labels-for-history-entry-actions-and-any-other-user-facing-history-strings-instead-of-rendering-the-raw-entry-action-text-directly-implement-a-robust-mapping-that-can-translate-existing-stored-action-strings-e-g-previously-written-values-and-falls-back-to-the-raw-string-if-unknown",
-      "featureTitle": "Ensure the bench history view is localized when viewing a bench after clicking “View details”: in `frontend/src/pages/Benches/components/BenchHistoryList.tsx`, display localized labels for history entry actions (and any other user-facing history strings) instead of rendering the raw `entry.action` text directly. Implement a robust mapping that can translate existing stored action strings (e.g., previously-written values) and falls back to the raw string if unknown.",
-      "files": [
-        "frontend/src/i18n/translations.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-extend-the-i18n-key-set-in-frontend-src-i18n-translations-ts-to-include-all-new-admin-and-history-related-translation-keys-required-by-req-1-req-2-req-3-and-provide-values-for-both-fr-fr-and-en-us-use-english-text-for-the-en-us-values",
-      "featureTitle": "Extend the i18n key set in `frontend/src/i18n/translations.ts` to include all new Admin and history-related translation keys required by REQ-1/REQ-2/REQ-3, and provide values for both `fr-FR` and `en-US`. Use English text for the `en-US` values.",
-      "files": [
-        "frontend/src/i18n/translations.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
       ],
       "confidence": "high"
     }
