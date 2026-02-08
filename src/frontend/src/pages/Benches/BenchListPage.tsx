@@ -1,33 +1,32 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
+import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useNavigate } from '@tanstack/react-router';
+import { Search, Plus, ExternalLink } from 'lucide-react';
 import { useGetAllTestBenches } from '../../hooks/useQueries';
-import { Search, TestTube2, ExternalLink, Plus } from 'lucide-react';
 import { searchBenches } from '../../utils/search';
 import { AddBenchModal } from './components/AddBenchModal';
 import { BenchPhoto } from './components/BenchPhoto';
+import { useI18n } from '../../i18n/useI18n';
 
-export default function BenchListPage() {
-  const navigate = useNavigate();
-  const { data: benches, isLoading } = useGetAllTestBenches();
+export function BenchListPage() {
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const { data: benches = [], isLoading } = useGetAllTestBenches();
 
-  const filteredBenches = useMemo(() => {
-    if (!benches) return [];
-    if (!searchQuery.trim()) return benches;
-    return searchBenches(benches, searchQuery);
-  }, [benches, searchQuery]);
+  const filteredBenches = searchQuery.trim()
+    ? searchBenches(benches, searchQuery)
+    : benches;
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading test benches...</p>
+        <div className="text-center space-y-2">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">{t('benches.loading')}</p>
         </div>
       </div>
     );
@@ -35,130 +34,134 @@ export default function BenchListPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <TestTube2 className="h-8 w-8" />
-            Test Benches
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Browse and manage electronic test bench records
-          </p>
-        </div>
-        <Button onClick={() => setIsModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Bench
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">{t('benches.title')}</h1>
+        <p className="text-muted-foreground">{t('benches.description')}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Search & Filter</CardTitle>
+          <CardTitle>{t('benches.search')}</CardTitle>
           <CardDescription>
-            Search by bench name, AGILE code, tags, or description
+            {t('benches.description')}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search test benches..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder={t('benches.search')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Button onClick={() => setAddModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t('benches.addNew')}
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredBenches.map((bench) => (
-          <Card
-            key={bench.id}
-            className="hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => navigate({ to: '/benches/$benchId', params: { benchId: bench.id } })}
-          >
-            <CardHeader>
-              <div className="aspect-video w-full bg-muted rounded-md overflow-hidden mb-3">
-                <BenchPhoto
-                  photo={bench.photo}
-                  alt={bench.name}
-                  className="w-full h-full"
-                />
-              </div>
-              <CardTitle className="flex items-start justify-between gap-2">
-                <span className="line-clamp-1">{bench.name}</span>
-              </CardTitle>
-              <CardDescription className="line-clamp-2">
-                {bench.description || 'No description available'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {bench.agileCode && (
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">AGILE Code:</span>
-                  <code className="font-mono font-semibold">{bench.agileCode}</code>
-                </div>
-              )}
-              {bench.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {bench.tags.slice(0, 3).map((tag, idx) => (
-                    <Badge key={idx} variant="secondary" className="text-xs">
-                      {tag.tagName}
-                    </Badge>
-                  ))}
-                  {bench.tags.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{bench.tags.length - 3}
-                    </Badge>
-                  )}
-                </div>
-              )}
-              <div className="flex gap-2">
-                {bench.plmAgileUrl && (
-                  <Button variant="outline" size="sm" className="flex-1" asChild>
-                    <a
-                      href={bench.plmAgileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <ExternalLink className="h-3 w-3 mr-2" />
-                      PLM Agile
-                    </a>
-                  </Button>
-                )}
-                {bench.decawebUrl && (
-                  <Button variant="outline" size="sm" className="flex-1" asChild>
-                    <a
-                      href={bench.decawebUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <ExternalLink className="h-3 w-3 mr-2" />
-                      Decaweb
-                    </a>
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredBenches.length === 0 && (
+      {benches.length === 0 ? (
         <Card>
-          <CardContent className="py-12 text-center">
-            <TestTube2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">
-              {searchQuery ? 'No test benches match your search' : 'No test benches available'}
-            </p>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <p className="text-lg font-medium mb-2">{t('benches.noBenches')}</p>
+            <p className="text-muted-foreground mb-4">{t('benches.noBenchesDesc')}</p>
+            <Button onClick={() => setAddModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t('benches.addNew')}
+            </Button>
           </CardContent>
         </Card>
+      ) : filteredBenches.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <p className="text-lg font-medium mb-2">{t('benches.noResults')}</p>
+            <p className="text-muted-foreground">{t('benches.noResultsDesc')}</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredBenches.map((bench) => (
+            <Card key={bench.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <BenchPhoto
+                photo={bench.photo}
+                alt={bench.name}
+                className="w-full h-48 object-cover"
+              />
+              <CardHeader>
+                <CardTitle className="line-clamp-1">{bench.name}</CardTitle>
+                <CardDescription className="line-clamp-2">{bench.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {bench.agileCode && (
+                  <div className="text-sm">
+                    <span className="font-medium">{t('benches.agileCode')}:</span>{' '}
+                    <span className="text-muted-foreground">{bench.agileCode}</span>
+                  </div>
+                )}
+                {bench.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {bench.tags.slice(0, 3).map((tag, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {tag.tagName}
+                      </Badge>
+                    ))}
+                    {bench.tags.length > 3 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{bench.tags.length - 3}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Link to="/benches/$benchId" params={{ benchId: bench.id }} className="flex-1">
+                    <Button variant="default" className="w-full">
+                      {t('benches.viewDetails')}
+                    </Button>
+                  </Link>
+                </div>
+                {(bench.plmAgileUrl || bench.decawebUrl) && (
+                  <div className="flex gap-2">
+                    {bench.plmAgileUrl && (
+                      <a
+                        href={bench.plmAgileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1"
+                      >
+                        <Button variant="outline" size="sm" className="w-full">
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          {t('benches.plmAgile')}
+                        </Button>
+                      </a>
+                    )}
+                    {bench.decawebUrl && (
+                      <a
+                        href={bench.decawebUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1"
+                      >
+                        <Button variant="outline" size="sm" className="w-full">
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          {t('benches.decaweb')}
+                        </Button>
+                      </a>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
 
-      <AddBenchModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      <AddBenchModal open={addModalOpen} onOpenChange={setAddModalOpen} />
     </div>
   );
 }

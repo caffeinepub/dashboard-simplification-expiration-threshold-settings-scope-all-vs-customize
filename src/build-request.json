@@ -1,57 +1,71 @@
 {
   "kind": "build_request",
-  "title": "Fully translate Test Bench pages and default new users to English",
+  "title": "Ensure profile language selection instantly translates the entire UI after saving",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Fully localize the entire Test Bench experience by replacing all hardcoded user-facing strings on Test Bench pages and their subcomponents with i18n translation keys, and ensure complete English and French translations exist for those keys.",
+      "id": "REQ-3",
+      "text": "When the user selects a language in the Profile page and clicks Save, apply that language immediately across the entire app UI (pages, sections, tabs, buttons, dialogs, placeholders, toasts, and footer) without requiring a reload.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1",
+          "msg-2"
+        ],
+        "quotes": [
+          "Quand je sélectionne une langue et que je fais save dans le profil utilisateur, il faut que TOUT le site se traduise automatiquement ! Vraiment tout, e.g les pages, les sections, les onglets, les boutons.",
+          "Oui."
+        ]
+      },
+      "acceptanceCriteria": [
+        "From the Profile page, selecting a different language and then clicking Save causes currently visible navigation labels, page titles, tabs, buttons, and helper texts to update to the new language immediately (no page reload).",
+        "After saving, navigating to other pages (Dashboard, Benches, Admin, etc.) shows the new language consistently.",
+        "Toast messages triggered immediately after Save display in the newly selected language."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Audit and replace any remaining hard-coded user-facing strings in the protected app shell and main pages with i18n translation keys so that a language change updates all visible UI text consistently.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "1. Tous"
+          "il faut que TOUT le site se traduise automatiquement ! Vraiment tout"
         ]
       },
       "acceptanceCriteria": [
-        "All user-facing text on the Test Bench list page and Test Bench detail page is rendered via the i18n `t(...)` function (no hardcoded English/French strings remain in those pages).",
-        "All user-facing text in Test Bench-related UI components used by those pages (e.g., create/edit bench modals, bench overview, history, documents, components editors, empty/loading/error states, button/label text) is rendered via the i18n `t(...)` function.",
-        "`frontend/src/i18n/translations.ts` contains corresponding translation entries for both `en-US` and `fr-FR` for every key used by the Test Bench pages/components.",
-        "Switching the language selector updates all Test Bench page text immediately without requiring a refresh."
+        "No user-facing labels in the header navigation, footer, and the main pages (Dashboard, Benches, Bench Details, Profile, Admin) remain hard-coded in a single language if translation keys exist or can be added.",
+        "Switching languages updates those texts without refresh."
       ]
     },
     {
-      "id": "REQ-2",
-      "text": "Set English (en-US) as the default UI language for first-time users (i.e., users without an existing saved language preference) and keep persisting the user’s explicit language choice once selected.",
+      "id": "REQ-5",
+      "text": "Ensure the selected language is persisted to the backend user profile languageTag and correctly restored on sign-in so the app loads in the last saved language.",
       "target": "both",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "2. Oui"
+          "Quand je sélectionne une langue et que je fais save dans le profil utilisateur..."
         ]
       },
       "acceptanceCriteria": [
-        "Frontend default language initialization uses `en-US` when no valid saved preference exists in localStorage and no backend preference exists.",
-        "Backend `getLanguageTag()` returns `en-US` when the caller has no stored profile/language preference (instead of returning French).",
-        "Backend `getCallerUserProfile()` default profile (when no profile exists yet) uses `languageTag = \"en-US\"`.",
-        "After a signed-in user selects a different language, the preference is persisted and is used on subsequent visits/sessions (i.e., it no longer falls back to `en-US`)."
+        "After setting a language and saving, signing out and signing back in loads the UI in that language.",
+        "If the backend has no stored languageTag for the user, the app defaults to English (en-US) and remains functional."
       ]
     }
   ],
   "constraints": [
-    "Use English for any user-facing text introduced/updated as part of this change (translation values for `en-US`).",
-    "Do not modify files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything in `frontend/src/components/ui` (compose them instead).",
-    "Respect the single-actor Motoko backend architecture; keep language preference logic within `backend/main.mo`.",
-    "Only add a state migration (`backend/migration.mo`) if a persisted state schema change is required (changing defaults alone should not require migration)."
+    "Use English for any user-facing text added in this change request (translation keys may map to other languages as needed).",
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files in frontend/src/components/ui (compose instead of editing).",
+    "Backend changes must respect the single-actor Motoko architecture (all logic in backend/main.mo); only add backend/migration.mo if a state migration is strictly required."
   ],
   "nonGoals": [
-    "Adding new languages beyond those already supported.",
-    "Changing authentication (Internet Identity) behavior.",
-    "Redesigning non-Test-Bench pages beyond what is necessary to keep i18n consistent."
+    "Fixing the intermittent deployment/build errors.",
+    "Fixing the 'Backend Connection Error' issue unless it is directly caused by the language persistence changes."
   ],
   "imageRequirements": {
     "required": [],

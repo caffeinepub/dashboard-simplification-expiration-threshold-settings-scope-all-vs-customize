@@ -1,4 +1,71 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-when-the-user-selects-a-language-in-the-profile-page-and-clicks-save-apply-that-language-immediately-across-the-entire-app-ui-pages-sections-tabs-buttons-dialogs-placeholders-toasts-and-footer-without-requiring-a-reload",
+      "featureTitle": "When the user selects a language in the Profile page and clicks Save, apply that language immediately across the entire app UI (pages, sections, tabs, buttons, dialogs, placeholders, toasts, and footer) without requiring a reload.",
+      "files": [
+        "frontend/src/components/layout/AppShell.tsx",
+        "frontend/src/i18n/I18nProvider.tsx",
+        "frontend/src/pages/ProfilePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-audit-and-replace-any-remaining-hard-coded-user-facing-strings-in-the-protected-app-shell-and-main-pages-with-i18n-translation-keys-so-that-a-language-change-updates-all-visible-ui-text-consistently",
+      "featureTitle": "Audit and replace any remaining hard-coded user-facing strings in the protected app shell and main pages with i18n translation keys so that a language change updates all visible UI text consistently.",
+      "files": [
+        "frontend/src/components/admin/AdminGate.tsx",
+        "frontend/src/components/layout/AppShell.tsx",
+        "frontend/src/i18n/translations.ts",
+        "frontend/src/pages/SignInPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-selected-language-is-persisted-to-the-backend-user-profile-languagetag-and-correctly-restored-on-sign-in-so-the-app-loads-in-the-last-saved-language",
+      "featureTitle": "Ensure the selected language is persisted to the backend user profile languageTag and correctly restored on sign-in so the app loads in the last saved language.",
+      "files": [
+        "frontend/src/i18n/I18nProvider.tsx",
+        "frontend/src/pages/ProfilePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

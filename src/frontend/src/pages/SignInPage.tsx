@@ -4,12 +4,21 @@ import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useI18n } from '../i18n/useI18n';
+import { normalizeErrorMessage } from '../utils/errors';
+import { useEffect } from 'react';
 
 export default function SignInPage() {
-  const { login, loginStatus, loginError } = useInternetIdentity();
+  const { login, loginStatus, loginError, identity } = useInternetIdentity();
   const { t } = useI18n();
 
   const isLoggingIn = loginStatus === 'logging-in';
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (identity) {
+      window.location.href = '/';
+    }
+  }, [identity]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted">
@@ -26,14 +35,14 @@ export default function SignInPage() {
           />
           <CardTitle className="text-2xl">{t('auth.welcome')}</CardTitle>
           <CardDescription>
-            Comprehensive test bench management and traceability system
+            {t('auth.systemDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {loginError && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{loginError.message}</AlertDescription>
+              <AlertDescription>{normalizeErrorMessage(loginError)}</AlertDescription>
             </Alert>
           )}
           <Button
@@ -45,7 +54,7 @@ export default function SignInPage() {
             {isLoggingIn ? t('auth.signingIn') : t('auth.signIn')}
           </Button>
           <p className="text-xs text-center text-muted-foreground">
-            Sign in to access test bench records, component health tracking, and document management
+            {t('auth.signInHelper')}
           </p>
         </CardContent>
       </Card>

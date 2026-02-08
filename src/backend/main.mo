@@ -9,14 +9,15 @@ import Iter "mo:core/Iter";
 import Time "mo:core/Time";
 import List "mo:core/List";
 import Set "mo:core/Set";
+import Migration "migration";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import AccessControl "authorization/access-control";
 
-// Specify migration in 'with' clause
-
+// Apply migration on upgrade
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);

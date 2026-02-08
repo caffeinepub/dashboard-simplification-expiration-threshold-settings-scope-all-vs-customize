@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     environment('all', { prefix: 'CANISTER_' }),
     environment('all', { prefix: 'DFX_' }),
+    environment('all', { prefix: 'II_' }),
   ],
   resolve: {
     alias: {

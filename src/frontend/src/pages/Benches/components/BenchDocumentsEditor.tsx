@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +22,7 @@ import { useAssociateDocumentToBench, useRemoveDocumentFromBench, useGetTestBenc
 import { useActor } from '../../../hooks/useActor';
 import { downloadDocument } from '../../../utils/download';
 import { toast } from 'sonner';
+import { useI18n } from '../../../i18n/useI18n';
 
 interface BenchDocumentsEditorProps {
   benchId: string;
@@ -30,6 +31,7 @@ interface BenchDocumentsEditorProps {
 const DOCUMENT_CATEGORIES = ['Hardware', 'Software', 'Other(s)'] as const;
 
 export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
+  const { t } = useI18n();
   const { actor } = useActor();
   const { data: bench } = useGetTestBench(benchId);
   const associateDoc = useAssociateDocumentToBench();
@@ -51,7 +53,7 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
   const [documents, setDocuments] = useState<Document[]>([]);
 
   // Load documents when bench data is available
-  useState(() => {
+  useEffect(() => {
     const loadDocuments = async () => {
       if (!actor || !bench) return;
       
@@ -67,7 +69,7 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
     };
     
     loadDocuments();
-  });
+  }, [actor, bench]);
 
   const handleFileSelect = (category: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -79,7 +81,7 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
   const handleUpload = async (category: string) => {
     const selectedFile = selectedFiles[category];
     if (!selectedFile || !actor) {
-      toast.error('Please select a file');
+      toast.error(t('documents.uploadFailed'));
       return;
     }
 
@@ -106,15 +108,15 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
       
       await associateDoc.mutateAsync({ documentId: docId, benchId });
       
-      toast.success('Document uploaded successfully');
+      toast.success(t('documents.uploaded'));
       setSelectedFiles((prev) => ({ ...prev, [category]: null }));
       setDocumentVersions((prev) => ({ ...prev, [category]: '' }));
     } catch (error: any) {
       console.error('Failed to upload document:', error);
       if (error.message?.includes('exceeds') || error.message?.includes('too large')) {
-        toast.error(`File is too large. Please use a smaller file.`);
+        toast.error(t('documents.fileTooLarge'));
       } else {
-        toast.error(error.message || 'Failed to upload document');
+        toast.error(error.message || t('documents.uploadFailed'));
       }
     } finally {
       setUploading((prev) => ({ ...prev, [category]: false }));
@@ -132,10 +134,10 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
 
     try {
       await removeDoc.mutateAsync({ documentId: documentToDelete.id, benchId });
-      toast.success(`Removed ${documentToDelete.name}`);
+      toast.success(`${t('documents.removed')} ${documentToDelete.name}`);
     } catch (error: any) {
       console.error('Failed to remove document:', error);
-      toast.error(error.message || 'Failed to remove document');
+      toast.error(error.message || t('documents.removeFailed'));
     } finally {
       setDeleteDialogOpen(false);
       setDocumentToDelete(null);
@@ -145,10 +147,10 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
   const handleDownload = async (doc: Document) => {
     try {
       await downloadDocument(doc.fileReference, doc.productDisplayName);
-      toast.success(`Downloaded ${doc.productDisplayName}`);
+      toast.success(`${t('documents.downloaded')} ${doc.productDisplayName}`);
     } catch (error: any) {
       console.error('Failed to download document:', error);
-      toast.error(error.message || 'Failed to download document');
+      toast.error(error.message || t('documents.downloadFailed'));
     }
   };
 
@@ -163,6 +165,15 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
     acc[doc.category].push(doc);
     return acc;
   }, {} as Record<string, Document[]>);
+
+  const getCategoryLabel = (category: string): string => {
+    switch (category) {
+      case 'Hardware': return t('documents.hardware');
+      case 'Software': return t('documents.software');
+      case 'Other(s)': return t('documents.others');
+      default: return category;
+    }
+  };
 
   return (
     <>
@@ -179,8 +190,8 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>{category}</CardTitle>
-                    <CardDescription>{categoryDocs.length} document(s)</CardDescription>
+                    <CardTitle>{getCategoryLabel(category)}</CardTitle>
+                    <CardDescription>{categoryDocs.length} {t('documents.count')}</CardDescription>
                   </div>
                   <Button
                     variant={isEditing ? 'default' : 'outline'}
@@ -188,7 +199,7 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
                     onClick={() => toggleEditMode(category)}
                   >
                     <Pencil className="h-4 w-4 mr-2" />
-                    {isEditing ? 'Done' : 'Edit'}
+                    {isEditing ? t('documents.done') : t('documents.edit')}
                   </Button>
                 </div>
               </CardHeader>
@@ -196,10 +207,10 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
                 {isEditing && (
                   <div className="space-y-4 p-4 bg-muted/50 rounded-md">
                     <div className="space-y-2">
-                      <Label>Version (optional)</Label>
+                      <Label>{t('documents.versionLabel')}</Label>
                       <Input
                         type="text"
-                        placeholder="e.g., 1.0, 2.3.5, e1r5"
+                        placeholder={t('documents.versionPlaceholder')}
                         value={documentVersions[category] || ''}
                         onChange={(e) =>
                           setDocumentVersions((prev) => ({ ...prev, [category]: e.target.value }))
@@ -209,7 +220,7 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>File</Label>
+                      <Label>{t('documents.fileLabel')}</Label>
                       <div className="border-2 border-dashed rounded-md p-4">
                         <input
                           type="file"
@@ -247,7 +258,7 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
                             disabled={isUploading}
                           >
                             <Upload className="h-4 w-4 mr-2" />
-                            Select File
+                            {t('documents.selectFile')}
                           </Button>
                         )}
                       </div>
@@ -256,7 +267,7 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
                     {isUploading && (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Uploading...</span>
+                          <span className="text-muted-foreground">{t('documents.uploading')}</span>
                           <span className="font-medium">{Math.round(progress)}%</span>
                         </div>
                         <Progress value={progress} />
@@ -268,13 +279,13 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
                       disabled={!selectedFile || isUploading}
                       className="w-full"
                     >
-                      {isUploading ? 'Uploading...' : 'Upload Document'}
+                      {isUploading ? t('documents.uploading') : t('documents.uploadDocument')}
                     </Button>
                   </div>
                 )}
 
                 {categoryDocs.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No documents in this category</p>
+                  <p className="text-sm text-muted-foreground">{t('documents.noDocuments')}</p>
                 ) : (
                   <div className="space-y-2">
                     {categoryDocs.map((doc) => (
@@ -288,7 +299,7 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
                             <p className="text-sm font-medium truncate">{doc.productDisplayName}</p>
                             {doc.documentVersion && (
                               <p className="text-xs text-muted-foreground">
-                                Version: {doc.documentVersion}
+                                {t('documents.version')}: {doc.documentVersion}
                               </p>
                             )}
                           </div>
@@ -320,18 +331,18 @@ export function BenchDocumentsEditor({ benchId }: BenchDocumentsEditorProps) {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Document</AlertDialogTitle>
+            <AlertDialogTitle>{t('documents.removeTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove "{documentToDelete?.name}"? This action cannot be undone.
+              {t('documents.removeDesc').replace('{name}', documentToDelete?.name || '')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDocumentToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDocumentToDelete(null)}>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmRemove}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Remove
+              {t('benches.remove')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

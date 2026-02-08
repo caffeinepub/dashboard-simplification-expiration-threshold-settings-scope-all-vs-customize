@@ -43,11 +43,10 @@ export default function ProfilePage() {
   const setProfilePictureMutation = useSetProfilePicture();
   const { t, languageTag, setLanguageTag } = useI18n();
 
-  // Profile fields (removed name and displayName)
+  // Profile fields (removed name, displayName, and avatarUrl)
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
   const [entity, setEntity] = useState('');
   const [thresholdMode, setThresholdMode] = useState<'all' | 'customize'>('all');
   const [globalThreshold, setGlobalThreshold] = useState(30);
@@ -62,6 +61,9 @@ export default function ProfilePage() {
   const [customPhotoPreview, setCustomPhotoPreview] = useState<string | null>(null);
   const [uploadedCustomBlob, setUploadedCustomBlob] = useState<ExternalBlob | null>(null);
 
+  // Language state - stage locally, apply on Save
+  const [stagedLanguage, setStagedLanguage] = useState<string>(languageTag);
+
   const isNewProfile = isFetched && profile === null;
 
   // Initialize form when profile loads
@@ -70,7 +72,6 @@ export default function ProfilePage() {
       setUsername(profile.username || '');
       setEmail(profile.email);
       setBio(profile.bio || '');
-      setAvatarUrl(profile.avatarUrl || '');
       setEntity(profile.entity || '');
       setGlobalThreshold(Number(profile.thresholdAllBenches));
       
@@ -108,8 +109,16 @@ export default function ProfilePage() {
         };
         loadCustomPhoto();
       }
+
+      // Initialize staged language from profile
+      setStagedLanguage(profile.languageTag || 'en-US');
     }
   }, [profile]);
+
+  // Sync staged language when global language changes (e.g., on initial load)
+  useEffect(() => {
+    setStagedLanguage(languageTag);
+  }, [languageTag]);
 
   const handleBenchToggle = (benchId: string, checked: boolean) => {
     const newSelected = new Set(selectedBenches);
@@ -141,13 +150,9 @@ export default function ProfilePage() {
     }
   };
 
-  const handleLanguageChange = async (newLanguageTag: string) => {
-    try {
-      await setLanguageTag(newLanguageTag);
-      toast.success(t('profile.languageUpdated'));
-    } catch (error: any) {
-      toast.error(error.message || t('profile.languageUpdateFailed'));
-    }
+  const handleLanguageChange = (newLanguageTag: string) => {
+    // Stage the language change locally - don't apply yet
+    setStagedLanguage(newLanguageTag);
   };
 
   const handleSave = async () => {
@@ -167,7 +172,7 @@ export default function ProfilePage() {
     }
 
     if (globalThreshold < 1 || globalThreshold > 365) {
-      newErrors.threshold = 'Threshold must be between 1 and 365 days';
+      newErrors.threshold = t('profile.thresholdError');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -206,20 +211,20 @@ export default function ProfilePage() {
       // Save profile picture first
       await setProfilePictureMutation.mutateAsync(newProfilePicture);
 
-      // Save profile with all fields (removed name and displayName)
+      // Save profile with all fields (preserve existing avatarUrl from loaded profile)
       await saveMutation.mutateAsync({
         userId: identity?.getPrincipal().toString() || '',
         username: username.trim(),
         email: email.trim(),
         bio: bio.trim(),
-        avatarUrl: avatarUrl.trim(),
+        avatarUrl: profile?.avatarUrl || '', // Preserve existing avatarUrl
         entity: entity.trim(),
         expirationThresholdMode: profile?.expirationThresholdMode || ExpirationThresholdMode.allBenches,
         thresholdAllBenches: profile?.thresholdAllBenches || BigInt(30),
         thresholdCustomizedBenches: profile?.thresholdCustomizedBenches || [],
         dashboardSectionsOrdered: profile?.dashboardSectionsOrdered || DEFAULT_SECTIONS,
         profilePicture: newProfilePicture,
-        languageTag: languageTag,
+        languageTag: stagedLanguage, // Use staged language
         lastSeen: profile?.lastSeen,
       });
 
@@ -242,6 +247,12 @@ export default function ProfilePage() {
         thresholdCustom: customThresholds,
       });
 
+      // Apply the staged language after successful save
+      if (stagedLanguage !== languageTag) {
+        await setLanguageTag(stagedLanguage);
+      }
+
+      // Show success toast in the NEW language
       toast.success(t('profile.saved'));
     } catch (error: any) {
       toast.error(error.message || t('profile.saveFailed'));
@@ -305,7 +316,7 @@ export default function ProfilePage() {
                       <div className="space-y-3">
                         <img
                           src={customPhotoPreview}
-                          alt="Preview"
+                          alt={t('profile.picturePreview')}
                           className="w-32 h-32 object-cover rounded-full mx-auto"
                         />
                         <Button
@@ -344,7 +355,7 @@ export default function ProfilePage() {
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
+                placeholder={t('profile.usernamePlaceholder')}
               />
               {errors.username && <p className="text-sm text-destructive">{errors.username}</p>}
             </div>
@@ -356,28 +367,14 @@ export default function ProfilePage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={`user@${allowedDomain}`}
+                placeholder={t('profile.emailPlaceholder').replace('{domain}', allowedDomain)}
               />
               {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
               {!isAdmin && (
                 <p className="text-xs text-muted-foreground">
-                  Only {allowedDomain} email addresses are allowed
+                  {t('profile.emailDomainRestriction').replace('{domain}', allowedDomain)}
                 </p>
               )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="avatarUrl">{t('profile.avatarUrl')}</Label>
-              <Input
-                id="avatarUrl"
-                type="url"
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-                placeholder="https://example.com/avatar.jpg"
-              />
-              <p className="text-xs text-muted-foreground">
-                {t('profile.avatarUrlDescription')}
-              </p>
             </div>
 
             <div className="space-y-2">
@@ -386,7 +383,7 @@ export default function ProfilePage() {
                 id="bio"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Tell us about yourself..."
+                placeholder={t('profile.bioPlaceholder')}
                 rows={4}
               />
               <p className="text-xs text-muted-foreground">
@@ -419,9 +416,9 @@ export default function ProfilePage() {
           <CardContent>
             <div className="space-y-2">
               <Label htmlFor="language">{t('profile.language')}</Label>
-              <Select value={languageTag} onValueChange={handleLanguageChange}>
+              <Select value={stagedLanguage} onValueChange={handleLanguageChange}>
                 <SelectTrigger id="language">
-                  <SelectValue placeholder="Select language" />
+                  <SelectValue placeholder={t('profile.selectLanguage')} />
                 </SelectTrigger>
                 <SelectContent>
                   {SUPPORTED_LANGUAGES.map((lang) => (
@@ -434,6 +431,9 @@ export default function ProfilePage() {
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                {t('profile.languageWillApplyOnSave')}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -455,69 +455,84 @@ export default function ProfilePage() {
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="all" id="all" />
                   <Label htmlFor="all" className="font-normal cursor-pointer">
-                    {t('profile.allBenches')}
+                    {t('profile.applyToAll')}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="customize" id="customize" />
                   <Label htmlFor="customize" className="font-normal cursor-pointer">
-                    {t('profile.customizeBenches')}
+                    {t('profile.customizePerBench')}
                   </Label>
                 </div>
               </RadioGroup>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="globalThreshold">{t('profile.globalThreshold')}</Label>
-              <Input
-                id="globalThreshold"
-                type="number"
-                min="1"
-                max="365"
-                value={globalThreshold}
-                onChange={(e) => setGlobalThreshold(parseInt(e.target.value) || 30)}
-              />
+              <Label htmlFor="globalThreshold">
+                {thresholdMode === 'all' ? t('profile.globalThreshold') : t('profile.defaultThreshold')}
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="globalThreshold"
+                  type="number"
+                  min="1"
+                  max="365"
+                  value={globalThreshold}
+                  onChange={(e) => setGlobalThreshold(Number(e.target.value))}
+                  className="w-24"
+                />
+                <span className="text-sm text-muted-foreground">{t('profile.days')}</span>
+              </div>
               {errors.threshold && <p className="text-sm text-destructive">{errors.threshold}</p>}
+              <p className="text-xs text-muted-foreground">
+                {t('profile.thresholdDescription')}
+              </p>
             </div>
 
             {thresholdMode === 'customize' && (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <Label>{t('profile.selectBenches')}</Label>
-                <div className="space-y-3 max-h-64 overflow-y-auto border rounded-lg p-4">
-                  {benches.map((bench) => (
-                    <div key={bench.id} className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id={bench.id}
-                          checked={selectedBenches.has(bench.id)}
-                          onCheckedChange={(checked) => handleBenchToggle(bench.id, checked as boolean)}
-                        />
-                        <Label htmlFor={bench.id} className="font-normal cursor-pointer flex-1">
-                          {bench.name}
-                        </Label>
-                      </div>
-                      {selectedBenches.has(bench.id) && (
-                        <div className="ml-6 flex items-center gap-2">
-                          <Input
-                            type="number"
-                            min="1"
-                            max="365"
-                            value={benchThresholds.get(bench.id) || globalThreshold}
-                            onChange={(e) => handleBenchThresholdChange(bench.id, parseInt(e.target.value) || 30)}
-                            className="w-24"
+                <div className="border rounded-lg p-4 max-h-64 overflow-y-auto space-y-3">
+                  {benches.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      {t('profile.noBenches')}
+                    </p>
+                  ) : (
+                    benches.map((bench) => (
+                      <div key={bench.id} className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`bench-${bench.id}`}
+                            checked={selectedBenches.has(bench.id)}
+                            onCheckedChange={(checked) => handleBenchToggle(bench.id, checked as boolean)}
                           />
-                          <span className="text-sm text-muted-foreground">days</span>
+                          <Label htmlFor={`bench-${bench.id}`} className="font-normal cursor-pointer flex-1">
+                            {bench.name}
+                          </Label>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        {selectedBenches.has(bench.id) && (
+                          <div className="ml-6 flex items-center gap-2">
+                            <Input
+                              type="number"
+                              min="1"
+                              max="365"
+                              value={benchThresholds.get(bench.id) || globalThreshold}
+                              onChange={(e) => handleBenchThresholdChange(bench.id, Number(e.target.value))}
+                              className="w-24"
+                            />
+                            <span className="text-sm text-muted-foreground">{t('profile.days')}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-3">
           <Button
             onClick={handleSave}
             disabled={saveMutation.isPending || updatePreferencesMutation.isPending || setProfilePictureMutation.isPending}
@@ -525,7 +540,7 @@ export default function ProfilePage() {
           >
             {saveMutation.isPending || updatePreferencesMutation.isPending || setProfilePictureMutation.isPending
               ? t('profile.saving')
-              : t('profile.save')}
+              : t('profile.saveChanges')}
           </Button>
         </div>
       </div>

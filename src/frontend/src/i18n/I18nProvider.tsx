@@ -10,7 +10,7 @@ interface I18nContextType {
 }
 
 export const I18nContext = createContext<I18nContextType>({
-  languageTag: 'fr-FR',
+  languageTag: 'en-US',
   setLanguageTag: async () => {},
   isLoading: false,
 });
@@ -20,14 +20,21 @@ interface I18nProviderProps {
 }
 
 export function I18nProvider({ children }: I18nProviderProps) {
-  const [languageTag, setLanguageTagState] = useState<string>('fr-FR'); // Default to French
+  const [languageTag, setLanguageTagState] = useState<string>('en-US'); // Default to English (US)
   const [isLoading, setIsLoading] = useState(true);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const { actor, isFetching: actorFetching } = useActor();
   const { identity } = useInternetIdentity();
 
   // Initialize language on mount and when actor becomes available
   useEffect(() => {
     const initializeLanguage = async () => {
+      // Skip re-initialization if already done and actor is ready
+      if (hasInitialized && actor && !actorFetching) {
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
 
       // If user is authenticated and actor is ready, fetch from backend
@@ -38,62 +45,57 @@ export function I18nProvider({ children }: I18nProviderProps) {
             setLanguageTagState(backendLanguage);
             localStorage.setItem('languageTag', backendLanguage);
           } else {
-            // Backend returned unsupported language, use French default
-            setLanguageTagState('fr-FR');
-            localStorage.setItem('languageTag', 'fr-FR');
+            // Backend returned unsupported language, use English default
+            const storedLanguage = localStorage.getItem('languageTag');
+            if (storedLanguage && isSupportedLanguage(storedLanguage)) {
+              setLanguageTagState(storedLanguage);
+            } else {
+              setLanguageTagState('en-US');
+              localStorage.setItem('languageTag', 'en-US');
+            }
           }
+          setHasInitialized(true);
         } catch (error) {
           console.error('Failed to fetch language from backend:', error);
-          // Fall back to localStorage or French default
+          // Fall back to localStorage or English default
           const storedLanguage = localStorage.getItem('languageTag');
           if (storedLanguage && isSupportedLanguage(storedLanguage)) {
             setLanguageTagState(storedLanguage);
           } else {
-            setLanguageTagState('fr-FR');
-            localStorage.setItem('languageTag', 'fr-FR');
+            setLanguageTagState('en-US');
+            localStorage.setItem('languageTag', 'en-US');
           }
+          setHasInitialized(true);
         }
       } else if (!identity) {
-        // User is not authenticated, use localStorage or French default
+        // User is not authenticated, use localStorage or English default
         const storedLanguage = localStorage.getItem('languageTag');
         if (storedLanguage && isSupportedLanguage(storedLanguage)) {
           setLanguageTagState(storedLanguage);
         } else {
-          setLanguageTagState('fr-FR');
-          localStorage.setItem('languageTag', 'fr-FR');
+          setLanguageTagState('en-US');
+          localStorage.setItem('languageTag', 'en-US');
         }
+        setHasInitialized(true);
       }
 
       setIsLoading(false);
     };
 
     initializeLanguage();
-  }, [identity, actor, actorFetching]);
-
-  // Reset to French when user logs out
-  useEffect(() => {
-    if (!identity) {
-      const storedLanguage = localStorage.getItem('languageTag');
-      if (storedLanguage && isSupportedLanguage(storedLanguage)) {
-        setLanguageTagState(storedLanguage);
-      } else {
-        setLanguageTagState('fr-FR');
-        localStorage.setItem('languageTag', 'fr-FR');
-      }
-    }
-  }, [identity]);
+  }, [identity, actor, actorFetching, hasInitialized]);
 
   const setLanguageTag = async (newTag: string) => {
     if (!isSupportedLanguage(newTag)) {
-      console.warn(`Unsupported language tag: ${newTag}, falling back to fr-FR`);
-      newTag = 'fr-FR';
+      console.warn(`Unsupported language tag: ${newTag}, falling back to en-US`);
+      newTag = 'en-US';
     }
 
-    // Update UI immediately
+    // Update UI immediately (synchronous state update)
     setLanguageTagState(newTag);
     localStorage.setItem('languageTag', newTag);
 
-    // Persist to backend if authenticated
+    // Persist to backend if authenticated (async, non-blocking)
     if (actor && identity) {
       try {
         await actor.setLanguageTag(newTag);

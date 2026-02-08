@@ -1,44 +1,50 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "App with language selector; need to fully translate the Test Bench page and enforce English as the default language for first-time users until they choose a language.",
-  "architectural_notes": [],
+  "summary": "Project includes global internationalization so changing/saving a user’s language preference automatically translates the entire site UI.",
+  "architectural_notes": [
+    "Adopt a single global i18n solution initialized at app startup (e.g., react-i18next) and call i18n.changeLanguage(newLang) immediately after the user saves their language preference so all UI rerenders in the selected language."
+  ],
   "known_issues": [
-    "Test Bench page is not completely translated."
+    "Users encounter a persistent 'Backend Connection Error' on login (frontend cannot connect to backend).",
+    "Deployment/build occasionally fails with a 'Deployment error' after attempting to redeploy an expired draft."
   ],
   "isFixRequest": true,
-  "existing_features": [],
+  "existing_features": [
+    {
+      "id": "feature-when-the-user-selects-a-language-in-the-profile-page-and-clicks-save-apply-that-language-immediately-across-the-entire-app-ui-pages-sections-tabs-buttons-dialogs-placeholders-toasts-and-footer-without-requiring-a-reload",
+      "title": "When the user selects a language in the Profile page and clicks Save, apply that language immediately across the entire app UI (pages, sections, tabs, buttons, dialogs, placeholders, toasts, and footer) without requiring a reload.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-audit-and-replace-any-remaining-hard-coded-user-facing-strings-in-the-protected-app-shell-and-main-pages-with-i18n-translation-keys-so-that-a-language-change-updates-all-visible-ui-text-consistently",
+      "title": "Audit and replace any remaining hard-coded user-facing strings in the protected app shell and main pages with i18n translation keys so that a language change updates all visible UI text consistently.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-selected-language-is-persisted-to-the-backend-user-profile-languagetag-and-correctly-restored-on-sign-in-so-the-app-loads-in-the-last-saved-language",
+      "title": "Ensure the selected language is persisted to the backend user profile languageTag and correctly restored on sign-in so the app loads in the last saved language.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    }
+  ],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Fully translate all content on the Test Bench page.",
+      "summary": "Implement global i18n so when a user selects a language and saves it in their profile, the entire site (pages/sections/tabs/buttons) updates automatically without reload.",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Set English as the default UI language for new users on first login until they select and save a preferred language.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Fully localize the entire Test Bench experience by replacing all hardcoded user-facing strings on Test Bench pages and their subcomponents with i18n translation keys, and ensure complete English and French translations exist for those keys.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Set English (en-US) as the default UI language for first-time users (i.e., users without an existing saved language preference) and keep persisting the user’s explicit language choice once selected.",
-      "reqIds": [
-        "REQ-2"
-      ],
       "status": "pending"
     }
   ],
-  "projectName": "Fully translate Test Bench pages and default new users to English",
+  "projectName": "Ensure profile language selection instantly translates the entire UI after saving",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

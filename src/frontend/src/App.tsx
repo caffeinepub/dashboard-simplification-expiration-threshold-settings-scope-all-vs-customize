@@ -5,14 +5,15 @@ import { Toaster } from '@/components/ui/sonner';
 import AppShell from './components/layout/AppShell';
 import SignInPage from './pages/SignInPage';
 import DashboardPage from './pages/DashboardPage';
-import BenchListPage from './pages/Benches/BenchListPage';
-import BenchDetailPage from './pages/Benches/BenchDetailPage';
+import { BenchListPage } from './pages/Benches/BenchListPage';
+import { BenchDetailPage } from './pages/Benches/BenchDetailPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/Admin/AdminPage';
 import AuthGate from './components/auth/AuthGate';
 import ActorGate from './components/auth/ActorGate';
 import AdminGate from './components/admin/AdminGate';
 import { I18nProvider } from './i18n/I18nProvider';
+import AppErrorBoundary from './components/AppErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,46 +24,61 @@ const queryClient = new QueryClient({
   },
 });
 
-function RootLayout() {
+// Protected layout with auth and actor gates
+function ProtectedLayout() {
   return (
     <AuthGate>
       <ActorGate>
-        <AppShell />
+        <AppShell>
+          <Outlet />
+        </AppShell>
       </ActorGate>
     </AuthGate>
   );
 }
 
-const rootRoute = createRootRoute({
-  component: RootLayout,
+// Root route for public pages (sign-in)
+const publicRootRoute = createRootRoute({
+  component: Outlet,
+});
+
+const signInRoute = createRoute({
+  getParentRoute: () => publicRootRoute,
+  path: '/sign-in',
+  component: SignInPage,
+});
+
+// Root route for protected pages
+const protectedRootRoute = createRootRoute({
+  component: ProtectedLayout,
 });
 
 const indexRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => protectedRootRoute,
   path: '/',
   component: DashboardPage,
 });
 
 const benchesRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => protectedRootRoute,
   path: '/benches',
   component: BenchListPage,
 });
 
 const benchDetailRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => protectedRootRoute,
   path: '/benches/$benchId',
   component: BenchDetailPage,
 });
 
 const profileRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => protectedRootRoute,
   path: '/profile',
   component: ProfilePage,
 });
 
 const adminRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => protectedRootRoute,
   path: '/admin',
   component: () => (
     <AdminGate>
@@ -71,13 +87,9 @@ const adminRoute = createRoute({
   ),
 });
 
-const signInRoute = createRoute({
-  getParentRoute: () => createRootRoute({ component: Outlet }),
-  path: '/sign-in',
-  component: SignInPage,
-});
-
-const routeTree = rootRoute.addChildren([
+// Create separate route trees
+const publicRouteTree = publicRootRoute.addChildren([signInRoute]);
+const protectedRouteTree = protectedRootRoute.addChildren([
   indexRoute,
   benchesRoute,
   benchDetailRoute,
@@ -85,20 +97,33 @@ const routeTree = rootRoute.addChildren([
   adminRoute,
 ]);
 
-const signInRouteTree = createRootRoute({ component: Outlet }).addChildren([signInRoute]);
+// Combine both trees by creating a unified router
+// We'll use the protected tree as the main tree and handle sign-in separately
+const router = createRouter({ 
+  routeTree: protectedRouteTree,
+  defaultNotFoundComponent: () => {
+    // Redirect to sign-in if route not found
+    window.location.href = '/sign-in';
+    return null;
+  },
+});
 
-const router = createRouter({ routeTree });
-const signInRouter = createRouter({ routeTree: signInRouteTree });
+const signInRouter = createRouter({ routeTree: publicRouteTree });
 
 export default function App() {
+  // Determine which router to use based on current path
+  const isSignInPage = window.location.pathname === '/sign-in';
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <I18nProvider>
-          <RouterProvider router={router} />
-          <Toaster />
-        </I18nProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <AppErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <I18nProvider>
+            <RouterProvider router={isSignInPage ? signInRouter : router} />
+            <Toaster />
+          </I18nProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </AppErrorBoundary>
   );
 }

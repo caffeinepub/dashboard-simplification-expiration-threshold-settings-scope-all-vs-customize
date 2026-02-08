@@ -1,39 +1,70 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T21:14:08.221Z",
-  "summary": "The diff does not show implementation of the requested Test Bench i18n localization work or the default-language-to-English behavior. Only `backend/main.mo` (with no visible language-related changes in the provided excerpt) and `project_state.json` were modified.",
+  "generatedAt": "2026-02-08T12:07:11.024Z",
+  "summary": "Diff introduces an I18nProvider that fetches/persists languageTag (with localStorage fallback) and replaces some navigation/admin/sign-in texts with translation keys. However, the diff does not provide clear evidence that Profile Save triggers an immediate global language switch (REQ-3), nor that backend languageTag persistence endpoints exist in backend/main.mo (REQ-5). It also adds unrelated theme/migration code not requested.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Fully localize the entire Test Bench experience by replacing all hardcoded user-facing strings on Test Bench pages/subcomponents with i18n keys, and add complete en-US and fr-FR translations for all used keys.",
-      "reason": "No frontend Test Bench pages/components or i18n translation files were modified in the diff. There is no evidence of replacing hardcoded strings with `t(...)` calls or adding translation entries.",
+      "id": "REQ-3",
+      "requirement": "When the user selects a language in the Profile page and clicks Save, apply that language immediately across the entire app UI (including toasts) without requiring a reload.",
+      "reason": "While I18nProvider exposes setLanguageTag() that updates state immediately, the provided ProfilePage diff is truncated before showing the Save handler logic. There is no direct evidence in the diff snippet that clicking Save calls setLanguageTag(stagedLanguage) and that toasts triggered after Save use the newly-selected language.",
       "evidence": [
-        "File diff summary shows only modified files: `backend/main.mo`, `project_state.json`; no `frontend/src/...` changes present."
+        "frontend/src/pages/ProfilePage.tsx (truncated)",
+        "frontend/src/i18n/I18nProvider.tsx (truncated)"
       ]
     },
     {
-      "id": "REQ-2",
-      "requirement": "Set English (en-US) as the default UI language for first-time users and persist explicit language choice; backend should default to en-US for users without stored preference.",
-      "reason": "The diff shows no changes to frontend initialization logic (e.g., localStorage handling) and no visible changes in the provided `backend/main.mo` excerpt related to `getLanguageTag()` or default `UserProfile.languageTag`.",
+      "id": "REQ-4",
+      "requirement": "Audit and replace remaining hard-coded user-facing strings in the protected app shell and main pages (Dashboard, Benches, Bench Details, Profile, Admin) with i18n translation keys.",
+      "reason": "The diff shows i18n usage in AppShell, AdminGate, and SignInPage, but does not include (non-truncated) evidence for DashboardPage, BenchListPage, BenchDetailPage, ProfilePage, and AdminPage being fully audited/replaced (those changes are only mentioned in a separate summary file, not evidenced by actual code in the provided diff excerpt).",
       "evidence": [
-        "File diff summary shows no frontend files modified.",
-        "`backend/main.mo` excerpt includes type definitions (including `UserProfile.languageTag`) but no shown logic changes for defaults or getLanguageTag/getCallerUserProfile behavior."
+        "frontend/src/components/layout/AppShell.tsx (truncated)",
+        "frontend/src/components/admin/AdminGate.tsx",
+        "frontend/src/pages/SignInPage.tsx",
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "requirement": "Persist selected language to backend user profile languageTag and restore it on sign-in so the app loads in the last saved language (default en-US if none).",
+      "reason": "Frontend I18nProvider calls actor.getLanguageTag() / actor.setLanguageTag(), but the backend diff excerpt of backend/main.mo does not show these methods being implemented. Without backend endpoints, persistence/restore cannot be confirmed from the diff evidence.",
+      "evidence": [
+        "frontend/src/i18n/I18nProvider.tsx (truncated)",
+        "backend/main.mo (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Updating internal tracking metadata in `project_state.json` (adding/altering feature request entries and statuses).",
-      "reason": "The BuildRequest does not ask to modify `project_state.json`; it is not part of the stated requirements or constraints for implementing i18n/default-language behavior.",
+      "description": "Theme toggle UI component and theme switching functionality added.",
+      "reason": "BuildRequest focuses on language selection/i18n and persistence; theme toggling was not requested.",
       "evidence": [
-        "project_state.json"
+        "frontend/src/components/theme/ThemeToggle.tsx",
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "description": "Backend migration module added and wired into backend/main.mo upgrade path.",
+      "reason": "BuildRequest allows adding backend/migration.mo only if strictly required for state migration; the added migration is a no-op and the diff provides no evidence that a migration is necessary for the languageTag change.",
+      "evidence": [
+        "backend/migration.mo",
+        "backend/main.mo (truncated)"
       ]
     }
   ],
-  "confidence": 0.74,
+  "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
+    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/components/admin/AdminGate.tsx",
+    "frontend/src/components/layout/AppShell.tsx",
+    "frontend/src/components/theme/ThemeToggle.tsx",
+    "frontend/src/i18n/I18nProvider.tsx",
+    "frontend/src/i18n/translations.ts",
+    "frontend/src/pages/ProfilePage.tsx",
+    "frontend/src/pages/SignInPage.tsx",
     "project_state.json"
   ]
 }

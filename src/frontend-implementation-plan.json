@@ -1,99 +1,91 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fully translate Test Bench pages and default new users to English",
+  "title": "Instant app-wide i18n refresh after Profile language Save",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Replace all hardcoded user-facing strings across Test Bench list/detail pages and their subcomponents with i18n keys, and ensure complete en-US/fr-FR translations exist for every key used.",
+      "id": "REQ-3",
+      "summary": "Apply the newly saved Profile language immediately across the entire protected UI (including toasts) without reload.",
       "acceptanceCriteria": [
-        "All user-facing text on the Test Bench list page and Test Bench detail page is rendered via the i18n `t(...)` function (no hardcoded English/French strings remain in those pages).",
-        "All user-facing text in Test Bench-related UI components used by those pages (e.g., create/edit bench modals, bench overview, history, documents, components editors, empty/loading/error states, button/label text) is rendered via the i18n `t(...)` function.",
-        "`frontend/src/i18n/translations.ts` contains corresponding translation entries for both `en-US` and `fr-FR` for every key used by the Test Bench pages/components.",
-        "Switching the language selector updates all Test Bench page text immediately without requiring a refresh."
+        "From the Profile page, selecting a different language and then clicking Save causes currently visible navigation labels, page titles, tabs, buttons, and helper texts to update to the new language immediately (no page reload).",
+        "After saving, navigating to other pages (Dashboard, Benches, Admin, etc.) shows the new language consistently.",
+        "Toast messages triggered immediately after Save display in the newly selected language."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/Benches/BenchListPage.tsx",
+          "path": "frontend/src/pages/ProfilePage.tsx",
           "operation": "modify",
-          "description": "Replace all hardcoded Bench List UI strings (loading/empty states, headings, descriptions, placeholders, labels, button text, link labels) with `t(...)` translation keys via `useI18n()`. Verify the component's usage instructions before implementing."
+          "description": "Change the language selection flow to stage the selected language locally and only apply it via i18n (useI18n().setLanguageTag) after the user clicks Save and the save succeeds; ensure the success toast after Save is emitted after the language is applied so it renders in the new language."
         },
         {
-          "path": "frontend/src/pages/Benches/BenchDetailPage.tsx",
+          "path": "frontend/src/i18n/I18nProvider.tsx",
           "operation": "modify",
-          "description": "Replace all hardcoded Bench Detail UI strings (loading/not-found/overview/tabs/health book/history copy, button labels, confirm dialog copy, toast messages) with `t(...)` translation keys via `useI18n()`. Verify the component's usage instructions before implementing."
+          "description": "Ensure language changes propagate immediately to all consumers by keeping the provider state as the single source of truth for the active language and by avoiding initialization logic that overwrites a freshly applied language after a save completes."
         },
         {
-          "path": "frontend/src/pages/Benches/components/AddBenchModal.tsx",
+          "path": "frontend/src/components/layout/AppShell.tsx",
           "operation": "modify",
-          "description": "Replace all hardcoded strings in the Add Bench modal (dialog title/description, field labels/placeholders, validation errors, progress labels, helper text, duplication section copy, and success/error toasts) with `t(...)` translation keys. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/EditBenchModal.tsx",
-          "operation": "modify",
-          "description": "Replace all hardcoded strings in the Edit Bench modal (dialog title/description, field labels/placeholders, validation errors, helper text, and success/error toasts) with `t(...)` translation keys. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/BenchComponentsTableEditor.tsx",
-          "operation": "modify",
-          "description": "Replace all hardcoded strings in the components editor table (column headers, inline action labels, empty states, form labels, status text, and any error/success messaging) with `t(...)` translation keys. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/BenchDocumentsEditor.tsx",
-          "operation": "modify",
-          "description": "Replace all hardcoded strings in the documents editor (section headings, category controls, upload/download/remove labels, progress text, empty/loading/error states, and toast messages) with `t(...)` translation keys. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/BenchHistoryList.tsx",
-          "operation": "modify",
-          "description": "Replace all hardcoded strings in the history list (title/empty state labels, action text fallbacks, timestamp labels, and any error/loading copy) with `t(...)` translation keys. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/BenchPhoto.tsx",
-          "operation": "modify",
-          "description": "Replace any hardcoded strings used for photo loading/error/fallback UI with `t(...)` translation keys. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/DuplicateComponentDialog.tsx",
-          "operation": "modify",
-          "description": "Replace all hardcoded strings in the duplicate-component dialog (dialog title/description, bench selection labels, buttons, empty/loading/error states, and toasts) with `t(...)` translation keys. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/DocumentCategoriesInput.tsx",
-          "operation": "modify",
-          "description": "Replace all hardcoded strings in document categories input (category labels, add/remove buttons, placeholders, version/file labels, validation copy) with `t(...)` translation keys. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/TagsInput.tsx",
-          "operation": "modify",
-          "description": "Replace all hardcoded strings in tags input (placeholders, helper labels, empty suggestion text, remove label/aria text if present) with `t(...)` translation keys. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/i18n/translations.ts",
-          "operation": "modify",
-          "description": "Add/extend TranslationKey entries and provide complete `en-US` and `fr-FR` values for every new key introduced for Test Bench pages/components (including modal copy, validation errors, toasts, empty/loading/error states, and table/form labels). Ensure all new/updated en-US values are in English. Verify the component's usage instructions before implementing."
+          "description": "Ensure all app shell visible strings (navigation and footer) are derived from translation keys via useI18n().t so they re-render immediately when the active language changes."
         }
       ]
     },
     {
-      "id": "REQ-2",
-      "summary": "Default first-time users to English (en-US) when no saved preference exists, while continuing to persist explicit user language choice.",
+      "id": "REQ-4",
+      "summary": "Replace remaining hard-coded user-facing strings in the protected shell and main pages with i18n translation keys to ensure full UI updates on language change.",
       "acceptanceCriteria": [
-        "Frontend default language initialization uses `en-US` when no valid saved preference exists in localStorage and no backend preference exists.",
-        "Backend `getLanguageTag()` returns `en-US` when the caller has no stored profile/language preference (instead of returning French).",
-        "Backend `getCallerUserProfile()` default profile (when no profile exists yet) uses `languageTag = \"en-US\"`.",
-        "After a signed-in user selects a different language, the preference is persisted and is used on subsequent visits/sessions (i.e., it no longer falls back to `en-US`)."
+        "No user-facing labels in the header navigation, footer, and the main pages (Dashboard, Benches, Bench Details, Profile, Admin) remain hard-coded in a single language if translation keys exist or can be added.",
+        "Switching languages updates those texts without refresh."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/layout/AppShell.tsx",
+          "operation": "modify",
+          "description": "Replace remaining hard-coded footer text with translation keys (e.g., footer.builtWith/footer.using) so the footer updates immediately on language changes."
+        },
+        {
+          "path": "frontend/src/pages/SignInPage.tsx",
+          "operation": "modify",
+          "description": "Replace hard-coded sign-in page descriptions and helper text with i18n translation keys (use useI18n().t) so the sign-in UI is consistent with selected language."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminGate.tsx",
+          "operation": "modify",
+          "description": "Replace hard-coded permission-checking and access denied strings with i18n translation keys so protected admin gating UI updates immediately when language changes."
+        },
+        {
+          "path": "frontend/src/components/AppErrorBoundary.tsx",
+          "operation": "modify",
+          "description": "Replace hard-coded error boundary title/body/button text with i18n translation keys so error UI is language-aware and updates consistently."
+        },
+        {
+          "path": "frontend/src/i18n/translations.ts",
+          "operation": "modify",
+          "description": "Add any missing translation keys (English text for newly introduced user-facing strings, plus corresponding French translations where applicable) used by AppShell footer, SignInPage helper texts, AdminGate, and AppErrorBoundary."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Restore and persist the user’s selected language via the backend-backed user profile languageTag so the app loads in the last saved language on sign-in (with en-US default).",
+      "acceptanceCriteria": [
+        "After setting a language and saving, signing out and signing back in loads the UI in that language.",
+        "If the backend has no stored languageTag for the user, the app defaults to English (en-US) and remains functional."
       ],
       "file_operations": [
         {
           "path": "frontend/src/i18n/I18nProvider.tsx",
           "operation": "modify",
-          "description": "Change default language initialization behavior to use `en-US` for first-time users: initialize state to `en-US`, and update the initialization logic to (1) use backend language when authenticated and valid, else (2) use a valid localStorage language when present, else (3) fall back to `en-US`. Keep persisting explicit selections to localStorage and backend (when authenticated). Verify the component's usage instructions before implementing."
+          "description": "On authenticated initialization, restore language from the backend-backed user profile languageTag (fall back to localStorage and then en-US) and keep localStorage in sync; ensure unsupported/missing tags resolve to en-US."
         },
         {
-          "path": "frontend/src/components/layout/AppShell.tsx",
+          "path": "frontend/src/pages/ProfilePage.tsx",
           "operation": "modify",
-          "description": "Ensure the language selector (or equivalent language-switch UI) continues to call `setLanguageTag(...)` from i18n context so language changes apply immediately across Test Bench pages without refresh, and remains consistent with the updated default initialization behavior. Verify the component's usage instructions before implementing."
+          "description": "Ensure Save persists the selected languageTag into the saved user profile data and only then applies it via I18nProvider (so the restored language on next sign-in matches the last saved value)."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Adjust relevant React Query invalidations/refresh patterns (where needed) so that after saving the profile languageTag, subsequent reads used by i18n restoration reflect the updated saved value without requiring a full reload."
         }
       ]
     }
