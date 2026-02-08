@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-deploy-the-current-approved-build-draft-version-36-to-production-as-an-internet-computer-canister-upgrade-without-making-further-feature-code-changes",
-      "featureTitle": "Deploy the current approved build (Draft Version 36) to production as an Internet Computer canister upgrade, without making further feature/code changes.",
+      "featureId": "feature-add-a-protected-user-profile-details-view-that-can-display-another-user-s-public-profile-information-username-bio-entity-and-a-large-profile-picture-when-provided-a-user-principal-id-in-the-route-e-g-users-userid",
+      "featureTitle": "Add a protected \"User Profile Details\" view that can display another user's public profile information (username, bio, entity, and a large profile picture) when provided a user principal ID in the route (e.g., /users/:userId).",
       "files": [
-        "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
-        "frontend/README_PRODUCTION_ENV.md"
+        "frontend/src/App.tsx",
+        "frontend/src/pages/Users/UserProfileDetailsPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -23,10 +23,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-after-production-deployment-perform-a-basic-smoke-test-of-the-critical-flows-mentioned-in-the-latest-iteration-internet-identity-login-logout-behavior-and-user-profile-persistence-across-refresh-relogin",
-      "featureTitle": "After production deployment, perform a basic smoke test of the critical flows mentioned in the latest iteration: Internet Identity login/logout behavior and user profile persistence across refresh/relogin.",
+      "featureId": "feature-make-user-avatars-clickable-wherever-they-represent-another-user-at-minimum-in-the-bench-history-list-so-that-clicking-the-avatar-navigates-to-the-new-user-profile-details-route-for-that-user",
+      "featureTitle": "Make user avatars clickable wherever they represent another user (at minimum in the Bench History list), so that clicking the avatar navigates to the new \"User Profile Details\" route for that user.",
       "files": [
-        "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md"
+        "frontend/src/pages/Benches/components/BenchHistoryList.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -39,6 +39,24 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-frontend-data-layer-to-consume-the-expanded-public-user-info-type-and-use-it-in-both-the-bench-history-display-where-applicable-and-the-new-user-profile-details-view",
+      "featureTitle": "Update the frontend data layer to consume the expanded public user info type and use it in both the bench history display (where applicable) and the new \"User Profile Details\" view.",
+      "files": [],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

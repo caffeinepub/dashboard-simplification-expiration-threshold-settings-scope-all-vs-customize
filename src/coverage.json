@@ -1,37 +1,56 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T16:00:27.192Z",
+  "generatedAt": "2026-02-08T22:11:43.251Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 4,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Deploy the current approved build (Draft Version 36) to production as an Internet Computer canister upgrade, without making further feature/code changes.",
+        "summary": "Add a protected \"User Profile Details\" view that can display another user's public profile information (username, bio, entity, and a large profile picture) when provided a user principal ID in the route (e.g., /users/:userId).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
-          "frontend/README_PRODUCTION_ENV.md"
+          "frontend/src/pages/Users/UserProfileDetailsPage.tsx",
+          "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
-          "frontend/README_PRODUCTION_ENV.md"
+          "frontend/src/pages/Users/UserProfileDetailsPage.tsx",
+          "frontend/src/App.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "After production deployment, perform a basic smoke test of the critical flows mentioned in the latest iteration: Internet Identity login/logout behavior and user profile persistence across refresh/relogin.",
+        "summary": "Make user avatars clickable wherever they represent another user (at minimum in the Bench History list), so that clicking the avatar navigates to the new \"User Profile Details\" route for that user.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md"
+          "frontend/src/pages/Benches/components/BenchHistoryList.tsx"
         ],
         "matchedFiles": [
-          "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md"
+          "frontend/src/pages/Benches/components/BenchHistoryList.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Extend the backend public user info API so it can return the fields needed by the \"User Profile Details\" view: username, bio, entity, and profilePicture for a given user principal, for any authenticated caller.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Update the frontend data layer to consume the expanded public user info type and use it in both the bench history display (where applicable) and the new \"User Profile Details\" view.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/backend.d.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/backend.d.ts"
         ]
       }
     ]
@@ -42,9 +61,13 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
-    "frontend/README_PRODUCTION_ENV.md",
-    "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/pages/Benches/components/BenchHistoryList.tsx",
+    "frontend/src/pages/Users/UserProfileDetailsPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

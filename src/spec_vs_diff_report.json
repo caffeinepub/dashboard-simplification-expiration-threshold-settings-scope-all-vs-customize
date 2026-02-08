@@ -1,50 +1,58 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T16:00:27.189Z",
-  "summary": "The diff primarily adds production deployment/smoke-test documentation, but it also includes a backend code modification despite the request to deploy the already-approved Draft Version 36 without further code changes. There is no evidence in the diff of an actual production canister upgrade being executed or a smoke test being performed (only checklists/scripts were added).",
+  "generatedAt": "2026-02-08T22:11:43.248Z",
+  "summary": "Implemented a new protected /users/$userId profile details page and made Bench History user avatars/usernames link to it. Backend diff shows new/expanded PublicUserInfo fields, but the required backend query method behavior and the frontend data-layer/type updates are not clearly evidenced in the provided diff summary.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Deploy the current approved build (Draft Version 36) to production as an Internet Computer canister upgrade, without making further feature/code changes.",
-      "reason": "The diff contains documentation for deployment, but no evidence of a production canister upgrade being performed (e.g., release/deploy configuration changes, CI/CD changes, or recorded deployment outcome). Also, the backend code was modified, which conflicts with the requirement to deploy without further code changes.",
+      "id": "REQ-3",
+      "requirement": "Backend exposes a query method actor.getPublicUserInfo(userPrincipal) returning username, bio, entity, and profilePicture for any authenticated caller, and returns null (non-throwing) when the target user does not exist.",
+      "reason": "The backend diff excerpt shows new type definitions (PublicUserInfo includes username/bio/entity/profilePicture), but does not show the actual getPublicUserInfo query method implementation, its access control (authenticated caller), or its 'not found returns null' behavior.",
       "evidence": [
-        "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
-        "backend/main.mo"
+        "backend/main.mo (truncated)"
       ]
     },
     {
-      "id": "REQ-2",
-      "requirement": "After production deployment, perform a basic smoke test of Internet Identity login/logout and user profile persistence across refresh/relogin.",
-      "reason": "A smoke test script/checklist was added, but there is no evidence the smoke test was actually executed or that results were recorded (no logs/results/verification artifacts in the diff).",
+      "id": "REQ-4",
+      "requirement": "Update the frontend data layer (React Query hook/types) to consume the expanded public user info type without breaking existing call sites, and use it in bench history and the new profile details view.",
+      "reason": "BenchHistoryList and the new UserProfileDetailsPage consume userInfo.profilePicture/entity/bio/username, implying hook changes, but the diff does not include the actual hook/type changes (e.g., in frontend/src/hooks/useQueries.ts or generated candid types), so this cannot be verified from the provided diff summary.",
       "evidence": [
-        "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md"
+        "frontend/src/pages/Benches/components/BenchHistoryList.tsx",
+        "frontend/src/pages/Users/UserProfileDetailsPage.tsx",
+        "frontend-file-summaries.txt (mentions hooks but does not provide diff evidence)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Backend code changes in backend/main.mo (implementation changes beyond deployment documentation).",
-      "reason": "The BuildRequest explicitly states to deploy the approved Draft Version 36 without making further feature/code changes; modifying backend code is out of scope for a pure deployment promotion.",
+      "description": "Introduced dual-router setup with path-based selection (separate public sign-in router vs protected router) and a default not-found redirect to /sign-in.",
+      "reason": "The request only asked to add a protected user profile details route and avatar navigation; it did not request restructuring routing into two routers or adding redirect behavior for unknown routes.",
       "evidence": [
-        "backend/main.mo"
+        "frontend/src/App.tsx"
       ]
     },
     {
-      "description": "Project tracking/state update marking deployment/smoke-test items as 'pending' in project_state.json.",
-      "reason": "The BuildRequest asks to deploy and then smoke test; adding/altering internal tracking metadata was not requested as part of the deployment deliverable.",
+      "description": "Updated/added project tracking metadata entries for new feature requests (AR-1..AR-5) marked as pending.",
+      "reason": "Not part of the BuildRequest requirements; appears to be auxiliary project management state.",
       "evidence": [
         "project_state.json"
       ]
+    },
+    {
+      "description": "Added/updated a generated documentation/summary file describing many unrelated frontend changes (i18n, dashboards, validation, theme, etc.).",
+      "reason": "Not requested as part of implementing user profile details and clickable avatars; appears to be ancillary output.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
     }
   ],
-  "confidence": 0.74,
+  "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
-    "frontend/README_PRODUCTION_ENV.md",
-    "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md",
+    "frontend/src/App.tsx",
+    "frontend/src/pages/Benches/components/BenchHistoryList.tsx",
+    "frontend/src/pages/Users/UserProfileDetailsPage.tsx",
     "project_state.json"
   ]
 }

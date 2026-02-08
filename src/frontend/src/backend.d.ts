@@ -67,6 +67,8 @@ export interface Tag {
 }
 export type Version = bigint;
 export interface PublicUserInfo {
+    bio: string;
+    entity: string;
     username: string;
     profilePicture: ProfilePicture;
 }
@@ -100,6 +102,7 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
+    _initializeAccessControlWithSecret(secret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     associateDocumentToBench(documentId: string, benchId: string): Promise<void>;
     createDocument(id: string, productDisplayName: string, version: Version, category: string, fileReference: ExternalBlob, semanticVersion: string, tags: Array<Tag>, documentVersion: string | null): Promise<void>;

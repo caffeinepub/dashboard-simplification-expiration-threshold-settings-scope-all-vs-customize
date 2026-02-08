@@ -9,6 +9,7 @@ import { BenchListPage } from './pages/Benches/BenchListPage';
 import { BenchDetailPage } from './pages/Benches/BenchDetailPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/Admin/AdminPage';
+import UserProfileDetailsPage from './pages/Users/UserProfileDetailsPage';
 import AuthGate from './components/auth/AuthGate';
 import ActorGate from './components/auth/ActorGate';
 import AdminGate from './components/admin/AdminGate';
@@ -77,6 +78,12 @@ const profileRoute = createRoute({
   component: ProfilePage,
 });
 
+const userProfileDetailsRoute = createRoute({
+  getParentRoute: () => protectedRootRoute,
+  path: '/users/$userId',
+  component: UserProfileDetailsPage,
+});
+
 const adminRoute = createRoute({
   getParentRoute: () => protectedRootRoute,
   path: '/admin',
@@ -94,6 +101,7 @@ const protectedRouteTree = protectedRootRoute.addChildren([
   benchesRoute,
   benchDetailRoute,
   profileRoute,
+  userProfileDetailsRoute,
   adminRoute,
 ]);
 

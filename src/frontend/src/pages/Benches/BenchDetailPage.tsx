@@ -57,6 +57,23 @@ export function BenchDetailPage() {
   };
 
   const handleComponentsChange = async (newComponents: Component[]) => {
+    // Check for duplicates within the new components list
+    const seen = new Map<string, Component>();
+    
+    for (const comp of newComponents) {
+      const trimmedName = comp.componentName.trim();
+      const key = `${trimmedName}|${comp.validityDate}|${comp.expirationDate}`;
+      
+      if (seen.has(key)) {
+        // Duplicate detected - show toast and return early without saving
+        toast.error(t('components.duplicateExists'));
+        return;
+      }
+      
+      seen.set(key, comp);
+    }
+
+    // No duplicates found, proceed with save
     try {
       await setComponents.mutateAsync({ benchId, components: newComponents });
       toast.success(t('components.saved'));

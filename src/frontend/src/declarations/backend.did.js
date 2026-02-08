@@ -97,6 +97,8 @@ export const UserProfile = IDL.Record({
   'dashboardSectionsOrdered' : IDL.Vec(IDL.Text),
 });
 export const PublicUserInfo = IDL.Record({
+  'bio' : IDL.Text,
+  'entity' : IDL.Text,
   'username' : IDL.Text,
   'profilePicture' : ProfilePicture,
 });
@@ -336,6 +338,8 @@ export const idlFactory = ({ IDL }) => {
     'dashboardSectionsOrdered' : IDL.Vec(IDL.Text),
   });
   const PublicUserInfo = IDL.Record({
+    'bio' : IDL.Text,
+    'entity' : IDL.Text,
     'username' : IDL.Text,
     'profilePicture' : ProfilePicture,
   });

@@ -149,6 +149,8 @@ export interface Tag {
 }
 export type Version = bigint;
 export interface PublicUserInfo {
+    bio: string;
+    entity: string;
     username: string;
     profilePicture: ProfilePicture;
 }
@@ -1074,13 +1076,19 @@ function from_candid_record_n38(_uploadFile: (file: ExternalBlob) => Promise<Uin
     };
 }
 async function from_candid_record_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    bio: string;
+    entity: string;
     username: string;
     profilePicture: _ProfilePicture;
 }): Promise<{
+    bio: string;
+    entity: string;
     username: string;
     profilePicture: ProfilePicture;
 }> {
     return {
+        bio: value.bio,
+        entity: value.entity,
         username: value.username,
         profilePicture: await from_candid_ProfilePicture_n31(_uploadFile, _downloadFile, value.profilePicture)
     };

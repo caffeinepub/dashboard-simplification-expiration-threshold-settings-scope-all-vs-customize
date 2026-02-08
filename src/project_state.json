@@ -1,32 +1,53 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Deployment approved; current build includes profile persistence and updated login behavior (Draft Version 36).",
-  "architectural_notes": [
-    "Draft Version 36 deployed/approved (includes profile persistence and login behavior updates)."
-  ],
+  "summary": "New project",
+  "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-deploy-the-current-approved-build-draft-version-36-to-production-as-an-internet-computer-canister-upgrade-without-making-further-feature-code-changes",
-      "title": "Deploy the current approved build (Draft Version 36) to production as an Internet Computer canister upgrade, without making further feature/code changes.",
+      "id": "feature-add-a-protected-user-profile-details-view-that-can-display-another-user-s-public-profile-information-username-bio-entity-and-a-large-profile-picture-when-provided-a-user-principal-id-in-the-route-e-g-users-userid",
+      "title": "Add a protected \"User Profile Details\" view that can display another user's public profile information (username, bio, entity, and a large profile picture) when provided a user principal ID in the route (e.g., /users/:userId).",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-after-production-deployment-perform-a-basic-smoke-test-of-the-critical-flows-mentioned-in-the-latest-iteration-internet-identity-login-logout-behavior-and-user-profile-persistence-across-refresh-relogin",
-      "title": "After production deployment, perform a basic smoke test of the critical flows mentioned in the latest iteration: Internet Identity login/logout behavior and user profile persistence across refresh/relogin.",
+      "id": "feature-make-user-avatars-clickable-wherever-they-represent-another-user-at-minimum-in-the-bench-history-list-so-that-clicking-the-avatar-navigates-to-the-new-user-profile-details-route-for-that-user",
+      "title": "Make user avatars clickable wherever they represent another user (at minimum in the Bench History list), so that clicking the avatar navigates to the new \"User Profile Details\" route for that user.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-data-layer-to-consume-the-expanded-public-user-info-type-and-use-it-in-both-the-bench-history-display-where-applicable-and-the-new-user-profile-details-view",
+      "title": "Update the frontend data layer to consume the expanded public user info type and use it in both the bench history display (where applicable) and the new \"User Profile Details\" view.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Deploy approved Draft Version 36 to production",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Open a user's profile details when clicking their profile photo (bio, entity, enlarged avatar, username, etc.)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Extend the backend public user info API so it can return the fields needed by the \"User Profile Details\" view: username, bio, entity, and profilePicture for a given user principal, for any authenticated caller.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Add public user profile details view accessible by clicking a user's avatar",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

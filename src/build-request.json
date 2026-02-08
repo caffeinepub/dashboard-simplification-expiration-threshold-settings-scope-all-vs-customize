@@ -1,67 +1,91 @@
 {
   "kind": "build_request",
-  "title": "Deploy approved Draft Version 36 to production",
+  "title": "Add public user profile details view accessible by clicking a user's avatar",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Deploy the current approved build (Draft Version 36) to production as an Internet Computer canister upgrade, without making further feature/code changes.",
-      "target": "both",
+      "text": "Add a protected \"User Profile Details\" view that can display another user's public profile information (username, bio, entity, and a large profile picture) when provided a user principal ID in the route (e.g., /users/:userId).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-6"
         ],
         "quotes": [
-          "It is perfect, deploy it."
+          "J'aimerai qu'en cliquant sur la photo de profil d'un user, on accede a ses infos (biographie, entite, photo de profil en grand, username, etc.)."
         ]
       },
       "acceptanceCriteria": [
-        "A production deployment is performed using the current codebase corresponding to Draft Version 36.",
-        "The canister upgrade completes successfully (no traps during preupgrade/postupgrade, if applicable).",
-        "The production frontend loads and connects to the production backend canister successfully."
+        "A new protected route exists for viewing a user's public profile by principal ID (e.g., /users/$userId).",
+        "The page shows: username, entity, bio, and a larger version of the user's profile picture.",
+        "The page has clear English UI text for headings/labels and handles loading and \"user not found\" states gracefully.",
+        "The page does not allow editing another user's data."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "After production deployment, perform a basic smoke test of the critical flows mentioned in the latest iteration: Internet Identity login/logout behavior and user profile persistence across refresh/relogin.",
-      "target": "both",
+      "text": "Make user avatars clickable wherever they represent another user (at minimum in the Bench History list), so that clicking the avatar navigates to the new \"User Profile Details\" route for that user.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2",
-          "msg-3"
+          "msg-6"
         ],
         "quotes": [
-          "does the updated version feel closer to what you needed, especially around profile persistence and login behavior?",
-          "It is perfect, deploy it."
+          "en cliquant sur la photo de profil d'un user, on accede a ses infos"
         ]
       },
       "acceptanceCriteria": [
-        "A user can sign in via Internet Identity and reach protected routes (e.g., Dashboard).",
-        "A user can update their profile and the changes persist after a full page refresh.",
-        "A user can log out and log back in and still see their persisted profile data.",
-        "No new runtime errors are observed in the UI during the smoke test."
+        "In the bench history UI, clicking a user's avatar opens that user's profile details view.",
+        "Navigation uses the clicked history entry's user principal ID.",
+        "The avatar remains visually consistent with existing styling (no layout break)."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Extend the backend public user info API so it can return the fields needed by the \"User Profile Details\" view: username, bio, entity, and profilePicture for a given user principal, for any authenticated caller.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "biographie, entite, photo de profil en grand, username"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend exposes a query method that the frontend can call to fetch public user info by Principal (matching the existing frontend hook expectation of actor.getPublicUserInfo(userPrincipal)).",
+        "The returned public user info includes username, bio, entity, and profilePicture.",
+        "If the target user does not exist, the method returns null (or an equivalent non-throwing \"not found\" result) so the UI can show a \"User not found\" state.",
+        "Access control allows authenticated users to fetch another user's public info, without exposing sensitive fields (e.g., email)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Update the frontend data layer to consume the expanded public user info type and use it in both the bench history display (where applicable) and the new \"User Profile Details\" view.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The React Query hook used to fetch public user info supports the expanded fields and does not break existing call sites.",
+        "Bench history continues to render usernames/avatars as before, and can optionally show additional info only where designed, without errors.",
+        "TypeScript types compile cleanly after candid/type updates."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui or any other frontend immutable paths listed in SYSTEM_CONTEXT."
+    "Backend must remain a single Motoko actor with logic in backend/main.mo; only add a migration if an upgrade requires state transformation.",
+    "Do not edit files under frontend/src/components/ui (read-only) or other paths listed in frontend.immutablePaths; compose those components instead."
   ],
   "nonGoals": [
-    "Implement new features or UI redesigns.",
-    "Refactor backend/frontend architecture beyond what is required to deploy the already-approved build."
+    "Do not add social features (follow, messaging, comments) or real-time presence beyond what already exists.",
+    "Do not implement third-party authentication; continue using Internet Identity only.",
+    "Do not expose or display private user fields (e.g., email) on the public profile details view."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

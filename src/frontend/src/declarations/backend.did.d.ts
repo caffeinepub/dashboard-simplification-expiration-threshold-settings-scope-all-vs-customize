@@ -42,6 +42,8 @@ export interface HistoryEntry {
 export type ProfilePicture = { 'custom' : ExternalBlob } |
   { 'avatar' : string };
 export interface PublicUserInfo {
+  'bio' : string,
+  'entity' : string,
   'username' : string,
   'profilePicture' : ProfilePicture,
 }

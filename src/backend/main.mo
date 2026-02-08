@@ -10,12 +10,14 @@ import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import Order "mo:core/Order";
 
+
 import AccessControl "authorization/access-control";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import MixinAuthorization "authorization/MixinAuthorization";
 
 // IMPORTANT: Migration is defined in main file, but implementation is in respective migration module!
+
 
 actor {
   let accessControlState = AccessControl.initState();
@@ -123,6 +125,8 @@ actor {
 
   type PublicUserInfo = {
     username : Text;
+    bio : Text;
+    entity : Text;
     profilePicture : ProfilePicture;
   };
 
@@ -809,7 +813,24 @@ actor {
       Runtime.trap("Bench does not exist");
     };
 
-    componentMap.add(benchId, components);
+    let uniqueComponents = components.sort();
+    let deduplicated = List.empty<Component>();
+    var lastCompName : ?Text = null;
+    for (comp in uniqueComponents.values()) {
+      switch (lastCompName) {
+        case (null) {
+          deduplicated.add(comp);
+        };
+        case (?last) {
+          if (last != comp.componentName) {
+            deduplicated.add(comp);
+          };
+        };
+      };
+      lastCompName := ?comp.componentName;
+    };
+
+    componentMap.add(benchId, deduplicated.toArray());
 
     let historyEntry : HistoryEntry = {
       timestamp = Time.now();
@@ -842,20 +863,32 @@ actor {
       case (?comps) { comps };
     };
 
-    let duplicatedComponent : Component = {
-      component with
-      associatedBenchId = targetBench.id
+    let newComponentList = List.empty<Component>();
+    var found = false;
+    for (comp in existingComponents.values()) {
+      if (comp.componentName == component.componentName) {
+        found := true;
+      } else {
+        newComponentList.add(comp);
+      };
     };
 
-    componentMap.add(targetBench.id, existingComponents.concat([duplicatedComponent]));
+    if (not found) {
+      let duplicatedComponent : Component = {
+        component with
+        associatedBenchId = targetBench.id
+      };
+      newComponentList.add(duplicatedComponent);
+      componentMap.add(targetBench.id, newComponentList.toArray());
 
-    let historyEntry : HistoryEntry = {
-      timestamp = Time.now();
-      action = "Duplicate component";
-      user = caller;
-      details = "Component duplicated to target bench: " # targetBench.name;
+      let historyEntry : HistoryEntry = {
+        timestamp = Time.now();
+        action = "Duplicate component";
+        user = caller;
+        details = "Component duplicated to target bench: " # targetBench.name;
+      };
+      addHistoryEntry(targetBench.id, historyEntry);
     };
-    addHistoryEntry(targetBench.id, historyEntry);
   };
 
   public shared ({ caller }) func duplicateComponentToBench(_benchId : Text, component : Component, targetBenchId : Text) : async () {
@@ -909,6 +942,8 @@ actor {
       case (?profile) {
         ?{
           username = profile.username;
+          bio = profile.bio;
+          entity = profile.entity;
           profilePicture = profile.profilePicture;
         };
       };

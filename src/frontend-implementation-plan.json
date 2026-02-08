@@ -1,43 +1,64 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Production release: Deploy Draft Version 36 (frontend-only plan)",
+  "title": "Protected user profile details view and avatar-to-profile navigation",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Prepare the frontend release artifact and deployment notes for promoting Draft Version 36 to production without code changes.",
+      "summary": "Add a protected user profile details page routed by principal ID that displays public profile info (username, entity, bio, large profile picture) with loading and not-found states, without edit capabilities.",
       "acceptanceCriteria": [
-        "A production deployment is performed using the current codebase corresponding to Draft Version 36.",
-        "The canister upgrade completes successfully (no traps during preupgrade/postupgrade, if applicable).",
-        "The production frontend loads and connects to the production backend canister successfully."
+        "A new protected route exists for viewing a user's public profile by principal ID (e.g., /users/$userId).",
+        "The page shows: username, entity, bio, and a larger version of the user's profile picture.",
+        "The page has clear English UI text for headings/labels and handles loading and \"user not found\" states gracefully.",
+        "The page does not allow editing another user's data."
       ],
       "file_operations": [
         {
-          "path": "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V36.md",
+          "path": "frontend/src/pages/Users/UserProfileDetailsPage.tsx",
           "operation": "create",
-          "description": "Add a production deployment checklist focused on frontend release steps only (build, environment variable verification, canister IDs wiring expectations, and post-deploy verification that the SPA loads). Include a note that no feature/code changes are to be made for Draft Version 36; this file is documentation only."
+          "description": "Create the \"User Profile Details\" protected page that reads the route param (principal text), fetches public user info via the existing React Query hook, and renders username/entity/bio plus a large profile picture. Use the existing AuthGate/ActorGate protected layout (authorization component) implicitly via protected routing; use the existing UserAvatar component for consistent profile picture rendering (including blob-storage ExternalBlob direct URL handling for custom images). Include graceful UI for loading, invalid principal, and \"User not found\". Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/README_PRODUCTION_ENV.md",
-          "operation": "create",
-          "description": "Document the required production environment variables as consumed by the current frontend (e.g., II_* and CANISTER_* variables used by the existing configuration and Vite environment injection) and how to confirm they are correctly set during deployment."
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Register a new protected route at /users/$userId that renders the new UserProfileDetailsPage within the existing protected route tree (ensuring it is behind AuthGate/ActorGate). Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Add a repeatable frontend smoke-test checklist for Internet Identity login/logout and user profile persistence across refresh/relogin.",
+      "summary": "Make avatars clickable (at minimum in Bench History) so clicking navigates to the profile details route for that user's principal ID without changing avatar styling/layout.",
       "acceptanceCriteria": [
-        "A user can sign in via Internet Identity and reach protected routes (e.g., Dashboard).",
-        "A user can update their profile and the changes persist after a full page refresh.",
-        "A user can log out and log back in and still see their persisted profile data.",
-        "No new runtime errors are observed in the UI during the smoke test."
+        "In the bench history UI, clicking a user's avatar opens that user's profile details view.",
+        "Navigation uses the clicked history entry's user principal ID.",
+        "The avatar remains visually consistent with existing styling (no layout break)."
       ],
       "file_operations": [
         {
-          "path": "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V36.md",
-          "operation": "create",
-          "description": "Create a concise smoke-test script that explicitly validates: (1) Internet Identity sign-in from the Sign In page, (2) protected-route access via the AuthGate flow (e.g., Dashboard/Profile), (3) profile save and persistence after full refresh, (4) logout clears cached data and re-login still retrieves persisted profile. Reference the app’s existing authentication/profile flow (authorization component patterns via useInternetIdentity, useActor, and useGetCallerUserProfile). Verify the component's usage instructions before implementing."
+          "path": "frontend/src/pages/Benches/components/BenchHistoryList.tsx",
+          "operation": "modify",
+          "description": "Wrap the rendered UserAvatar (and optionally the username text) for each history entry in a router Link to /users/$userId using entry.user.toString() as the route param, while preserving existing size/className so layout remains unchanged. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Update the frontend data layer and types to consume the expanded PublicUserInfo fields and use them in bench history and the new profile details view without breaking existing call sites.",
+      "acceptanceCriteria": [
+        "The React Query hook used to fetch public user info supports the expanded fields and does not break existing call sites.",
+        "Bench history continues to render usernames/avatars as before, and can optionally show additional info only where designed, without errors.",
+        "TypeScript types compile cleanly after candid/type updates."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Ensure useGetPublicUserInfo continues to return the expanded PublicUserInfo shape (username, bio, entity, profilePicture) and remains backward-compatible for existing callers (e.g., bench history). Add any small helper(s) needed for route-param usage (e.g., principal parsing) without changing existing hook signatures. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Align frontend TypeScript declarations with the expanded PublicUserInfo type (username, bio, entity, profilePicture) as consumed by the UI and hooks, ensuring the actor method typing for getPublicUserInfo remains consistent so TypeScript compiles cleanly."
         }
       ]
     }

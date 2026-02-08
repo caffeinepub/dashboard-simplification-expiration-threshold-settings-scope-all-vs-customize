@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Clock } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 import type { HistoryEntry } from '../../../backend';
 import { UserAvatar } from '../../../components/profile/UserAvatar';
 import { useGetPublicUserInfo } from '../../../hooks/useQueries';
@@ -22,6 +23,8 @@ function HistoryEntryCard({ entry }: { entry: HistoryEntry }) {
     return `${principal.slice(0, 6)}...${principal.slice(-6)}`;
   };
 
+  const userId = entry.user.toString();
+
   return (
     <Card>
       <CardHeader>
@@ -34,7 +37,11 @@ function HistoryEntryCard({ entry }: { entry: HistoryEntry }) {
             <Clock className="h-3 w-3" />
             {formatTimestamp(entry.timestamp)}
           </span>
-          <span className="flex items-center gap-2">
+          <Link
+            to="/users/$userId"
+            params={{ userId }}
+            className="flex items-center gap-2 hover:underline cursor-pointer"
+          >
             {userInfo ? (
               <>
                 <UserAvatar
@@ -43,12 +50,12 @@ function HistoryEntryCard({ entry }: { entry: HistoryEntry }) {
                   size="sm"
                   className="h-6 w-6"
                 />
-                <span>{userInfo.username || formatPrincipal(entry.user.toString())}</span>
+                <span>{userInfo.username || formatPrincipal(userId)}</span>
               </>
             ) : (
-              <span>{formatPrincipal(entry.user.toString())}</span>
+              <span>{formatPrincipal(userId)}</span>
             )}
-          </span>
+          </Link>
         </CardDescription>
       </CardHeader>
       {entry.details && (
