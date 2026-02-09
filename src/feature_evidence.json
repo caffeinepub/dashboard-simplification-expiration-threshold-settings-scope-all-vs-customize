@@ -2,10 +2,70 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-promote-the-currently-deployed-draft-version-51-to-the-internet-computer-mainnet-production-by-executing-the-production-deployment-checklist-steps-including-verifying-production-environment-variables-and-targeting-the-ic-network",
-      "featureTitle": "Promote the currently deployed Draft Version 51 to the Internet Computer mainnet (production) by executing the production deployment checklist steps, including verifying production environment variables and targeting the `ic` network.",
+      "featureId": "feature-refactor-the-dashboard-page-data-loading-to-use-react-query-instead-of-a-one-time-manual-fetch-for-the-data-powering-the-documents-section-so-the-dashboard-can-be-refreshed-instantly-via-query-invalidation-when-bench-document-associations-change",
+      "featureTitle": "Refactor the Dashboard page data loading to use React Query (instead of a one-time manual fetch) for the data powering the documents section, so the dashboard can be refreshed instantly via query invalidation when bench-document associations change.",
       "files": [
-        "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V51.md"
+        "frontend/src/pages/DashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-dedicated-react-query-hook-for-dashboard-export-data-e-g-wrapping-actor-exportdata-and-any-dependent-calls-like-actor-getalltestbenches-and-ensure-it-can-be-invalidated-refetched-when-documents-are-created-edited-deleted-or-associated-to-benches",
+      "featureTitle": "Add a dedicated React Query hook for dashboard/export data (e.g., wrapping actor.exportData() and any dependent calls like actor.getAllTestBenches()) and ensure it can be invalidated/refetched when documents are created, edited, deleted, or associated to benches.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-all-document-bench-document-mutations-invalidate-the-dashboard-export-data-query-so-the-dashboard-documents-section-updates-immediately-after-any-of-these-actions-within-the-app-upload-associate-associate-existing-document-to-a-bench-remove-document-from-a-bench-edit-bench-document-duplicate-bench-document-and-delete-bench-document",
+      "featureTitle": "Ensure all document/bench-document mutations invalidate the dashboard/export data query so the Dashboard documents section updates immediately after any of these actions within the app: upload+associate, associate existing document to a bench, remove document from a bench, edit bench document, duplicate bench document, and delete bench document.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-benchdocumentseditor-to-rely-on-react-query-invalidation-refetch-not-only-local-reload-via-calling-actor-exportdata-so-the-bench-documents-view-and-the-dashboard-stay-consistent-and-avoid-introducing-any-noticeable-delay-between-an-in-app-document-attachment-change-and-the-ui-reflecting-it",
+      "featureTitle": "Update BenchDocumentsEditor to rely on React Query invalidation/refetch (not only local reload via calling actor.exportData()) so the bench documents view and the dashboard stay consistent, and avoid introducing any noticeable delay between an in-app document attachment change and the UI reflecting it.",
+      "files": [
+        "frontend/src/pages/Benches/components/BenchDocumentsEditor.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,27 +78,6 @@
       ],
       "testIds": [
         "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-run-the-production-smoke-test-procedure-after-publishing-to-confirm-authentication-and-core-flows-work-in-production-and-record-results-in-the-existing-smoke-test-results-template-file",
-      "featureTitle": "Run the production smoke test procedure after publishing to confirm authentication and core flows work in production, and record results in the existing smoke test results template file.",
-      "files": [
-        "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V51.md",
-        "frontend/SMOKE_TEST_PRODUCTION_RESULTS_V48.md"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
       ],
       "confidence": "high"
     }

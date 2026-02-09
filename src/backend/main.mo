@@ -10,12 +10,13 @@ import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import Order "mo:core/Order";
 
+
 import AccessControl "authorization/access-control";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import MixinAuthorization "authorization/MixinAuthorization";
 
-
+// Make sure to add the migration to the actor with-clause!
 
 actor {
   let accessControlState = AccessControl.initState();
@@ -628,7 +629,7 @@ actor {
       serialNumber;
       agileCode = agileCode;
       plmAgileUrl;
-      decawebUrl;
+      decawebUrl = decawebUrl;
       description;
       photo;
       photoUrl;
@@ -1198,7 +1199,7 @@ actor {
         {
           componentName = comp.componentName;
           manufacturerReference = comp.manufacturerReference;
-          movementSequence = filteredMovementSequence;
+          movementSequence = componentMovements.toArray().map(func(movement) { movement.componentName });
         },
       );
     };

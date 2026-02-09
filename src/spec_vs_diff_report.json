@@ -1,57 +1,33 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T20:18:13.788Z",
-  "summary": "BuildRequest is a promotion-only publish of Draft Version 51 to IC mainnet with verified prod env vars, backend health check, frontend publish, and post-publish smoke tests recorded in the existing results template. The diff adds new deployment/smoke-test documentation for V51 and updates the smoke test results template header, but also includes apparent backend/frontend code changes (violating the “no code changes” constraint) and does not provide evidence that the deployment and smoke tests were actually executed and recorded as PASS/FAIL.",
-  "missing_requirements": [
-    {
-      "id": "REQ-4",
-      "requirement": "Promote Draft Version 51 to IC mainnet production by executing the production deployment checklist steps (DFX_NETWORK=ic), verifying production env vars (CANISTER_ID_BACKEND, CANISTER_ID_FRONTEND, II_URL=https://identity.ic0.app), confirming backend healthy before publishing frontend, and publishing frontend assets successfully.",
-      "reason": "The diff adds a deployment checklist document, but contains no evidence of an actual production deployment being executed, no recorded verification of the required env vars, no backend health check output, and no confirmation that frontend assets were published and load successfully at the production URL.",
-      "evidence": [
-        "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V51.md"
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "requirement": "Run the production smoke test procedure after publishing and record PASS/FAIL results (and diagnostics for failures) in frontend/SMOKE_TEST_PRODUCTION_RESULTS_V48.md.",
-      "reason": "A new V51 smoke test script is added, and the results template file is modified, but the results file shown is not filled out with PASS/FAIL outcomes or diagnostics; no evidence indicates smoke tests were executed after publishing.",
-      "evidence": [
-        "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V51.md",
-        "frontend/SMOKE_TEST_PRODUCTION_RESULTS_V48.md"
-      ]
-    }
-  ],
+  "generatedAt": "2026-02-09T23:41:43.382Z",
+  "summary": "The diff implements a centralized React Query dashboard export query (with a stable queryKey), updates DashboardPage and BenchDocumentsEditor to consume it, and indicates that document/bench-document mutations now invalidate the dashboard export query for instant refresh. There are also unrelated changes in BenchDetailPage (component duplicate detection / other refactoring) not requested by the BuildRequest.",
+  "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Backend canister code changes included in a publish-only request.",
-      "reason": "The BuildRequest explicitly forbids new product features or code changes; however backend/main.mo is modified in this diff.",
+      "description": "Added client-side duplicate detection logic when saving bench components (blocking save and showing an error toast).",
+      "reason": "The BuildRequest is specifically about dashboard documents refreshing after bench-document changes; it does not request new validation rules or UX changes for bench components saving.",
       "evidence": [
-        "backend/main.mo"
+        "frontend/src/pages/Benches/BenchDetailPage.tsx"
       ]
     },
     {
-      "description": "Frontend application code/behavior changes implied by updated frontend file summaries (routes, components, hooks, validation, styling, i18n, dashboards, etc.).",
-      "reason": "The BuildRequest is a promotion-only publish with a constraint of no new frontend/backend functionality or UI/route/translation changes, yet the diff indicates multiple frontend source files have been modified with substantive behavior/UI/i18n changes.",
+      "description": "Bench detail page refactor/behavior changes unrelated to document refresh (e.g., hooks/import changes such as using useGetComponents instead of another hook, additional localized UI behavior).",
+      "reason": "These changes are not part of REQ-1..REQ-4 and go beyond fixing the dashboard documents refresh behavior.",
       "evidence": [
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "project_state.json updated to mark AR items as pending/approved metadata.",
-      "reason": "Not requested as part of the promotion/smoke-test requirements; appears to add/modify internal tracking state beyond the publish action.",
-      "evidence": [
-        "project_state.json"
+        "frontend/src/pages/Benches/BenchDetailPage.tsx",
+        "frontend-file-summaries.txt (BenchDetailPage summary)"
       ]
     }
   ],
   "confidence": 0.74,
   "changed_files": [
-    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V51.md",
-    "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V51.md",
-    "frontend/SMOKE_TEST_PRODUCTION_RESULTS_V48.md",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/Benches/BenchDetailPage.tsx",
+    "frontend/src/pages/Benches/components/BenchDocumentsEditor.tsx",
+    "frontend/src/pages/DashboardPage.tsx",
     "project_state.json"
   ]
 }

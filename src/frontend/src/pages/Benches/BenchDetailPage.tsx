@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Pencil, Trash2, ExternalLink, AlertCircle } from 'lucide-react';
-import { useGetTestBench, useRemoveTestBench, useGetBenchComponents, useSetComponents, useGetCallerUserProfile, useGetBenchHistory } from '../../hooks/useQueries';
+import { useGetTestBench, useRemoveTestBench, useGetComponents, useSetComponents, useGetCallerUserProfile, useGetBenchHistory } from '../../hooks/useQueries';
 import { BenchComponentsTableEditor } from './components/BenchComponentsTableEditor';
 import { BenchDocumentsEditor } from './components/BenchDocumentsEditor';
 import { BenchHistoryList } from './components/BenchHistoryList';
@@ -41,7 +41,7 @@ export function BenchDetailPage() {
   const [componentToMove, setComponentToMove] = useState<Component | null>(null);
 
   const { data: bench, isLoading, refetch: refetchBench } = useGetTestBench(benchId);
-  const { data: components = [], refetch: refetchComponents } = useGetBenchComponents(benchId);
+  const { data: components = [], refetch: refetchComponents } = useGetComponents(benchId);
   const { data: history = [] } = useGetBenchHistory(benchId);
   const { data: profile } = useGetCallerUserProfile();
   const removeBench = useRemoveTestBench();

@@ -1,68 +1,98 @@
 {
   "kind": "build_request",
-  "title": "Publish Draft Version 51 to Production",
+  "title": "Make dashboard documents update instantly after bench-document changes",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-4",
-      "text": "Promote the currently deployed Draft Version 51 to the Internet Computer mainnet (production) by executing the production deployment checklist steps, including verifying production environment variables and targeting the `ic` network.",
-      "target": "both",
+      "id": "REQ-1",
+      "text": "Refactor the Dashboard page data loading to use React Query (instead of a one-time manual fetch) for the data powering the documents section, so the dashboard can be refreshed instantly via query invalidation when bench-document associations change.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-4",
+          "msg-6"
         ],
         "quotes": [
-          "Publish it."
+          "Dans le dashboard, j'ai constaté que les documents ne sont pas mis instantanément a jour par rapport a ce qui est rattaché pour chaque banc.",
+          "Oui."
         ]
       },
       "acceptanceCriteria": [
-        "Production deployment is executed against `DFX_NETWORK=ic`.",
-        "Production environment variables are verified before deployment, including `CANISTER_ID_BACKEND`, `CANISTER_ID_FRONTEND`, and `II_URL=https://identity.ic0.app` (per `frontend/README_PRODUCTION_ENV.md`).",
-        "Frontend assets are published to the production frontend canister and load successfully at `https://<CANISTER_ID_FRONTEND>.ic0.app`.",
-        "Backend canister is confirmed healthy before publishing the frontend (e.g., status/cycles and a basic query call succeeds)."
+        "DashboardPage no longer relies on local useState + useEffect to call actor.exportData() for documents/bench data; it uses a React Query hook with a stable queryKey.",
+        "The dashboard documents list is sourced from the React Query cache and updates after a refetch without requiring a full page reload."
       ]
     },
     {
-      "id": "REQ-5",
-      "text": "Run the production smoke test procedure after publishing to confirm authentication and core flows work in production, and record results in the existing smoke test results template file.",
-      "target": "both",
+      "id": "REQ-2",
+      "text": "Add a dedicated React Query hook for dashboard/export data (e.g., wrapping actor.exportData() and any dependent calls like actor.getAllTestBenches()) and ensure it can be invalidated/refetched when documents are created, edited, deleted, or associated to benches.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-4",
+          "msg-6"
         ],
         "quotes": [
-          "Publish it."
+          "Normalement, ils doivent correspondre en temps réel.a ce qui correspond a un banc.",
+          "Oui."
         ]
       },
       "acceptanceCriteria": [
-        "Smoke tests are executed on the production URL after publishing (using the steps in `frontend/SMOKE_TEST_PRODUCTION_DRAFT_V48.md` as the baseline procedure).",
-        "Results are recorded in `frontend/SMOKE_TEST_PRODUCTION_RESULTS_V48.md`, including PASS/FAIL for each section and diagnostics for any failures.",
-        "If any critical issues are encountered (app fails to load, cannot sign in, data loss, security issue, or backend out-of-cycles/traps), publishing is treated as failed and the issue is documented in the results file."
+        "A reusable hook exists in frontend/src/hooks/useQueries.ts (or a nearby non-immutable hook file) that fetches the dashboard/export payload and exposes loading/error state.",
+        "The hook uses a single, well-defined queryKey (e.g., ['dashboardExportData'] or similar) so other mutations can invalidate it."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Ensure all document/bench-document mutations invalidate the dashboard/export data query so the Dashboard documents section updates immediately after any of these actions within the app: upload+associate, associate existing document to a bench, remove document from a bench, edit bench document, duplicate bench document, and delete bench document.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4",
+          "msg-6"
+        ],
+        "quotes": [
+          "les documents ne sont pas mis instantanément a jour",
+          "Oui."
+        ]
+      },
+      "acceptanceCriteria": [
+        "After uploading a document and associating it to a bench (BenchDocumentsEditor), navigating to (or already viewing) the Dashboard shows the correct updated assigned benches for that document without manual reload.",
+        "After deleting, duplicating, or editing a bench document, the Dashboard documents list reflects the change after the mutation completes (no stale association list).",
+        "React Query invalidation is implemented centrally in the relevant mutation hooks (e.g., useAssociateDocumentToBench, useRemoveDocumentFromBench, useEditBenchDocument, useDuplicateBenchDocument, useDeleteBenchDocument) by invalidating the dashboard/export queryKey in addition to existing per-bench invalidations."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Update BenchDocumentsEditor to rely on React Query invalidation/refetch (not only local reload via calling actor.exportData()) so the bench documents view and the dashboard stay consistent, and avoid introducing any noticeable delay between an in-app document attachment change and the UI reflecting it.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4",
+          "msg-6"
+        ],
+        "quotes": [
+          "ils doivent correspondre en temps réel",
+          "Oui."
+        ]
+      },
+      "acceptanceCriteria": [
+        "BenchDocumentsEditor triggers refresh through React Query (either by using queryClient.invalidateQueries for the dashboard/export query and/or by consuming the shared query directly), rather than depending solely on re-calling actor.exportData() into local state.",
+        "No additional user action (refresh button, page reload) is required for the dashboard’s document-to-bench mapping to become correct after performing document operations in the benches UI."
       ]
     }
   ],
   "constraints": [
-    "No new product features or code changes are introduced as part of this request; this is a publish/promotion action only.",
-    "Use Internet Identity production URL exactly as `https://identity.ic0.app`.",
-    "Target Internet Computer mainnet only (`DFX_NETWORK=ic`)."
+    "Do not edit files under frontend/src/components/ui (read-only shadcn components).",
+    "Do not modify frontend immutable hook files listed in SYSTEM_CONTEXT (compose around them instead).",
+    "Backend must remain a single Motoko actor; only add backend changes if strictly required for the refresh behavior."
   ],
   "nonGoals": [
-    "Implementing new frontend or backend functionality.",
-    "Changing UI design, routes, or translations as part of this publish request.",
-    "Introducing new canisters or external services."
+    "Implementing true server push / WebSocket-style real-time updates.",
+    "Changing the underlying document/bench data model in the backend.",
+    "Adding new dashboard features beyond fixing the documents refresh behavior."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

@@ -1,30 +1,57 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project approved for production publish (Draft Version 51).",
-  "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "summary": "Dashboard: ensure documents linked to each bank update in real time (no delay) after attachment changes.",
+  "architectural_notes": [
+    "Consider real-time sync for dashboard data (e.g., websocket/SSE/polling) so document-to-bank attachments are reflected immediately."
+  ],
+  "known_issues": [
+    "Dashboard does not update documents list instantly after documents are attached to a bank; causes a visible delay/mismatch."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-promote-the-currently-deployed-draft-version-51-to-the-internet-computer-mainnet-production-by-executing-the-production-deployment-checklist-steps-including-verifying-production-environment-variables-and-targeting-the-ic-network",
-      "title": "Promote the currently deployed Draft Version 51 to the Internet Computer mainnet (production) by executing the production deployment checklist steps, including verifying production environment variables and targeting the `ic` network.",
+      "id": "feature-refactor-the-dashboard-page-data-loading-to-use-react-query-instead-of-a-one-time-manual-fetch-for-the-data-powering-the-documents-section-so-the-dashboard-can-be-refreshed-instantly-via-query-invalidation-when-bench-document-associations-change",
+      "title": "Refactor the Dashboard page data loading to use React Query (instead of a one-time manual fetch) for the data powering the documents section, so the dashboard can be refreshed instantly via query invalidation when bench-document associations change.",
       "reqIds": [
-        "REQ-4"
+        "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-run-the-production-smoke-test-procedure-after-publishing-to-confirm-authentication-and-core-flows-work-in-production-and-record-results-in-the-existing-smoke-test-results-template-file",
-      "title": "Run the production smoke test procedure after publishing to confirm authentication and core flows work in production, and record results in the existing smoke test results template file.",
+      "id": "feature-add-a-dedicated-react-query-hook-for-dashboard-export-data-e-g-wrapping-actor-exportdata-and-any-dependent-calls-like-actor-getalltestbenches-and-ensure-it-can-be-invalidated-refetched-when-documents-are-created-edited-deleted-or-associated-to-benches",
+      "title": "Add a dedicated React Query hook for dashboard/export data (e.g., wrapping actor.exportData() and any dependent calls like actor.getAllTestBenches()) and ensure it can be invalidated/refetched when documents are created, edited, deleted, or associated to benches.",
       "reqIds": [
-        "REQ-5"
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-all-document-bench-document-mutations-invalidate-the-dashboard-export-data-query-so-the-dashboard-documents-section-updates-immediately-after-any-of-these-actions-within-the-app-upload-associate-associate-existing-document-to-a-bench-remove-document-from-a-bench-edit-bench-document-duplicate-bench-document-and-delete-bench-document",
+      "title": "Ensure all document/bench-document mutations invalidate the dashboard/export data query so the Dashboard documents section updates immediately after any of these actions within the app: upload+associate, associate existing document to a bench, remove document from a bench, edit bench document, duplicate bench document, and delete bench document.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-benchdocumentseditor-to-rely-on-react-query-invalidation-refetch-not-only-local-reload-via-calling-actor-exportdata-so-the-bench-documents-view-and-the-dashboard-stay-consistent-and-avoid-introducing-any-noticeable-delay-between-an-in-app-document-attachment-change-and-the-ui-reflecting-it",
+      "title": "Update BenchDocumentsEditor to rely on React Query invalidation/refetch (not only local reload via calling actor.exportData()) so the bench documents view and the dashboard stay consistent, and avoid introducing any noticeable delay between an in-app document attachment change and the UI reflecting it.",
+      "reqIds": [
+        "REQ-4"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Publish Draft Version 51 to Production",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Add real-time/instant refresh so the dashboard documents list always matches the documents attached to each bank",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Make dashboard documents update instantly after bench-document changes",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

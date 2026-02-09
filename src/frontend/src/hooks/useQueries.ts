@@ -1,9 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { TestBench, UserProfile, UserRole, Tag, ExternalBlob, ExpirationThresholdMode, Component, Document, HistoryEntry, ProfilePicture, PublicUserInfo } from '../backend';
+import type { TestBench, UserProfile, UserRole, Tag, ExternalBlob, ExpirationThresholdMode, Component, Document, HistoryEntry, ProfilePicture, PublicUserInfo, ExportPayload } from '../backend';
 import { Principal } from '@dfinity/principal';
 import { useAvatarCacheBuster } from './useAvatarCacheBuster';
 import { normalizeErrorMessage } from '../utils/errors';
+
+// Centralized query key for dashboard export data
+export const DASHBOARD_EXPORT_QUERY_KEY = ['dashboardExportData'] as const;
 
 export function useGetAllTestBenches() {
   const { actor, isFetching } = useActor();
@@ -202,6 +205,7 @@ export function useCreateTestBench() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['testBenches'] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_EXPORT_QUERY_KEY });
     },
   });
 }
@@ -245,6 +249,7 @@ export function useUpdateTestBench() {
       queryClient.invalidateQueries({ queryKey: ['testBenches'] });
       queryClient.invalidateQueries({ queryKey: ['testBench', variables.benchId] });
       queryClient.invalidateQueries({ queryKey: ['benchHistory', variables.benchId] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_EXPORT_QUERY_KEY });
     },
   });
 }
@@ -264,23 +269,19 @@ export function useRemoveTestBench() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['testBenches'] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_EXPORT_QUERY_KEY });
     },
   });
 }
 
-export function useGetBenchComponents(benchId: string) {
+export function useGetComponents(benchId: string) {
   const { actor, isFetching } = useActor();
 
   return useQuery<Component[]>({
     queryKey: ['benchComponents', benchId],
     queryFn: async () => {
       if (!actor) return [];
-      try {
-        return await actor.getComponents(benchId);
-      } catch (error) {
-        console.error('Failed to fetch components:', error);
-        return [];
-      }
+      return actor.getComponents(benchId);
     },
     enabled: !!actor && !isFetching && !!benchId,
   });
@@ -302,29 +303,7 @@ export function useSetComponents() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['benchComponents', variables.benchId] });
       queryClient.invalidateQueries({ queryKey: ['benchHistory', variables.benchId] });
-    },
-  });
-}
-
-export function useDuplicateComponentToBenches() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: { component: Component; targetBenchIds: string[] }) => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        return await actor.duplicateComponentToBenches(params.component, params.targetBenchIds);
-      } catch (error) {
-        throw new Error(normalizeErrorMessage(error));
-      }
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['benchComponents', variables.component.associatedBenchId] });
-      variables.targetBenchIds.forEach((benchId) => {
-        queryClient.invalidateQueries({ queryKey: ['benchComponents', benchId] });
-        queryClient.invalidateQueries({ queryKey: ['benchHistory', benchId] });
-      });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_EXPORT_QUERY_KEY });
     },
   });
 }
@@ -334,10 +313,18 @@ export function useMoveComponentToBench() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: { component: Component; fromBenchId: string; toBenchId: string }) => {
+    mutationFn: async (params: {
+      component: Component;
+      fromBenchId: string;
+      toBenchId: string;
+    }) => {
       if (!actor) throw new Error('Actor not available');
       try {
-        return await actor.moveComponentToBench(params.component, params.fromBenchId, params.toBenchId);
+        return await actor.moveComponentToBench(
+          params.component,
+          params.fromBenchId,
+          params.toBenchId
+        );
       } catch (error) {
         throw new Error(normalizeErrorMessage(error));
       }
@@ -345,10 +332,243 @@ export function useMoveComponentToBench() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['benchComponents', variables.fromBenchId] });
       queryClient.invalidateQueries({ queryKey: ['benchComponents', variables.toBenchId] });
-      queryClient.invalidateQueries({ queryKey: ['testBench', variables.fromBenchId] });
-      queryClient.invalidateQueries({ queryKey: ['testBench', variables.toBenchId] });
       queryClient.invalidateQueries({ queryKey: ['benchHistory', variables.fromBenchId] });
       queryClient.invalidateQueries({ queryKey: ['benchHistory', variables.toBenchId] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_EXPORT_QUERY_KEY });
+    },
+  });
+}
+
+export function useDuplicateComponentToBench() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      benchId: string;
+      component: Component;
+      targetBenchId: string;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      try {
+        return await actor.duplicateComponentToBench(
+          params.benchId,
+          params.component,
+          params.targetBenchId
+        );
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['benchComponents', variables.targetBenchId] });
+      queryClient.invalidateQueries({ queryKey: ['benchHistory', variables.targetBenchId] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_EXPORT_QUERY_KEY });
+    },
+  });
+}
+
+export function useDuplicateComponentToBenches() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      component: Component;
+      targetBenchIds: string[];
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      try {
+        return await actor.duplicateComponentToBenches(
+          params.component,
+          params.targetBenchIds
+        );
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
+    },
+    onSuccess: (_, variables) => {
+      variables.targetBenchIds.forEach((benchId) => {
+        queryClient.invalidateQueries({ queryKey: ['benchComponents', benchId] });
+        queryClient.invalidateQueries({ queryKey: ['benchHistory', benchId] });
+      });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_EXPORT_QUERY_KEY });
+    },
+  });
+}
+
+export function useGetBenchHistory(benchId: string) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<HistoryEntry[]>({
+    queryKey: ['benchHistory', benchId],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getBenchHistory(benchId);
+    },
+    enabled: !!actor && !isFetching && !!benchId,
+  });
+}
+
+export function useGetUniqueEntities() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<string[]>({
+    queryKey: ['uniqueEntities'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getUniqueEntities();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useSetProfilePicture() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  const { updateCacheBuster } = useAvatarCacheBuster();
+
+  return useMutation({
+    mutationFn: async (profilePicture: ProfilePicture) => {
+      if (!actor) throw new Error('Actor not available');
+      try {
+        return await actor.setProfilePicture(profilePicture);
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
+    },
+    onSuccess: () => {
+      updateCacheBuster();
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useSetLanguageTag() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (languageTag: string) => {
+      if (!actor) throw new Error('Actor not available');
+      try {
+        return await actor.setLanguageTag(languageTag);
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['languageTag'] });
+    },
+  });
+}
+
+export function useGetLanguageTag() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<string>({
+    queryKey: ['languageTag'],
+    queryFn: async () => {
+      if (!actor) return 'en-US';
+      try {
+        return await actor.getLanguageTag();
+      } catch (error) {
+        console.error('Failed to get language tag:', error);
+        return 'en-US';
+      }
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetAllowedEmailDomain() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<string>({
+    queryKey: ['allowedEmailDomain'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      try {
+        return await actor.getAllowedEmailDomain();
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetPublicUserInfo(userId: Principal | null) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<PublicUserInfo | null>({
+    queryKey: ['publicUserInfo', userId?.toString()],
+    queryFn: async () => {
+      if (!actor || !userId) return null;
+      try {
+        return await actor.getPublicUserInfo(userId);
+      } catch (error) {
+        console.error('Failed to get public user info:', error);
+        return null;
+      }
+    },
+    enabled: !!actor && !isFetching && !!userId,
+  });
+}
+
+// New hook for dashboard export data
+export function useDashboardExportData() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<ExportPayload>({
+    queryKey: DASHBOARD_EXPORT_QUERY_KEY,
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      try {
+        return await actor.exportData();
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+// Document mutations with centralized dashboard invalidation
+export function useCreateDocument() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      id: string;
+      productDisplayName: string;
+      version: bigint;
+      category: string;
+      fileReference: ExternalBlob;
+      semanticVersion: string;
+      tags: Tag[];
+      documentVersion: string | null;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      try {
+        return await actor.createDocument(
+          params.id,
+          params.productDisplayName,
+          params.version,
+          params.category,
+          params.fileReference,
+          params.semanticVersion,
+          params.tags,
+          params.documentVersion
+        );
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_EXPORT_QUERY_KEY });
     },
   });
 }
@@ -369,6 +589,7 @@ export function useAssociateDocumentToBench() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['testBench', variables.benchId] });
       queryClient.invalidateQueries({ queryKey: ['benchHistory', variables.benchId] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_EXPORT_QUERY_KEY });
     },
   });
 }
@@ -389,6 +610,27 @@ export function useRemoveDocumentFromBench() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['testBench', variables.benchId] });
       queryClient.invalidateQueries({ queryKey: ['benchHistory', variables.benchId] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_EXPORT_QUERY_KEY });
+    },
+  });
+}
+
+export function useDeleteBenchDocument() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: { benchId: string; documentId: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      try {
+        return await actor.deleteBenchDocument(params.benchId, params.documentId);
+      } catch (error) {
+        throw new Error(normalizeErrorMessage(error));
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['testBench', variables.benchId] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_EXPORT_QUERY_KEY });
     },
   });
 }
@@ -420,7 +662,7 @@ export function useEditBenchDocument() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['testBench', variables.benchId] });
-      queryClient.invalidateQueries({ queryKey: ['benchHistory', variables.benchId] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_EXPORT_QUERY_KEY });
     },
   });
 }
@@ -447,123 +689,10 @@ export function useDuplicateBenchDocument() {
       }
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['testBench', variables.benchId] });
       variables.targetBenchIds.forEach((benchId) => {
         queryClient.invalidateQueries({ queryKey: ['testBench', benchId] });
       });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_EXPORT_QUERY_KEY });
     },
-  });
-}
-
-export function useDeleteBenchDocument() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: { benchId: string; documentId: string }) => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        return await actor.deleteBenchDocument(params.benchId, params.documentId);
-      } catch (error) {
-        throw new Error(normalizeErrorMessage(error));
-      }
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['testBench', variables.benchId] });
-      queryClient.invalidateQueries({ queryKey: ['benchHistory', variables.benchId] });
-    },
-  });
-}
-
-export function useGetBenchHistory(benchId: string) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<HistoryEntry[]>({
-    queryKey: ['benchHistory', benchId],
-    queryFn: async () => {
-      if (!actor) return [];
-      try {
-        return await actor.getBenchHistory(benchId);
-      } catch (error) {
-        console.error('Failed to fetch bench history:', error);
-        return [];
-      }
-    },
-    enabled: !!actor && !isFetching && !!benchId,
-  });
-}
-
-export function useGetUniqueEntities() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<string[]>({
-    queryKey: ['uniqueEntities'],
-    queryFn: async () => {
-      if (!actor) return [];
-      try {
-        return await actor.getUniqueEntities();
-      } catch (error) {
-        console.error('Failed to fetch unique entities:', error);
-        return [];
-      }
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-export function useGetAllowedEmailDomain() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<string>({
-    queryKey: ['allowedEmailDomain'],
-    queryFn: async () => {
-      if (!actor) return 'safrangroup.com';
-      try {
-        return await actor.getAllowedEmailDomain();
-      } catch (error) {
-        console.error('Failed to fetch allowed email domain:', error);
-        return 'safrangroup.com';
-      }
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-export function useSetProfilePicture() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-  const { updateCacheBuster } = useAvatarCacheBuster();
-
-  return useMutation({
-    mutationFn: async (profilePicture: ProfilePicture) => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        return await actor.setProfilePicture(profilePicture);
-      } catch (error) {
-        throw new Error(normalizeErrorMessage(error));
-      }
-    },
-    onSuccess: () => {
-      updateCacheBuster();
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-    },
-  });
-}
-
-export function useGetPublicUserInfo(userId: Principal | null) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<PublicUserInfo | null>({
-    queryKey: ['publicUserInfo', userId?.toString() || ''],
-    queryFn: async () => {
-      if (!actor || !userId) return null;
-      try {
-        return await actor.getPublicUserInfo(userId);
-      } catch (error) {
-        console.error('Failed to fetch public user info:', error);
-        return null;
-      }
-    },
-    enabled: !!actor && !isFetching && !!userId,
   });
 }

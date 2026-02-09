@@ -1,43 +1,76 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Publish Draft Version 51 to Production (Frontend-only docs & runbooks)",
+  "title": "Instant Dashboard documents refresh via React Query export-data query + centralized invalidation",
   "requirements": [
     {
-      "id": "REQ-4",
-      "summary": "Document and follow the production deployment checklist steps for promoting Draft Version 51 to IC mainnet, including production env var verification and frontend asset publish order constraints.",
+      "id": "REQ-1",
+      "summary": "Refactor DashboardPage documents data loading to use a React Query hook with a stable queryKey instead of local state + one-time manual fetch.",
       "acceptanceCriteria": [
-        "Production deployment is executed against `DFX_NETWORK=ic`.",
-        "Production environment variables are verified before deployment, including `CANISTER_ID_BACKEND`, `CANISTER_ID_FRONTEND`, and `II_URL=https://identity.ic0.app` (per `frontend/README_PRODUCTION_ENV.md`).",
-        "Frontend assets are published to the production frontend canister and load successfully at `https://<CANISTER_ID_FRONTEND>.ic0.app`.",
-        "Backend canister is confirmed healthy before publishing the frontend (e.g., status/cycles and a basic query call succeeds)."
+        "DashboardPage no longer relies on local useState + useEffect to call actor.exportData() for documents/bench data; it uses a React Query hook with a stable queryKey.",
+        "The dashboard documents list is sourced from the React Query cache and updates after a refetch without requiring a full page reload."
       ],
       "file_operations": [
         {
-          "path": "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V51.md",
-          "operation": "create",
-          "description": "Create a Draft Version 51 production deployment checklist by adapting the existing Draft V47/V48 checklists: include explicit verification of `DFX_NETWORK=ic`, required env vars (`CANISTER_ID_BACKEND`, `CANISTER_ID_FRONTEND`, `II_URL=https://identity.ic0.app` per `frontend/README_PRODUCTION_ENV.md`), and the required order of operations (confirm backend health before publishing frontend assets). Ensure the checklist remains promotion-only (no code/product changes)."
+          "path": "frontend/src/pages/DashboardPage.tsx",
+          "operation": "modify",
+          "description": "Replace the local useState/useEffect fetch of actor.getAllTestBenches() + actor.exportData() with the shared React Query hook (e.g., useDashboardExportData) and source benches/documents/components/history from the query result so the documents section updates from cache after invalidation/refetch."
         }
       ]
     },
     {
-      "id": "REQ-5",
-      "summary": "Update the production smoke test runbook for Draft Version 51 and record production smoke test results in the existing V48 results template after publishing.",
+      "id": "REQ-2",
+      "summary": "Introduce a dedicated reusable React Query hook for dashboard/export data with a single well-defined queryKey suitable for invalidation.",
       "acceptanceCriteria": [
-        "Smoke tests are executed on the production URL after publishing (using the steps in `frontend/SMOKE_TEST_PRODUCTION_DRAFT_V48.md` as the baseline procedure).",
-        "Results are recorded in `frontend/SMOKE_TEST_PRODUCTION_RESULTS_V48.md`, including PASS/FAIL for each section and diagnostics for any failures.",
-        "If any critical issues are encountered (app fails to load, cannot sign in, data loss, security issue, or backend out-of-cycles/traps), publishing is treated as failed and the issue is documented in the results file."
+        "A reusable hook exists in frontend/src/hooks/useQueries.ts (or a nearby non-immutable hook file) that fetches the dashboard/export payload and exposes loading/error state.",
+        "The hook uses a single, well-defined queryKey (e.g., ['dashboardExportData'] or similar) so other mutations can invalidate it."
       ],
       "file_operations": [
         {
-          "path": "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V51.md",
-          "operation": "create",
-          "description": "Create a Draft Version 51 production smoke test procedure by baselining from `frontend/SMOKE_TEST_PRODUCTION_DRAFT_V48.md` and updating version references and any Draft V51-specific notes, while keeping the same test scope (authentication, profile setup/persistence, sign-out/re-auth, language preferences, dashboard, benches/components) and diagnostics requirements."
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a new React Query hook (e.g., useDashboardExportData) that wraps actor.exportData() and any dependent calls (e.g., actor.getAllTestBenches()) into one query with a stable shared queryKey (e.g., ['dashboardExportData']). Also export the queryKey (or a small helper) for consistent reuse by mutation hooks."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Centrally invalidate the dashboard/export data React Query cache after any document/bench-document mutations so Dashboard updates immediately without reload.",
+      "acceptanceCriteria": [
+        "After uploading a document and associating it to a bench (BenchDocumentsEditor), navigating to (or already viewing) the Dashboard shows the correct updated assigned benches for that document without manual reload.",
+        "After deleting, duplicating, or editing a bench document, the Dashboard documents list reflects the change after the mutation completes (no stale association list).",
+        "React Query invalidation is implemented centrally in the relevant mutation hooks (e.g., useAssociateDocumentToBench, useRemoveDocumentFromBench, useEditBenchDocument, useDuplicateBenchDocument, useDeleteBenchDocument) by invalidating the dashboard/export queryKey in addition to existing per-bench invalidations."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update document + bench-document mutation hooks to invalidate the shared dashboard/export queryKey on success (in addition to existing per-bench invalidations): useAssociateDocumentToBench, useRemoveDocumentFromBench, useEditBenchDocument, useDuplicateBenchDocument, useDeleteBenchDocument. If any document creation/upload is performed outside a mutation hook, add a dedicated mutation hook (e.g., useCreateDocument) that also invalidates the same queryKey so upload+associate flows can invalidate consistently."
         },
         {
-          "path": "frontend/SMOKE_TEST_PRODUCTION_RESULTS_V48.md",
+          "path": "frontend/src/pages/Benches/components/DuplicateDocumentDialog.tsx",
           "operation": "modify",
-          "description": "Update the existing smoke test results template to explicitly support recording a Draft Version 51 production run (e.g., clarify that the file is used for the V51 publish, update the version field guidance, and ensure there is space to record PASS/FAIL per section plus required diagnostics and critical-issue handling notes), while preserving the template structure used by the V48 baseline procedure."
+          "description": "Ensure the duplicate flow relies on the updated useDuplicateBenchDocument invalidation behavior and does not add any manual dashboard refresh logic; keep UI behavior unchanged while benefiting from centralized query invalidation."
+        },
+        {
+          "path": "frontend/src/pages/Benches/components/EditBenchDocumentDialog.tsx",
+          "operation": "modify",
+          "description": "Ensure the edit flow relies on the updated useEditBenchDocument invalidation behavior and does not add any manual dashboard refresh logic; keep UI behavior unchanged while benefiting from centralized query invalidation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Refactor BenchDocumentsEditor to consume React Query data and trigger refresh via invalidation/refetch rather than re-calling actor.exportData() into local state.",
+      "acceptanceCriteria": [
+        "BenchDocumentsEditor triggers refresh through React Query (either by using queryClient.invalidateQueries for the dashboard/export query and/or by consuming the shared query directly), rather than depending solely on re-calling actor.exportData() into local state.",
+        "No additional user action (refresh button, page reload) is required for the dashboard’s document-to-bench mapping to become correct after performing document operations in the benches UI."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/Benches/components/BenchDocumentsEditor.tsx",
+          "operation": "modify",
+          "description": "Remove the local loadDocuments() implementation that calls actor.exportData() and instead derive the bench-specific document list from the shared React Query dashboard/export data hook (filter by associatedBenches.includes(benchId)). After upload+associate and other document operations, rely on the mutation hooks’ centralized query invalidation (and optionally a targeted invalidateQueries call) so the editor and dashboard stay consistent without manual reload."
         }
       ]
     }

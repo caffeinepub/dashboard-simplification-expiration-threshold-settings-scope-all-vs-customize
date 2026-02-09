@@ -4,32 +4,27 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, GripVertical, Download } from 'lucide-react';
 import { useI18n } from '../i18n/useI18n';
-import { useActor } from '../hooks/useActor';
-import { useGetCallerUserProfile, useUpdateDashboardSectionsOrder } from '../hooks/useQueries';
+import { useGetCallerUserProfile, useUpdateDashboardSectionsOrder, useDashboardExportData } from '../hooks/useQueries';
 import { StatisticsSection } from './Dashboard/components/StatisticsSection';
 import { MovementFlowSection } from './Dashboard/components/MovementFlowSection';
+import { ExpiringComponentsByBenchTableSection } from './Dashboard/components/ExpiringComponentsByBenchTableSection';
 import { downloadDocument } from '../utils/download';
 import { toast } from 'sonner';
-import type { TestBench, Component, Document, HistoryEntry } from '../backend';
+import type { Component, Document } from '../backend';
 
 export function DashboardPage() {
-  const { t, languageTag } = useI18n();
-  const { actor } = useActor();
+  const { t } = useI18n();
   const { data: profile } = useGetCallerUserProfile();
   const updateOrder = useUpdateDashboardSectionsOrder();
+  const { data: exportData, isLoading, isFetched } = useDashboardExportData();
 
-  const [benches, setBenches] = useState<TestBench[]>([]);
-  const [allComponents, setAllComponents] = useState<Component[]>([]);
-  const [allDocuments, setAllDocuments] = useState<Document[]>([]);
-  const [allHistory, setAllHistory] = useState<Array<[string, HistoryEntry[]]>>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
   const [draggedSection, setDraggedSection] = useState<string | null>(null);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
 
   const defaultSections = [
     'statistics',
+    'expiringComponentsTable',
     'movementFlow',
     'documents',
     'benches',
@@ -43,37 +38,6 @@ export function DashboardPage() {
       setLocalOrder(defaultSections);
     }
   }, [profile]);
-
-  useEffect(() => {
-    async function fetchData() {
-      if (!actor) return;
-      setIsLoading(true);
-      try {
-        const [benchesData, exportData] = await Promise.all([
-          actor.getAllTestBenches(),
-          actor.exportData(),
-        ]);
-
-        setBenches(benchesData);
-
-        const componentsArray: Component[] = [];
-        exportData.perBenchComponents.forEach(([_, comps]) => {
-          componentsArray.push(...comps);
-        });
-        setAllComponents(componentsArray);
-
-        setAllDocuments(exportData.allDocuments);
-        setAllHistory(exportData.perBenchHistoryEntries);
-        setHasLoadedOnce(true);
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
-        toast.error(t('dashboard.error'));
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchData();
-  }, [actor, languageTag, t]);
 
   const handleSaveLayout = async () => {
     try {
@@ -119,20 +83,32 @@ export function DashboardPage() {
   };
 
   const getBenchNames = (benchIds: string[]): string => {
-    if (benchIds.length === 0) return '-';
+    if (!exportData || benchIds.length === 0) return '-';
     const names = benchIds
-      .map((id) => benches.find((b) => b.id === id)?.name)
+      .map((id) => exportData.benches.find((b) => b.id === id)?.name)
       .filter(Boolean);
     return names.length > 0 ? names.join(', ') : '-';
   };
 
   // Show loading spinner only on initial load
-  if (isLoading && !hasLoadedOnce) {
+  if (isLoading && !isFetched) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
+  }
+
+  // Extract data from exportData
+  const benches = exportData?.benches || [];
+  const allDocuments = exportData?.allDocuments || [];
+  const allHistory = exportData?.perBenchHistoryEntries || [];
+  
+  const allComponents: Component[] = [];
+  if (exportData?.perBenchComponents) {
+    exportData.perBenchComponents.forEach(([_, comps]) => {
+      allComponents.push(...comps);
+    });
   }
 
   const sections: Record<string, React.ReactNode> = {
@@ -142,6 +118,14 @@ export function DashboardPage() {
         benches={benches}
         allComponents={allComponents}
         allDocuments={allDocuments}
+        profile={profile || null}
+      />
+    ),
+    expiringComponentsTable: (
+      <ExpiringComponentsByBenchTableSection
+        key="expiringComponentsTable"
+        benches={benches}
+        allComponents={allComponents}
         profile={profile || null}
       />
     ),
