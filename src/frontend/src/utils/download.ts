@@ -1,33 +1,30 @@
 import { ExternalBlob } from '../backend';
 
-/**
- * Downloads a document from an ExternalBlob reference
- * @param blob - The ExternalBlob containing the document
- * @param filename - The filename to use for the download
- */
-export async function downloadDocument(blob: ExternalBlob, filename: string): Promise<void> {
+export async function downloadDocument(doc: { productDisplayName: string; fileReference: ExternalBlob }) {
   try {
-    // Fetch the bytes from the blob
-    const bytes = await blob.getBytes();
-    
-    // Create a Blob from the bytes
-    const fileBlob = new Blob([bytes]);
-    
-    // Create a temporary URL for the blob
-    const url = URL.createObjectURL(fileBlob);
-    
-    // Create a temporary anchor element and trigger download
+    const bytes = await doc.fileReference.getBytes();
+    const blob = new Blob([bytes]);
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = filename;
+    a.download = doc.productDisplayName;
     document.body.appendChild(a);
     a.click();
-    
-    // Cleanup
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   } catch (error) {
-    console.error('Failed to download document:', error);
-    throw new Error('Failed to download document');
+    console.error('Download error:', error);
+    throw error;
   }
+}
+
+export function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

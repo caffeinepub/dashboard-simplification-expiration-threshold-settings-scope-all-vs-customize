@@ -1,17 +1,50 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Project to manage bench (“banc”) components and documents with proper site translation, enhanced document/component management, richer dashboard insights (assignments, versions, movement visualization), and full dashboard data export.",
   "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
-  "imageRequirements": "## Required Images\n- Safran logo wordmark on transparent background, tightly cropped and scaled to fit (safran-logo.dim_220x64.png)\n\n## Edit Images\n- Use the uploaded image as the source and produce the app asset (png-clipart-safran-electronics-defense-labinal-logo-aerospace-outils-text-logo-thumbnail.png > safran-logo.dim_220x64.png)",
+  "known_issues": [
+    "Site translation is currently incorrect/regressed compared to previous versions"
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-replace-the-existing-safran-header-logo-asset-with-the-user-provided-image-keeping-the-public-path-unchanged-assets-generated-safran-logo-dim-220x64-png-as-used-by-frontend-src-components-layout-appshell-tsx-the-resulting-image-must-be-a-clean-properly-cropped-scaled-logo-that-fits-within-220x64-and-renders-clearly-on-both-light-and-dark-backgrounds-transparent-background-if-possible",
-      "title": "Replace the existing Safran header logo asset with the user-provided image, keeping the public path unchanged: `/assets/generated/safran-logo.dim_220x64.png` (as used by `frontend/src/components/layout/AppShell.tsx`). The resulting image must be a clean, properly cropped/scaled logo that fits within 220x64 and renders clearly on both light and dark backgrounds (transparent background if possible).",
+      "id": "feature-restore-full-site-translation-behavior-so-that-all-user-visible-ui-strings-render-via-the-i18n-translation-system-usei18n-t-and-correctly-change-when-the-language-changes-matching-the-behavior-of-previous-versions",
+      "title": "Restore full-site translation behavior so that all user-visible UI strings render via the i18n translation system (useI18n.t) and correctly change when the language changes, matching the behavior of previous versions.",
       "reqIds": [
         "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-bench-documents-hw-sw-other-s-can-be-managed-with-component-like-operations-edit-metadata-delete-the-document-not-just-unassign-download-and-duplicate-the-document-to-reassign-it-to-one-or-more-other-benches",
+      "title": "Ensure bench documents (HW/SW/Other(s)) can be managed with component-like operations: edit metadata, delete the document (not just unassign), download, and duplicate the document to reassign it to one or more other benches.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-dashboard-recap-display-for-each-document-1-the-bench-es-it-is-assigned-to-and-2-its-document-version",
+      "title": "In the dashboard recap, display for each document: (1) the bench(es) it is assigned to and (2) its document version.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-dedicated-visual-dashboard-section-that-shows-a-flow-of-components-that-moved-from-bench-a-to-bench-b-a-chart-flow-visualization-based-on-recorded-move-events",
+      "title": "Add a dedicated, visual dashboard section that shows a flow of components that moved from Bench A to Bench B (a chart/flow visualization based on recorded move events).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-export-tab-dialog-add-an-option-to-export-all-data-shown-needed-by-the-dashboard-including-documents-with-version-and-bench-assignments-and-the-component-movement-flow-data",
+      "title": "In the Export tab/dialog, add an option to export all data shown/needed by the dashboard, including documents (with version and bench assignments) and the component movement flow data.",
+      "reqIds": [
+        "REQ-5"
       ],
       "version": 1
     }
@@ -19,12 +52,36 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Remplacer l'image « safran » par la nouvelle image fournie par l'utilisateur",
+      "summary": "Fix/regain proper full-site translation behavior as in previous versions",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Manage HW/SW/other documents as components: edit, delete, download, duplicate and reassign to another bench",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Dashboard recap: show which benches each document is assigned to and the document version",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Dashboard: dedicated visual flow/chart showing components that moved from Bench A to Bench B",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Export tab: add option to export all dashboard data",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Replace Safran logo image with user-provided file",
+  "projectName": "Restore correct i18n, enhance document-as-component management, add dashboard assignment + movement visualization, and export full dashboard data",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

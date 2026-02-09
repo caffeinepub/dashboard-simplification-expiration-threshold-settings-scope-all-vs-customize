@@ -1,7 +1,7 @@
-# Production Deployment Checklist - Draft Version 36
+# Production Deployment Checklist - Draft Version 47
 
 ## Overview
-This document outlines the steps to deploy Draft Version 36 to production. **No feature or code changes are included in this deployment** - this is a promotion of the existing, tested codebase to the production environment.
+This document outlines the steps to deploy Draft Version 47 to production. **No feature or code changes are included in this deployment** - this is a promotion of the existing, tested codebase to the production environment.
 
 ## Pre-Deployment Checklist
 
@@ -14,7 +14,7 @@ This document outlines the steps to deploy Draft Version 36 to production. **No 
 - [ ] Confirm all environment variables are available in the build environment
 
 ### 2. Build Preparation
-- [ ] Ensure the current codebase matches Draft Version 36
+- [ ] Ensure the current codebase matches Draft Version 47
 - [ ] Clear any local build artifacts: `rm -rf frontend/dist`
 - [ ] Run `pnpm typescript-check` to verify no type errors
 - [ ] Run `pnpm lint` to verify code quality
@@ -37,4 +37,3 @@ This document outlines the steps to deploy Draft Version 36 to production. **No 
 **CRITICAL**: Backend must be healthy and verified before deploying frontend assets. Frontend depends on backend availability.
 
 ### 1. Build Frontend
-

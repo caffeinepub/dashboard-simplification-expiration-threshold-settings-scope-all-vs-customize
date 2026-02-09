@@ -7,11 +7,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Menu, LogOut, User, Home, Package, Heart } from 'lucide-react';
+import { Menu, LogOut, User, Home, Package, Heart, Download } from 'lucide-react';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { useI18n } from '../../i18n/useI18n';
+import { useState } from 'react';
+import ExportDialog from '../export/ExportDialog';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -22,6 +24,7 @@ export default function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t } = useI18n();
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   const handleSignOut = async () => {
     await clear();
@@ -83,6 +86,11 @@ export default function AppShell({ children }: AppShellProps) {
                   {t('nav.profile')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setExportDialogOpen(true)}>
+                  <Download className="mr-2 h-4 w-4" />
+                  {t('export.menuItem')}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
                   {t('nav.signOut')}
@@ -96,9 +104,9 @@ export default function AppShell({ children }: AppShellProps) {
       <footer className="border-t py-6 md:py-0">
         <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
           <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-            {t('footer.copyright')} {t('footer.builtWith')} <Heart className="inline h-3 w-3 text-red-500" fill="currentColor" /> {t('footer.using')}{' '}
+            © {new Date().getFullYear()} {t('footer.builtWith')} <Heart className="inline h-3 w-3 text-red-500" fill="currentColor" />{' '}
             <a
-              href="https://caffeine.ai"
+              href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
               target="_blank"
               rel="noreferrer"
               className="font-medium underline underline-offset-4"
@@ -109,6 +117,7 @@ export default function AppShell({ children }: AppShellProps) {
           </p>
         </div>
       </footer>
+      <ExportDialog open={exportDialogOpen} onOpenChange={setExportDialogOpen} />
     </div>
   );
 }

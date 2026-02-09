@@ -92,3 +92,6 @@ export function computeExpirationStatus(
     return 'ok';
   }
 }
+
+// Alias for backward compatibility
+export const getExpirationStatus = computeExpirationStatus;

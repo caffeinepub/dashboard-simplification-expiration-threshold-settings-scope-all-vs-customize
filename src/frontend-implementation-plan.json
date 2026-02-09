@@ -1,21 +1,171 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Replace Safran header logo asset with user-provided image",
+  "title": "Fix i18n regressions, enhance document management UX, add dashboard document recap + movement flow section, and export full dashboard datasets",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Replace the Safran header logo file at the existing public path so the header renders the new logo without code changes.",
+      "summary": "Restore full-site i18n behavior so all visible UI strings are translated via useI18n.t and update live on language change, with readable fallbacks for missing keys.",
       "acceptanceCriteria": [
-        "A file exists at `frontend/public/assets/generated/safran-logo.dim_220x64.png` and is based on the user-uploaded logo image.",
-        "The app header displays the updated Safran logo without layout shifts or distortion (maintains the current sizing behavior from the `h-4 w-auto object-contain` styling).",
-        "No code changes are required to the `<img src=\"/assets/generated/safran-logo.dim_220x64.png\" ... />` usage in `AppShell.tsx` for the new logo to appear."
+        "Switching language updates all visible labels, headings, descriptions, button texts, empty states, and section titles without requiring a hard refresh.",
+        "No dashboard section contains hard-coded English strings when an i18n key exists/should exist (e.g., Dashboard and Statistics sections).",
+        "Missing translation keys do not display raw keys in the UI for supported languages; provide appropriate translations or fallbacks so the UI remains readable."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/assets/generated/safran-logo.dim_220x64.png",
+          "path": "frontend/src/i18n/useI18n.ts",
+          "operation": "modify",
+          "description": "Improve the translation function so missing keys fall back to a readable value (e.g., fallback to 'en-US' first, then a humanized label) instead of returning the raw key; ensure the function remains reactive to languageTag changes."
+        },
+        {
+          "path": "frontend/src/i18n/translations.ts",
+          "operation": "modify",
+          "description": "Add any missing i18n keys needed to remove hard-coded strings across dashboard/statistics, export, and document dialogs; ensure all new user-facing text is English and keyed."
+        },
+        {
+          "path": "frontend/src/pages/Dashboard/components/StatisticsSection.tsx",
+          "operation": "modify",
+          "description": "Replace all hard-coded visible strings (section title, helper text, stat card titles/descriptions) with useI18n.t keys so they update when the language changes."
+        },
+        {
+          "path": "frontend/src/pages/DashboardPage.tsx",
+          "operation": "modify",
+          "description": "Replace hard-coded section labels used during reordering (e.g., section name chips) with i18n keys via useI18n.t to ensure full dashboard translation coverage."
+        },
+        {
+          "path": "frontend/src/pages/Benches/components/EditBenchDocumentDialog.tsx",
+          "operation": "modify",
+          "description": "Replace hard-coded validation and dialog description strings with i18n keys via useI18n.t; ensure errors remain readable under missing-key fallback behavior."
+        },
+        {
+          "path": "frontend/src/pages/Benches/components/DuplicateDocumentDialog.tsx",
+          "operation": "modify",
+          "description": "Replace hard-coded dialog description and validation strings with i18n keys via useI18n.t; ensure the UI updates live on language changes."
+        },
+        {
+          "path": "frontend/src/components/export/ExportDialog.tsx",
+          "operation": "modify",
+          "description": "Replace the remaining hard-coded format label text (e.g., SQLite label) with i18n keys so format selection is fully translated and reacts to language changes."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Enhance bench documents editor to manage documents like components: edit metadata, delete the document entity (not only unassign), download, and duplicate to reassign to other benches.",
+      "acceptanceCriteria": [
+        "From the bench documents editor, a user can download a document file successfully.",
+        "From the bench documents editor, a user can edit a document’s metadata (and optionally replace the file) and see changes reflected when reloading the bench.",
+        "From the bench documents editor, the Delete action deletes the document entity and removes its associations across benches (distinct from an unassign/remove-from-bench action).",
+        "From the bench documents editor, Duplicate allows selecting destination bench(es) and results in a duplicated document that is associated to the selected bench(es) and appears in those benches’ document lists."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/Benches/components/BenchDocumentsEditor.tsx",
+          "operation": "modify",
+          "description": "Update document actions UX to clearly separate 'Unassign from bench' vs 'Delete document' and wire the destructive Delete action to the delete-document mutation (not the unassign mutation); ensure download uses the existing blob download utility. This feature relies on blob file handling; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/Benches/components/EditBenchDocumentDialog.tsx",
+          "operation": "modify",
+          "description": "Extend the edit dialog to support editing document metadata required by the product (including document version if supported by backend capability) and keep optional file replacement with upload progress. This feature relies on blob file handling; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/Benches/components/DuplicateDocumentDialog.tsx",
+          "operation": "modify",
+          "description": "Ensure duplicate flow supports selecting one or more destination benches and uses i18n for all strings; keep bench filtering behavior (exclude current bench and already-associated benches) and ensure the UI state resets cleanly after completion."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Adjust/extend the existing React Query mutations used by bench document editing/deleting/duplicating to match the required operations (including a true delete-document mutation distinct from unassign, and metadata edit support as required by the UI)."
+        },
+        {
+          "path": "frontend/src/i18n/translations.ts",
+          "operation": "modify",
+          "description": "Add i18n keys for any new/updated document management labels (e.g., separate 'Unassign' vs 'Delete document'), confirmations, dialog helper texts, and validation messages in English."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Update the dashboard documents recap to show each document’s assigned bench names and document version, with a safe empty state when version is missing.",
+      "acceptanceCriteria": [
+        "Dashboard includes a documents recap view that lists documents and shows their documentVersion and the list of assigned benches (by bench name, not only IDs).",
+        "The displayed bench assignments are accurate and update after assigning/unassigning/deleting/duplicating documents.",
+        "If a document has no version, the UI displays an explicit empty state (e.g., '-') rather than breaking layout."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/DashboardPage.tsx",
+          "operation": "modify",
+          "description": "Enhance the dashboard documents section into a recap list that includes: documentVersion (render '-' when missing) and assigned benches rendered by bench name (map associated bench IDs to the loaded benches list); ensure it refreshes based on existing queries after document operations."
+        },
+        {
+          "path": "frontend/src/i18n/translations.ts",
+          "operation": "modify",
+          "description": "Add i18n keys for the new dashboard document recap labels (e.g., 'Assigned benches', 'Document version', empty state '-') and any helper text in English."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Add a dedicated dashboard section with a visual component movement flow (Bench A → Bench B) aggregated from recorded move events, including empty state.",
+      "acceptanceCriteria": [
+        "Dashboard has a clearly labeled dedicated section for the component movement flow visualization.",
+        "The visualization is generated from actual component move history and shows at least: source bench, destination bench, and a count of moved components for each pair.",
+        "When there are no move events, the section shows a clear empty state message and does not error."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/Dashboard/components/MovementFlowSection.tsx",
           "operation": "create",
-          "description": "Create/replace the logo asset using the provided source image (`png-clipart-safran-electronics-defense-labinal-logo-aerospace-outils-text-logo-thumbnail.png`) as input; export as a tightly cropped, clean wordmark PNG with transparent background if possible, scaled to fit 220x64 and remain legible on both light/dark backgrounds while preserving the existing header sizing behavior."
+          "description": "Create a dashboard section component that aggregates component move history into (sourceBenchId, destinationBenchId) pairs with counts, resolves bench names, and renders a visual flow (e.g., ranked flow rows with directional styling and proportional bars) plus an empty state when no moves exist."
+        },
+        {
+          "path": "frontend/src/pages/DashboardPage.tsx",
+          "operation": "modify",
+          "description": "Wire the movement flow section into the dashboard: fetch the necessary bench histories via the existing actor capabilities, derive move pairs, add a new section id to the dashboard ordering, and render it within the existing section switch so it is navigable and reorderable (not orphaned)."
+        },
+        {
+          "path": "frontend/src/i18n/translations.ts",
+          "operation": "modify",
+          "description": "Add i18n keys for the movement flow section title, description, column labels (source/destination/count), and empty state message in English."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Add an Export option to export all dashboard-relevant datasets (including documents with version + bench assignments, and movement flow/history data) without manual selection.",
+      "acceptanceCriteria": [
+        "Export UI includes an explicit option labeled in English (via i18n) to export 'All dashboard data'.",
+        "The generated export includes the dashboard-relevant datasets: benches, components, documents (including version), document-to-bench assignments, history/move events sufficient to reproduce the movement flow.",
+        "Export succeeds without requiring users to manually select benches/components when the 'All dashboard data' option is chosen."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/export/ExportDialog.tsx",
+          "operation": "modify",
+          "description": "Add an explicit i18n-labeled option 'All dashboard data' that triggers export generation without requiring bench/component selection; keep existing export formats and validations coherent with the new option."
+        },
+        {
+          "path": "frontend/src/utils/export/exportFilters.ts",
+          "operation": "modify",
+          "description": "Extend export filtering to support a dashboard-export mode that includes the full set of dashboard datasets (benches, components, documents with version + bench assignments, and history-derived movement flow data) without relying on user selections."
+        },
+        {
+          "path": "frontend/src/utils/export/exportGenerators.ts",
+          "operation": "modify",
+          "description": "Update CSV/TXT/SQLite generators to include dashboard datasets (documents + assignments + movement flow derived from move history) when the 'All dashboard data' option is selected; ensure output remains deterministic and readable."
+        },
+        {
+          "path": "frontend/src/utils/export/sqliteExport.ts",
+          "operation": "modify",
+          "description": "Extend the SQLite export to include additional tables/records needed for dashboard data export (documents, document-to-bench assignments, and movement flow or sufficient history to reproduce it)."
+        },
+        {
+          "path": "frontend/src/i18n/translations.ts",
+          "operation": "modify",
+          "description": "Add i18n keys for the new export option label, helper/description text, and any related validation or success/error messages in English."
         }
       ]
     }

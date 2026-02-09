@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Trash2, Edit2, Check, X, Copy } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, Copy, ArrowLeftRight } from 'lucide-react';
 import { Status } from '../../../backend';
 import type { Component } from '../../../backend';
 import { computeExpirationStatus } from '../../../utils/expirationSettings';
@@ -23,6 +23,7 @@ interface BenchComponentsTableEditorProps {
   benchId?: string;
   readOnly?: boolean;
   onDuplicateComponent?: (component: Component) => void;
+  onMoveComponent?: (component: Component) => void;
 }
 
 export function BenchComponentsTableEditor({
@@ -32,6 +33,7 @@ export function BenchComponentsTableEditor({
   benchId = '',
   readOnly = false,
   onDuplicateComponent,
+  onMoveComponent,
 }: BenchComponentsTableEditorProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<{
@@ -130,7 +132,7 @@ export function BenchComponentsTableEditor({
             <TableHead>Validity Date</TableHead>
             <TableHead>Expiration Date</TableHead>
             <TableHead>Status</TableHead>
-            {!readOnly && <TableHead className="w-[140px]">Actions</TableHead>}
+            {!readOnly && <TableHead className="w-[180px]">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -190,6 +192,17 @@ export function BenchComponentsTableEditor({
                   {!readOnly && (
                     <TableCell>
                       <div className="flex gap-1">
+                        {onMoveComponent && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => onMoveComponent(component)}
+                            disabled={editingIndex !== null}
+                            title="Move to another bench"
+                          >
+                            <ArrowLeftRight className="h-4 w-4" />
+                          </Button>
+                        )}
                         {onDuplicateComponent && (
                           <Button
                             size="icon"
@@ -273,16 +286,10 @@ export function BenchComponentsTableEditor({
       </Table>
 
       {!readOnly && editingIndex === null && (
-        <Button onClick={startAdd} variant="outline" className="w-full">
+        <Button onClick={startAdd} variant="outline" size="sm">
           <Plus className="h-4 w-4 mr-2" />
           Add Component
         </Button>
-      )}
-
-      {components.length === 0 && editingIndex === null && (
-        <p className="text-sm text-muted-foreground text-center py-4">
-          No components added yet. Click "Add Component" to get started.
-        </p>
       )}
     </div>
   );

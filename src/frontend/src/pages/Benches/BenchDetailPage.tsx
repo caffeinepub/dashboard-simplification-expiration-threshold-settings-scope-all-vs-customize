@@ -16,12 +16,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Pencil, Trash2, ExternalLink, AlertCircle } from 'lucide-react';
-import { useGetTestBench, useRemoveTestBench, useGetBenchComponents, useSetBenchComponents, useGetCallerUserProfile, useGetBenchHistory } from '../../hooks/useQueries';
+import { useGetTestBench, useRemoveTestBench, useGetBenchComponents, useSetComponents, useGetCallerUserProfile, useGetBenchHistory } from '../../hooks/useQueries';
 import { BenchComponentsTableEditor } from './components/BenchComponentsTableEditor';
 import { BenchDocumentsEditor } from './components/BenchDocumentsEditor';
 import { BenchHistoryList } from './components/BenchHistoryList';
 import { EditBenchModal } from './components/EditBenchModal';
 import { DuplicateComponentDialog } from './components/DuplicateComponentDialog';
+import { MoveComponentDialog } from './components/MoveComponentDialog';
 import { BenchPhoto } from './components/BenchPhoto';
 import { getEffectiveThreshold } from '../../utils/expirationSettings';
 import { toast } from 'sonner';
@@ -35,14 +36,16 @@ export function BenchDetailPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false);
   const [componentToDuplicate, setComponentToDuplicate] = useState<Component | null>(null);
+  const [componentToMove, setComponentToMove] = useState<Component | null>(null);
 
   const { data: bench, isLoading, refetch: refetchBench } = useGetTestBench(benchId);
   const { data: components = [], refetch: refetchComponents } = useGetBenchComponents(benchId);
   const { data: history = [] } = useGetBenchHistory(benchId);
   const { data: profile } = useGetCallerUserProfile();
   const removeBench = useRemoveTestBench();
-  const setComponents = useSetBenchComponents();
+  const setComponents = useSetComponents();
   const effectiveThreshold = getEffectiveThreshold(profile ?? null, benchId);
 
   const handleRemove = async () => {
@@ -88,7 +91,17 @@ export function BenchDetailPage() {
     setDuplicateDialogOpen(true);
   };
 
+  const handleMoveComponent = (component: Component) => {
+    setComponentToMove(component);
+    setMoveDialogOpen(true);
+  };
+
   const handleDuplicateSuccess = () => {
+    refetchBench();
+    refetchComponents();
+  };
+
+  const handleMoveSuccess = () => {
     refetchBench();
     refetchComponents();
   };
@@ -224,6 +237,7 @@ export function BenchDetailPage() {
                 effectiveThreshold={effectiveThreshold}
                 benchId={benchId}
                 onDuplicateComponent={handleDuplicateComponent}
+                onMoveComponent={handleMoveComponent}
               />
             </CardContent>
           </Card>
@@ -276,6 +290,14 @@ export function BenchDetailPage() {
         component={componentToDuplicate}
         currentBenchId={benchId}
         onSuccess={handleDuplicateSuccess}
+      />
+
+      <MoveComponentDialog
+        open={moveDialogOpen}
+        onOpenChange={setMoveDialogOpen}
+        component={componentToMove}
+        currentBenchId={benchId}
+        onSuccess={handleMoveSuccess}
       />
     </div>
   );

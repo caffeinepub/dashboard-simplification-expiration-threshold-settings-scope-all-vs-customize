@@ -1,23 +1,43 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useGetAllDocuments } from '../../../hooks/useQueries';
+import { useGetAllTestBenches } from '../../../hooks/useQueries';
+import { useActor } from '../../../hooks/useActor';
 import { FileIcon, Download } from 'lucide-react';
 import { downloadDocument } from '../../../utils/download';
 import { toast } from 'sonner';
 import { useI18n } from '../../../i18n/useI18n';
+import type { Document } from '../../../backend';
+import { useQuery } from '@tanstack/react-query';
 
 export function AdminDocumentsPanel() {
   const { t } = useI18n();
-  const { data: documents = [], isLoading } = useGetAllDocuments();
+  const { actor } = useActor();
+  const { data: benches = [] } = useGetAllTestBenches();
 
-  const handleDownload = async (doc: any) => {
+  const { data: documents = [], isLoading } = useQuery<Document[]>({
+    queryKey: ['allDocuments'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.filterDocumentsByTags([]);
+    },
+    enabled: !!actor,
+  });
+
+  const handleDownload = async (doc: Document) => {
     try {
-      await downloadDocument(doc.document.fileReference, doc.document.productDisplayName);
-      toast.success(t('admin.documentsDownloadSuccess').replace('{name}', doc.document.productDisplayName));
+      await downloadDocument(doc);
+      toast.success(t('admin.documentsDownloadSuccess').replace('{name}', doc.productDisplayName));
     } catch (error: any) {
       console.error('Failed to download document:', error);
       toast.error(error.message || t('admin.documentsDownloadFailed'));
     }
+  };
+
+  const getBenchNames = (doc: Document): string => {
+    const benchNames = doc.associatedBenches
+      .map(benchId => benches.find(b => b.id === benchId)?.name)
+      .filter(Boolean);
+    return benchNames.length > 0 ? benchNames.join(', ') : 'No benches';
   };
 
   if (isLoading) {
@@ -46,26 +66,26 @@ export function AdminDocumentsPanel() {
           <p className="text-sm text-muted-foreground text-center py-8">{t('admin.documentsEmpty')}</p>
         ) : (
           <div className="space-y-2">
-            {documents.map((item) => (
+            {documents.map((doc) => (
               <div
-                key={item.document.id}
+                key={doc.id}
                 className="flex items-center justify-between p-3 bg-muted rounded"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <FileIcon className="h-4 w-4 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
-                      {item.document.productDisplayName}
+                      {doc.productDisplayName}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {item.document.category}
-                      {item.document.documentVersion && ` • v${item.document.documentVersion}`}
+                      {doc.category}
+                      {doc.documentVersion && ` • v${doc.documentVersion}`}
                       {' • '}
-                      {item.benchNames.join(', ')}
+                      {getBenchNames(doc)}
                     </p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => handleDownload(item)}>
+                <Button variant="ghost" size="sm" onClick={() => handleDownload(doc)}>
                   <Download className="h-4 w-4" />
                 </Button>
               </div>

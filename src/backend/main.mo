@@ -10,15 +10,13 @@ import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import Order "mo:core/Order";
 
-
 import AccessControl "authorization/access-control";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import MixinAuthorization "authorization/MixinAuthorization";
+import Migration "migration";
 
-// IMPORTANT: Migration is defined in main file, but implementation is in respective migration module!
-
-
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -56,7 +54,7 @@ actor {
     };
   };
 
-  type Document = {
+  public type Document = {
     id : Text;
     productDisplayName : Text;
     version : Version;
@@ -75,7 +73,7 @@ actor {
     };
   };
 
-  type TestBench = {
+  public type TestBench = {
     id : Text;
     name : Text;
     serialNumber : Text;
@@ -96,7 +94,7 @@ actor {
     };
   };
 
-  type Component = {
+  public type Component = {
     componentName : Text;
     manufacturerReference : Text;
     validityDate : Text;
@@ -111,26 +109,26 @@ actor {
     };
   };
 
-  type HistoryEntry = {
+  public type HistoryEntry = {
     timestamp : Time.Time;
     action : Text;
     user : Principal;
     details : Text;
   };
 
-  type ProfilePicture = {
+  public type ProfilePicture = {
     #avatar : Text;
     #custom : Storage.ExternalBlob;
   };
 
-  type PublicUserInfo = {
+  public type PublicUserInfo = {
     username : Text;
     bio : Text;
     entity : Text;
     profilePicture : ProfilePicture;
   };
 
-  type UserProfile = {
+  public type UserProfile = {
     userId : Text;
     email : Text;
     username : Text;
@@ -152,7 +150,28 @@ actor {
     };
   };
 
-  private func getDefaultProfile(caller : Principal) : UserProfile {
+  public type ExportPayload = {
+    benches : [TestBench];
+    perBenchComponents : [(Text, [Component])];
+    userMapping : [(Principal, UserProfile)];
+    perBenchHistoryEntries : [(Text, [HistoryEntry])];
+    allDocuments : [Document];
+  };
+
+  public type ComponentMovement = {
+    componentName : Text;
+    manufacturerReference : Text;
+    movementSequence : [Text];
+  };
+
+  public type ExportExpertPayload = {
+    bench : TestBench;
+    components : [Component];
+    componentMovements : [ComponentMovement];
+    benchDocuments : [Document];
+  };
+
+  func getDefaultProfile(caller : Principal) : UserProfile {
     let defaultSections = [
       "dashboardGeneralStatsChart",
       "dashboardTotalBenchesChart",
@@ -590,6 +609,19 @@ actor {
       case (?b) { b };
     };
 
+    switch (bench.creator) {
+      case (?creator) {
+        if (caller != creator and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Only the bench creator or admin can update this bench");
+        };
+      };
+      case (null) {
+        if (not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Only admin can update legacy benches");
+        };
+      };
+    };
+
     let updatedBench : TestBench = {
       id = bench.id;
       name;
@@ -620,9 +652,22 @@ actor {
       Runtime.trap("Unauthorized: Only users can remove test benches");
     };
 
-    let _bench = switch (testBenchMap.get(benchId)) {
+    let bench = switch (testBenchMap.get(benchId)) {
       case (null) { Runtime.trap("Test bench does not exist!") };
       case (?b) { b };
+    };
+
+    switch (bench.creator) {
+      case (?creator) {
+        if (caller != creator and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Only the bench creator or admin can delete this bench");
+        };
+      };
+      case (null) {
+        if (not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Only admin can delete legacy benches");
+        };
+      };
     };
 
     testBenchMap.remove(benchId);
@@ -841,6 +886,69 @@ actor {
     addHistoryEntry(benchId, historyEntry);
   };
 
+  public shared ({ caller }) func moveComponentToBench(
+    component : Component,
+    fromBenchId : Text,
+    toBenchId : Text,
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can move components between benches");
+    };
+
+    let fromBench = switch (testBenchMap.get(fromBenchId)) {
+      case (null) { Runtime.trap("Source bench does not exist") };
+      case (?b) { b };
+    };
+
+    let toBench = switch (testBenchMap.get(toBenchId)) {
+      case (null) { Runtime.trap("Target bench does not exist") };
+      case (?b) { b };
+    };
+
+    // Remove component from source bench
+    let fromBenchComponents = switch (componentMap.get(fromBenchId)) {
+      case (null) { [] };
+      case (?comps) { comps };
+    };
+    componentMap.add(fromBenchId, fromBenchComponents.filter(func(c) { c.componentName != component.componentName }));
+
+    // Add component to destination bench
+    let toBenchComponents = switch (componentMap.get(toBenchId)) {
+      case (null) { [] };
+      case (?comps) { comps };
+    };
+    let newComponentList = List.empty<Component>();
+    for (comp in toBenchComponents.values()) {
+      if (comp.componentName != component.componentName) {
+        newComponentList.add(comp);
+      };
+    };
+    let movedComponent = {
+      component with
+      associatedBenchId = toBench.id;
+    };
+    newComponentList.add(movedComponent);
+    componentMap.add(toBench.id, newComponentList.toArray());
+
+    // Add history entry to source bench
+    let fromBenchHistoryEntry : HistoryEntry = {
+      timestamp = Time.now();
+      action = "Component moved out";
+      user = caller;
+      details = component.componentName # " " # fromBench.id # "->" # toBench.id # " " # component.manufacturerReference;
+    };
+    addHistoryEntry(fromBenchId, fromBenchHistoryEntry);
+
+    // Add history entry to target bench
+    let toBenchHistoryEntry : HistoryEntry = {
+      timestamp = Time.now();
+      action = "Component moved in";
+      user = caller;
+      details = component.componentName # " " # fromBench.id # "->" # toBench.id # " " # component.manufacturerReference;
+    };
+    addHistoryEntry(toBenchId, toBenchHistoryEntry);
+  };
+
   public query ({ caller }) func getComponents(benchId : Text) : async [Component] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access components");
@@ -947,6 +1055,166 @@ actor {
           profilePicture = profile.profilePicture;
         };
       };
+    };
+  };
+
+  public shared ({ caller }) func deleteBenchDocument(_benchId : Text, documentId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete bench documents");
+    };
+
+    let existingDocument = switch (documentMap.get(documentId)) {
+      case (null) { Runtime.trap("No such document exists!") };
+      case (?doc) { doc };
+    };
+
+    if (caller != existingDocument.uploader and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only the document uploader or admin can delete this document");
+    };
+
+    documentMap.remove(existingDocument.id);
+  };
+
+  public shared ({ caller }) func duplicateBenchDocument(_benchId : Text, documentId : Text, targetBenchIds : [Text]) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can duplicate bench documents");
+    };
+
+    let existingDocument = switch (documentMap.get(documentId)) {
+      case (null) { Runtime.trap("No such document exists!") };
+      case (?doc) { doc };
+    };
+
+    if (caller != existingDocument.uploader and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only the document uploader or admin can duplicate this document");
+    };
+
+    for (targetBenchId in targetBenchIds.values()) {
+      let _targetBench = switch (testBenchMap.get(targetBenchId)) {
+        case (null) { Runtime.trap("Target bench does not exist!") };
+        case (?_) {};
+      };
+
+      let updatedDocument : Document = {
+        id = existingDocument.id;
+        productDisplayName = existingDocument.productDisplayName;
+        version = existingDocument.version;
+        category = existingDocument.category;
+        fileReference = existingDocument.fileReference;
+        semanticVersion = existingDocument.semanticVersion;
+        uploader = existingDocument.uploader;
+        associatedBenches = existingDocument.associatedBenches.concat([targetBenchId]);
+        tags = existingDocument.tags;
+        documentVersion = existingDocument.documentVersion;
+      };
+      documentMap.add(existingDocument.id, updatedDocument);
+    };
+  };
+
+  public shared ({ caller }) func editBenchDocument(
+    _benchId : Text,
+    documentId : Text,
+    updatedProductDisplayName : Text,
+    updatedSemanticVersion : Text,
+    updatedFile : Storage.ExternalBlob,
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can edit bench documents");
+    };
+
+    let existingDocument = switch (documentMap.get(documentId)) {
+      case (null) { Runtime.trap("No such document exists!") };
+      case (?doc) { doc };
+    };
+
+    if (caller != existingDocument.uploader and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only the document uploader or admin can edit this document");
+    };
+
+    let newDocument : Document = {
+      id = existingDocument.id;
+      productDisplayName = updatedProductDisplayName;
+      version = existingDocument.version + 1;
+      category = existingDocument.category;
+      fileReference = updatedFile;
+      semanticVersion = updatedSemanticVersion;
+      uploader = existingDocument.uploader;
+      associatedBenches = existingDocument.associatedBenches;
+      tags = existingDocument.tags;
+      documentVersion = existingDocument.documentVersion;
+    };
+    documentMap.add(documentId, newDocument);
+  };
+
+  public query ({ caller }) func exportData() : async ExportPayload {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can export all system data");
+    };
+    {
+      benches = testBenchMap.values().toArray();
+      perBenchComponents = componentMap.toArray();
+      userMapping = userProfileMap.toArray();
+      perBenchHistoryEntries = historyMap.toArray();
+      allDocuments = documentMap.values().toArray();
+    };
+  };
+
+  public query ({ caller }) func exportExpertData(benchId : Text) : async ExportExpertPayload {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can export bench data");
+    };
+
+    let bench = switch (testBenchMap.get(benchId)) {
+      case (null) { Runtime.trap("Test bench does not exist!") };
+      case (?b) { b };
+    };
+
+    let components = switch (componentMap.get(benchId)) {
+      case (null) { [] };
+      case (?c) { c };
+    };
+
+    let componentMovements = List.empty<ComponentMovement>();
+    for (comp in components.values()) {
+      let filteredMovementSequence = switch (historyMap.get(benchId)) {
+        case (null) { [] };
+        case (?hist) {
+          let filtered = hist.filter(
+            func(entry) {
+              (entry.action == "Component moved in" or entry.action == "Component moved out") and entry.details.contains(#text(comp.componentName # " "));
+            }
+          );
+          filtered.map(
+            func(entry) {
+              entry.details;
+            }
+          );
+        };
+      };
+      componentMovements.add(
+        {
+          componentName = comp.componentName;
+          manufacturerReference = comp.manufacturerReference;
+          movementSequence = filteredMovementSequence;
+        },
+      );
+    };
+
+    let benchDocuments = documentMap.values().toArray().filter(
+      func(doc) {
+        doc.associatedBenches.any(
+          func(bid) {
+            bid == benchId;
+          }
+        );
+      }
+    );
+
+    {
+      bench;
+      components;
+      componentMovements = componentMovements.toArray();
+      benchDocuments;
     };
   };
 };

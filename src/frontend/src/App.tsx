@@ -4,7 +4,7 @@ import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/sonner';
 import AppShell from './components/layout/AppShell';
 import SignInPage from './pages/SignInPage';
-import DashboardPage from './pages/DashboardPage';
+import { DashboardPage } from './pages/DashboardPage';
 import { BenchListPage } from './pages/Benches/BenchListPage';
 import { BenchDetailPage } from './pages/Benches/BenchDetailPage';
 import ProfilePage from './pages/ProfilePage';

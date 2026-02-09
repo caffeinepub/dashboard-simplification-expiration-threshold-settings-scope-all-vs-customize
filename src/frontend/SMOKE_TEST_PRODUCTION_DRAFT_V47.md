@@ -1,7 +1,7 @@
-# Production Smoke Test - Draft Version 36
+# Production Smoke Test - Draft Version 47
 
 ## Overview
-This document provides a step-by-step smoke test script to validate the core functionality of the Safran Test Bench Management System after deploying Draft Version 36 to production.
+This document provides a step-by-step smoke test script to validate the core functionality of the Safran Test Bench Management System after deploying Draft Version 47 to production.
 
 ## Prerequisites
 

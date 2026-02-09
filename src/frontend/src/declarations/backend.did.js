@@ -40,39 +40,6 @@ export const Component = IDL.Record({
   'manufacturerReference' : IDL.Text,
   'componentName' : IDL.Text,
 });
-export const Document = IDL.Record({
-  'id' : IDL.Text,
-  'documentVersion' : IDL.Opt(IDL.Text),
-  'tags' : IDL.Vec(Tag),
-  'version' : Version,
-  'associatedBenches' : IDL.Vec(IDL.Text),
-  'category' : IDL.Text,
-  'uploader' : IDL.Principal,
-  'productDisplayName' : IDL.Text,
-  'semanticVersion' : IDL.Text,
-  'fileReference' : ExternalBlob,
-});
-export const TestBench = IDL.Record({
-  'id' : IDL.Text,
-  'plmAgileUrl' : IDL.Text,
-  'creator' : IDL.Opt(IDL.Principal),
-  'documents' : IDL.Vec(IDL.Tuple(IDL.Text, Version)),
-  'decawebUrl' : IDL.Text,
-  'name' : IDL.Text,
-  'tags' : IDL.Vec(Tag),
-  'description' : IDL.Text,
-  'photoUrl' : IDL.Opt(IDL.Text),
-  'agileCode' : IDL.Text,
-  'serialNumber' : IDL.Text,
-  'photo' : ExternalBlob,
-});
-export const Time = IDL.Int;
-export const HistoryEntry = IDL.Record({
-  'action' : IDL.Text,
-  'user' : IDL.Principal,
-  'timestamp' : Time,
-  'details' : IDL.Text,
-});
 export const ExpirationThresholdMode = IDL.Variant({
   'allBenches' : IDL.Null,
   'customizedBenches' : IDL.Null,
@@ -95,6 +62,59 @@ export const UserProfile = IDL.Record({
   'profilePicture' : ProfilePicture,
   'lastSeen' : IDL.Opt(IDL.Int),
   'dashboardSectionsOrdered' : IDL.Vec(IDL.Text),
+});
+export const Document = IDL.Record({
+  'id' : IDL.Text,
+  'documentVersion' : IDL.Opt(IDL.Text),
+  'tags' : IDL.Vec(Tag),
+  'version' : Version,
+  'associatedBenches' : IDL.Vec(IDL.Text),
+  'category' : IDL.Text,
+  'uploader' : IDL.Principal,
+  'productDisplayName' : IDL.Text,
+  'semanticVersion' : IDL.Text,
+  'fileReference' : ExternalBlob,
+});
+export const Time = IDL.Int;
+export const HistoryEntry = IDL.Record({
+  'action' : IDL.Text,
+  'user' : IDL.Principal,
+  'timestamp' : Time,
+  'details' : IDL.Text,
+});
+export const TestBench = IDL.Record({
+  'id' : IDL.Text,
+  'plmAgileUrl' : IDL.Text,
+  'creator' : IDL.Opt(IDL.Principal),
+  'documents' : IDL.Vec(IDL.Tuple(IDL.Text, Version)),
+  'decawebUrl' : IDL.Text,
+  'name' : IDL.Text,
+  'tags' : IDL.Vec(Tag),
+  'description' : IDL.Text,
+  'photoUrl' : IDL.Opt(IDL.Text),
+  'agileCode' : IDL.Text,
+  'serialNumber' : IDL.Text,
+  'photo' : ExternalBlob,
+});
+export const ExportPayload = IDL.Record({
+  'userMapping' : IDL.Vec(IDL.Tuple(IDL.Principal, UserProfile)),
+  'allDocuments' : IDL.Vec(Document),
+  'perBenchHistoryEntries' : IDL.Vec(
+    IDL.Tuple(IDL.Text, IDL.Vec(HistoryEntry))
+  ),
+  'perBenchComponents' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Vec(Component))),
+  'benches' : IDL.Vec(TestBench),
+});
+export const ComponentMovement = IDL.Record({
+  'movementSequence' : IDL.Vec(IDL.Text),
+  'manufacturerReference' : IDL.Text,
+  'componentName' : IDL.Text,
+});
+export const ExportExpertPayload = IDL.Record({
+  'components' : IDL.Vec(Component),
+  'componentMovements' : IDL.Vec(ComponentMovement),
+  'bench' : TestBench,
+  'benchDocuments' : IDL.Vec(Document),
 });
 export const PublicUserInfo = IDL.Record({
   'bio' : IDL.Text,
@@ -163,7 +183,13 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'deleteBenchDocument' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'documentExists' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
+  'duplicateBenchDocument' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Vec(IDL.Text)],
+      [],
+      [],
+    ),
   'duplicateComponentToBench' : IDL.Func(
       [IDL.Text, Component, IDL.Text],
       [],
@@ -174,6 +200,13 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'editBenchDocument' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, ExternalBlob],
+      [],
+      [],
+    ),
+  'exportData' : IDL.Func([], [ExportPayload], ['query']),
+  'exportExpertData' : IDL.Func([IDL.Text], [ExportExpertPayload], ['query']),
   'filterDocumentsByTags' : IDL.Func(
       [IDL.Vec(Tag)],
       [IDL.Vec(Document)],
@@ -213,6 +246,7 @@ export const idlService = IDL.Service({
   'getUsersByEntity' : IDL.Func([IDL.Text], [IDL.Vec(UserProfile)], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'isOnline' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
+  'moveComponentToBench' : IDL.Func([Component, IDL.Text, IDL.Text], [], []),
   'removeDocumentFromBench' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'removeTestBench' : IDL.Func([IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
@@ -281,39 +315,6 @@ export const idlFactory = ({ IDL }) => {
     'manufacturerReference' : IDL.Text,
     'componentName' : IDL.Text,
   });
-  const Document = IDL.Record({
-    'id' : IDL.Text,
-    'documentVersion' : IDL.Opt(IDL.Text),
-    'tags' : IDL.Vec(Tag),
-    'version' : Version,
-    'associatedBenches' : IDL.Vec(IDL.Text),
-    'category' : IDL.Text,
-    'uploader' : IDL.Principal,
-    'productDisplayName' : IDL.Text,
-    'semanticVersion' : IDL.Text,
-    'fileReference' : ExternalBlob,
-  });
-  const TestBench = IDL.Record({
-    'id' : IDL.Text,
-    'plmAgileUrl' : IDL.Text,
-    'creator' : IDL.Opt(IDL.Principal),
-    'documents' : IDL.Vec(IDL.Tuple(IDL.Text, Version)),
-    'decawebUrl' : IDL.Text,
-    'name' : IDL.Text,
-    'tags' : IDL.Vec(Tag),
-    'description' : IDL.Text,
-    'photoUrl' : IDL.Opt(IDL.Text),
-    'agileCode' : IDL.Text,
-    'serialNumber' : IDL.Text,
-    'photo' : ExternalBlob,
-  });
-  const Time = IDL.Int;
-  const HistoryEntry = IDL.Record({
-    'action' : IDL.Text,
-    'user' : IDL.Principal,
-    'timestamp' : Time,
-    'details' : IDL.Text,
-  });
   const ExpirationThresholdMode = IDL.Variant({
     'allBenches' : IDL.Null,
     'customizedBenches' : IDL.Null,
@@ -336,6 +337,59 @@ export const idlFactory = ({ IDL }) => {
     'profilePicture' : ProfilePicture,
     'lastSeen' : IDL.Opt(IDL.Int),
     'dashboardSectionsOrdered' : IDL.Vec(IDL.Text),
+  });
+  const Document = IDL.Record({
+    'id' : IDL.Text,
+    'documentVersion' : IDL.Opt(IDL.Text),
+    'tags' : IDL.Vec(Tag),
+    'version' : Version,
+    'associatedBenches' : IDL.Vec(IDL.Text),
+    'category' : IDL.Text,
+    'uploader' : IDL.Principal,
+    'productDisplayName' : IDL.Text,
+    'semanticVersion' : IDL.Text,
+    'fileReference' : ExternalBlob,
+  });
+  const Time = IDL.Int;
+  const HistoryEntry = IDL.Record({
+    'action' : IDL.Text,
+    'user' : IDL.Principal,
+    'timestamp' : Time,
+    'details' : IDL.Text,
+  });
+  const TestBench = IDL.Record({
+    'id' : IDL.Text,
+    'plmAgileUrl' : IDL.Text,
+    'creator' : IDL.Opt(IDL.Principal),
+    'documents' : IDL.Vec(IDL.Tuple(IDL.Text, Version)),
+    'decawebUrl' : IDL.Text,
+    'name' : IDL.Text,
+    'tags' : IDL.Vec(Tag),
+    'description' : IDL.Text,
+    'photoUrl' : IDL.Opt(IDL.Text),
+    'agileCode' : IDL.Text,
+    'serialNumber' : IDL.Text,
+    'photo' : ExternalBlob,
+  });
+  const ExportPayload = IDL.Record({
+    'userMapping' : IDL.Vec(IDL.Tuple(IDL.Principal, UserProfile)),
+    'allDocuments' : IDL.Vec(Document),
+    'perBenchHistoryEntries' : IDL.Vec(
+      IDL.Tuple(IDL.Text, IDL.Vec(HistoryEntry))
+    ),
+    'perBenchComponents' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Vec(Component))),
+    'benches' : IDL.Vec(TestBench),
+  });
+  const ComponentMovement = IDL.Record({
+    'movementSequence' : IDL.Vec(IDL.Text),
+    'manufacturerReference' : IDL.Text,
+    'componentName' : IDL.Text,
+  });
+  const ExportExpertPayload = IDL.Record({
+    'components' : IDL.Vec(Component),
+    'componentMovements' : IDL.Vec(ComponentMovement),
+    'bench' : TestBench,
+    'benchDocuments' : IDL.Vec(Document),
   });
   const PublicUserInfo = IDL.Record({
     'bio' : IDL.Text,
@@ -404,7 +458,13 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'deleteBenchDocument' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'documentExists' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
+    'duplicateBenchDocument' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Vec(IDL.Text)],
+        [],
+        [],
+      ),
     'duplicateComponentToBench' : IDL.Func(
         [IDL.Text, Component, IDL.Text],
         [],
@@ -415,6 +475,13 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'editBenchDocument' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, ExternalBlob],
+        [],
+        [],
+      ),
+    'exportData' : IDL.Func([], [ExportPayload], ['query']),
+    'exportExpertData' : IDL.Func([IDL.Text], [ExportExpertPayload], ['query']),
     'filterDocumentsByTags' : IDL.Func(
         [IDL.Vec(Tag)],
         [IDL.Vec(Document)],
@@ -462,6 +529,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'isOnline' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
+    'moveComponentToBench' : IDL.Func([Component, IDL.Text, IDL.Text], [], []),
     'removeDocumentFromBench' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'removeTestBench' : IDL.Func([IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),

@@ -1,51 +1,112 @@
 {
   "kind": "build_request",
-  "title": "Replace Safran logo image with user-provided file",
+  "title": "Restore correct i18n, enhance document-as-component management, add dashboard assignment + movement visualization, and export full dashboard data",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Replace the existing Safran header logo asset with the user-provided image, keeping the public path unchanged: `/assets/generated/safran-logo.dim_220x64.png` (as used by `frontend/src/components/layout/AppShell.tsx`). The resulting image must be a clean, properly cropped/scaled logo that fits within 220x64 and renders clearly on both light and dark backgrounds (transparent background if possible).",
+      "text": "Restore full-site translation behavior so that all user-visible UI strings render via the i18n translation system (useI18n.t) and correctly change when the language changes, matching the behavior of previous versions.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "Remplace l'image safran par celle ci"
+          "Gere la traduction du site proprement. Refais comme dans les.anhiennes versions ou toit le.site était correctement traduit."
         ]
       },
       "acceptanceCriteria": [
-        "A file exists at `frontend/public/assets/generated/safran-logo.dim_220x64.png` and is based on the user-uploaded logo image.",
-        "The app header displays the updated Safran logo without layout shifts or distortion (maintains the current sizing behavior from the `h-4 w-auto object-contain` styling).",
-        "No code changes are required to the `<img src=\"/assets/generated/safran-logo.dim_220x64.png\" ... />` usage in `AppShell.tsx` for the new logo to appear."
+        "Switching language updates all visible labels, headings, descriptions, button texts, empty states, and section titles without requiring a hard refresh.",
+        "No dashboard section contains hard-coded English strings when an i18n key exists/should exist (e.g., Dashboard and Statistics sections).",
+        "Missing translation keys do not display raw keys in the UI for supported languages; provide appropriate translations or fallbacks so the UI remains readable."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Ensure bench documents (HW/SW/Other(s)) can be managed with component-like operations: edit metadata, delete the document (not just unassign), download, and duplicate the document to reassign it to one or more other benches.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "assure toi qu'on puisse gérer un document HW, SW, ou autres comme un composant.Cest a dire : l'éditer, le.supprimer, le télécharger ou dupliqué pour le.reaffecter a un.autre banc."
+        ]
+      },
+      "acceptanceCriteria": [
+        "From the bench documents editor, a user can download a document file successfully.",
+        "From the bench documents editor, a user can edit a document’s metadata (and optionally replace the file) and see changes reflected when reloading the bench.",
+        "From the bench documents editor, the Delete action deletes the document entity and removes its associations across benches (distinct from an unassign/remove-from-bench action).",
+        "From the bench documents editor, Duplicate allows selecting destination bench(es) and results in a duplicated document that is associated to the selected bench(es) and appears in those benches’ document lists."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "In the dashboard recap, display for each document: (1) the bench(es) it is assigned to and (2) its document version.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "dans le.dashboard récapitulatif, j'aimerais avoir avoir les bancs auxquels chaque document est affecte et sa version."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Dashboard includes a documents recap view that lists documents and shows their documentVersion and the list of assigned benches (by bench name, not only IDs).",
+        "The displayed bench assignments are accurate and update after assigning/unassigning/deleting/duplicating documents.",
+        "If a document has no version, the UI displays an explicit empty state (e.g., '-') rather than breaking layout."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add a dedicated, visual dashboard section that shows a flow of components that moved from Bench A to Bench B (a chart/flow visualization based on recorded move events).",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "fournis un chartflow des composants qui sont passés dun.banc A vers un Banc B. Il faut que se soit visuel. Tu affichera cette donnee dans le dashboard dans une section dédiée."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Dashboard has a clearly labeled dedicated section for the component movement flow visualization.",
+        "The visualization is generated from actual component move history and shows at least: source bench, destination bench, and a count of moved components for each pair.",
+        "When there are no move events, the section shows a clear empty state message and does not error."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "In the Export tab/dialog, add an option to export all data shown/needed by the dashboard, including documents (with version and bench assignments) and the component movement flow data.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "dans l'onglet export, rajoute la.possibilote d'exporter toutes les données du dashboard."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Export UI includes an explicit option labeled in English (via i18n) to export 'All dashboard data'.",
+        "The generated export includes the dashboard-relevant datasets: benches, components, documents (including version), document-to-bench assignments, history/move events sufficient to reproduce the movement flow.",
+        "Export succeeds without requiring users to manually select benches/components when the 'All dashboard data' option is chosen."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under `frontend/src/components/ui` (read-only UI components).",
-    "Do not modify files listed as immutable paths in SYSTEM_CONTEXT (e.g., `frontend/src/main.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/hooks/useInternetIdentity.ts`)."
+    "Backend must remain a single Motoko actor in backend/main.mo; add migration.mo only if persistent state schema changes require it.",
+    "Do not edit files under frontend/src/components/ui or any frontend immutable paths listed in SYSTEM_CONTEXT.",
+    "Use English for any new user-facing text added to the app (via i18n keys)."
   ],
   "nonGoals": [
-    "Changing any backend behavior or storage.",
-    "Redesigning the app header/navigation beyond updating the logo asset."
+    "Adding third-party translation services or external localization tooling.",
+    "Implementing real-time updates (e.g., websockets) for dashboard movement visualization.",
+    "Adding new authentication methods beyond Internet Identity."
   ],
   "imageRequirements": {
-    "required": [
-      "Safran logo wordmark on transparent background, tightly cropped and scaled to fit (safran-logo.dim_220x64.png)"
-    ],
-    "edits": [
-      "Use the uploaded image as the source and produce the app asset (png-clipart-safran-electronics-defense-labinal-logo-aerospace-outils-text-logo-thumbnail.png > safran-logo.dim_220x64.png)"
-    ]
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
+    "required": [],
+    "edits": []
   }
 }

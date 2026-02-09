@@ -1,29 +1,56 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T09:04:52.119Z",
-  "summary": "The diff only updates project_state.json to record the request; it does not replace the Safran logo asset or make any frontend/public asset changes, so REQ-1 is not implemented.",
+  "generatedAt": "2026-02-09T19:29:26.072Z",
+  "summary": "Diff implements the movement-flow dashboard section, adds/fixes i18n fallback behavior, and adds UI for document download/edit/duplicate/delete plus an ExportDialog “dashboard” scope. However, several BuildRequest acceptance criteria cannot be confirmed from the truncated diff, especially backend support for document operations, the dashboard documents recap showing assignments+documentVersion, and the export option/contents for “All dashboard data” (documents + movement-flow data).",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Replace the existing Safran header logo asset with the user-provided image, keeping the public path unchanged: `/assets/generated/safran-logo.dim_220x64.png` (file at `frontend/public/assets/generated/safran-logo.dim_220x64.png`), ensuring it is properly cropped/scaled to 220x64 and transparent if possible, with no code changes needed in AppShell.tsx.",
-      "reason": "No asset file changes are shown; only project_state.json was modified. There is no evidence that `frontend/public/assets/generated/safran-logo.dim_220x64.png` was added/updated, so the header logo cannot display the new image as required.",
+      "id": "REQ-2",
+      "requirement": "Ensure bench documents can be managed with component-like operations: edit metadata, delete the document entity (not just unassign), download, and duplicate to reassign to other benches.",
+      "reason": "Frontend UI for edit/duplicate/download/delete dialogs is present, but the diff summary does not provide evidence that backend actor methods actually implement: (a) deleting the document entity and removing associations across benches, (b) duplicating a document entity and associating it to multiple benches, and (c) editing metadata/file persistently. The backend/main.mo changes are truncated before showing these methods, so implementation cannot be verified.",
       "evidence": [
-        "project_state.json"
+        "frontend/src/pages/Benches/components/BenchDocumentsEditor.tsx",
+        "frontend/src/pages/Benches/components/EditBenchDocumentDialog.tsx",
+        "frontend/src/pages/Benches/components/DuplicateDocumentDialog.tsx",
+        "backend/main.mo (truncated)",
+        "frontend-file-summaries.txt (frontend/src/hooks/useQueries.ts mentions mutations but not backend implementation)"
       ]
-    }
-  ],
-  "hallucinated_features": [
+    },
     {
-      "description": "Added internal tracking entries (AR-1/AR-2) to project_state.json for the logo replacement request.",
-      "reason": "The BuildRequest did not request changes to project tracking/state files; it only required replacing the logo asset at a specific public path without code changes.",
+      "id": "REQ-3",
+      "requirement": "In the dashboard recap, display for each document: the bench(es) it is assigned to (by bench name) and its document version, with '-' (or similar) when version is missing.",
+      "reason": "backend/main.mo shows a Document type with documentVersion:?Text, and DashboardPage fetches allDocuments and benches; however, the diff summary is truncated and does not show an actual 'documents recap' UI that renders each document’s assigned bench names and documentVersion, nor the explicit empty state ('-') when version is absent.",
       "evidence": [
-        "project_state.json"
+        "backend/main.mo (Document includes documentVersion : ?Text)",
+        "frontend/src/pages/DashboardPage.tsx (truncated; shows data fetching but not the documents recap rendering)"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "requirement": "In Export UI, add an explicit option (English via i18n) to export 'All dashboard data', and ensure export includes benches, components, documents (with version), document-to-bench assignments, and move/history events sufficient to reproduce movement flow; export should not require manual bench/component selection.",
+      "reason": "ExportDialog introduces a 'dashboard' scope and fetches actor.exportData(), but the truncated diff does not show (a) the actual UI label text for the option (to confirm it is explicitly 'All dashboard data' via i18n), nor (b) that documents (including documentVersion) and document-to-bench assignments are included in the generated export output for this option. The shown filterExportData call only sets includeHistory and does not show any includeDocuments handling for dashboard scope.",
+      "evidence": [
+        "frontend/src/components/export/ExportDialog.tsx (truncated)",
+        "backend/main.mo (ExportPayload includes allDocuments and perBenchHistoryEntries, but export generation not shown)"
       ]
     }
   ],
-  "confidence": 0.88,
+  "hallucinated_features": [],
+  "confidence": 0.62,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/components/export/ExportDialog.tsx",
+    "frontend/src/components/layout/AppShell.tsx",
+    "frontend/src/i18n/translations.ts",
+    "frontend/src/i18n/useI18n.ts",
+    "frontend/src/pages/Benches/components/BenchDocumentsEditor.tsx",
+    "frontend/src/pages/Benches/components/DuplicateDocumentDialog.tsx",
+    "frontend/src/pages/Benches/components/EditBenchDocumentDialog.tsx",
+    "frontend/src/pages/Dashboard/components/MovementFlowSection.tsx",
+    "frontend/src/pages/Dashboard/components/StatisticsSection.tsx",
+    "frontend/src/pages/DashboardPage.tsx",
     "project_state.json"
   ]
 }

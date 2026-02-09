@@ -21,6 +21,13 @@ export interface HistoryEntry {
     timestamp: Time;
     details: string;
 }
+export interface ExportPayload {
+    userMapping: Array<[Principal, UserProfile]>;
+    allDocuments: Array<Document>;
+    perBenchHistoryEntries: Array<[string, Array<HistoryEntry>]>;
+    perBenchComponents: Array<[string, Array<Component>]>;
+    benches: Array<TestBench>;
+}
 export interface Document {
     id: string;
     documentVersion?: string;
@@ -66,11 +73,22 @@ export interface Tag {
     tagName: string;
 }
 export type Version = bigint;
+export interface ComponentMovement {
+    movementSequence: Array<string>;
+    manufacturerReference: string;
+    componentName: string;
+}
 export interface PublicUserInfo {
     bio: string;
     entity: string;
     username: string;
     profilePicture: ProfilePicture;
+}
+export interface ExportExpertPayload {
+    components: Array<Component>;
+    componentMovements: Array<ComponentMovement>;
+    bench: TestBench;
+    benchDocuments: Array<Document>;
 }
 export interface UserProfile {
     bio: string;
@@ -102,14 +120,18 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
-    _initializeAccessControlWithSecret(secret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     associateDocumentToBench(documentId: string, benchId: string): Promise<void>;
     createDocument(id: string, productDisplayName: string, version: Version, category: string, fileReference: ExternalBlob, semanticVersion: string, tags: Array<Tag>, documentVersion: string | null): Promise<void>;
     createTestBench(id: string, name: string, serialNumber: string, agileCode: string, plmAgileUrl: string, decawebUrl: string, description: string, photo: ExternalBlob, photoUrl: string | null, tags: Array<Tag>): Promise<void>;
+    deleteBenchDocument(_benchId: string, documentId: string): Promise<void>;
     documentExists(documentId: string): Promise<boolean>;
+    duplicateBenchDocument(_benchId: string, documentId: string, targetBenchIds: Array<string>): Promise<void>;
     duplicateComponentToBench(_benchId: string, component: Component, targetBenchId: string): Promise<void>;
     duplicateComponentToBenches(component: Component, targetBenchIds: Array<string>): Promise<void>;
+    editBenchDocument(_benchId: string, documentId: string, updatedProductDisplayName: string, updatedSemanticVersion: string, updatedFile: ExternalBlob): Promise<void>;
+    exportData(): Promise<ExportPayload>;
+    exportExpertData(benchId: string): Promise<ExportExpertPayload>;
     filterDocumentsByTags(tags: Array<Tag>): Promise<Array<Document>>;
     findExpiringDocuments(daysRemaining: bigint | null): Promise<Array<Document>>;
     getAllEntities(): Promise<Array<string>>;
@@ -129,6 +151,7 @@ export interface backendInterface {
     getUsersByEntity(entity: string): Promise<Array<UserProfile>>;
     isCallerAdmin(): Promise<boolean>;
     isOnline(userId: Principal): Promise<boolean>;
+    moveComponentToBench(component: Component, fromBenchId: string, toBenchId: string): Promise<void>;
     removeDocumentFromBench(documentId: string, benchId: string): Promise<void>;
     removeTestBench(benchId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;

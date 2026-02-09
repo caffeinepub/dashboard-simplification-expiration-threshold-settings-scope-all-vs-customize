@@ -19,7 +19,8 @@ import { Loader2, Upload, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { TagsInput } from './TagsInput';
 import { DocumentCategoriesInput, type DocumentCategory } from './DocumentCategoriesInput';
 import { BenchComponentsTableEditor } from './BenchComponentsTableEditor';
-import { useCreateTestBench, useGetBenchTagSuggestions, useGetAllTestBenches, useDuplicateComponentToBenches } from '../../../hooks/useQueries';
+import { useCreateTestBench, useGetAllTestBenches, useDuplicateComponentToBenches } from '../../../hooks/useQueries';
+import { useActor } from '../../../hooks/useActor';
 import { validateAgileCode, validateUrl } from '../../../utils/validation';
 import { generateId } from '../../../utils/id';
 import { rewriteDescription } from '../../../utils/rewriteDescription';
@@ -61,9 +62,9 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
 
+  const { actor } = useActor();
   const createBench = useCreateTestBench();
   const duplicateComponent = useDuplicateComponentToBenches();
-  const { data: tagSuggestions = [] } = useGetBenchTagSuggestions();
   const { data: allBenches = [] } = useGetAllTestBenches();
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,7 +143,7 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
+    if (!validateForm() || !actor) {
       return;
     }
 
@@ -163,8 +164,23 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
         setUploadProgress(20);
       }
 
-      // Upload documents with progress
-      const documents: DocumentInput[] = [];
+      // Create bench first
+      await createBench.mutateAsync({
+        id: benchId,
+        name: name.trim(),
+        serialNumber: serialNumber.trim() || '',
+        agileCode: agileCode.trim() || '',
+        plmAgileUrl: plmAgileUrl.trim() || '',
+        decawebUrl: decawebUrl.trim() || '',
+        description: description.trim(),
+        photo: photoBlob,
+        photoUrl: null,
+        tags,
+      });
+
+      setUploadProgress(40);
+
+      // Upload and associate documents
       const totalFiles = documentCategories.reduce((sum, cat) => sum + cat.files.length, 0);
       let filesProcessed = 0;
 
@@ -172,19 +188,23 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
         for (const fileData of category.files) {
           try {
             const fileBlob = await uploadFileAsBlob(fileData.file, (progress) => {
-              const baseProgress = 20 + ((filesProcessed + progress / 100) / totalFiles) * 70;
-              setUploadProgress(Math.min(baseProgress, 90));
+              const baseProgress = 40 + ((filesProcessed + progress / 100) / totalFiles) * 40;
+              setUploadProgress(Math.min(baseProgress, 80));
             });
 
-            documents.push({
-              id: generateId(),
-              productDisplayName: fileData.file.name,
-              category: category.categoryName,
-              fileReference: fileBlob,
-              semanticVersion: '1.0',
-              tags: tags,
-              documentVersion: fileData.version.trim() || undefined,
-            });
+            const docId = generateId();
+            await actor.createDocument(
+              docId,
+              fileData.file.name,
+              BigInt(1),
+              category.categoryName,
+              fileBlob,
+              '1.0',
+              tags,
+              fileData.version.trim() || null
+            );
+
+            await actor.associateDocumentToBench(docId, benchId);
 
             filesProcessed++;
           } catch (error: any) {
@@ -197,21 +217,14 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
         }
       }
 
-      setUploadProgress(95);
+      setUploadProgress(85);
 
-      await createBench.mutateAsync({
-        id: benchId,
-        name: name.trim(),
-        serialNumber: serialNumber.trim() || '',
-        agileCode: agileCode.trim() || '',
-        plmAgileUrl: plmAgileUrl.trim() || '',
-        decawebUrl: decawebUrl.trim() || '',
-        description: description.trim(),
-        photo: photoBlob,
-        tags,
-        documents,
-        components,
-      });
+      // Set components if any
+      if (components.length > 0) {
+        await actor.setComponents(benchId, components);
+      }
+
+      setUploadProgress(90);
 
       // Duplicate components to selected benches if any
       if (components.length > 0 && selectedBenchesForDuplication.length > 0) {
@@ -458,7 +471,7 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
 
             <div className="space-y-2">
               <Label>Tags</Label>
-              <TagsInput value={tags} onChange={setTags} suggestions={tagSuggestions} />
+              <TagsInput value={tags} onChange={setTags} suggestions={[]} />
               <p className="text-sm text-muted-foreground">
                 Add tags to help categorize and find this bench. Press Enter to add a new tag.
               </p>
@@ -499,10 +512,9 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
                         />
                         <Label
                           htmlFor={`dup-bench-${bench.id}`}
-                          className="text-sm font-normal cursor-pointer flex-1"
+                          className="font-normal cursor-pointer flex-1"
                         >
-                          {bench.name}
-                          {bench.agileCode && ` (${bench.agileCode})`}
+                          {bench.name} {bench.agileCode && `(${bench.agileCode})`}
                         </Label>
                       </div>
                     ))}
@@ -519,23 +531,10 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
                 value={documentCategories}
                 onChange={setDocumentCategories}
               />
-              {Object.keys(errors)
-                .filter((key) => key.startsWith('category'))
-                .map((key) => (
-                  <p key={key} className="text-sm text-destructive">
-                    {errors[key]}
-                  </p>
-                ))}
               <p className="text-sm text-muted-foreground">
-                Select category type (Hardware, Software, or Other(s)) and attach files. Optionally specify a version for each document. Large files are supported via chunked upload.
+                Upload documents organized by category (Hardware, Software, Other).
               </p>
             </div>
-
-            {errors.submit && (
-              <div className="p-3 bg-destructive/10 border border-destructive rounded-md">
-                <p className="text-sm text-destructive">{errors.submit}</p>
-              </div>
-            )}
           </form>
         </ScrollArea>
 
@@ -544,13 +543,23 @@ export function AddBenchModal({ open, onOpenChange }: AddBenchModalProps) {
             type="button"
             variant="outline"
             onClick={() => handleOpenChange(false)}
-            disabled={createBench.isPending || isUploading}
+            disabled={isUploading}
           >
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={createBench.isPending || isUploading}>
-            {(createBench.isPending || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Bench
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={isUploading || createBench.isPending}
+          >
+            {isUploading || createBench.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              'Create Bench'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -18,6 +18,11 @@ export interface Component {
   'manufacturerReference' : string,
   'componentName' : string,
 }
+export interface ComponentMovement {
+  'movementSequence' : Array<string>,
+  'manufacturerReference' : string,
+  'componentName' : string,
+}
 export interface Document {
   'id' : string,
   'documentVersion' : [] | [string],
@@ -32,6 +37,19 @@ export interface Document {
 }
 export type ExpirationThresholdMode = { 'allBenches' : null } |
   { 'customizedBenches' : null };
+export interface ExportExpertPayload {
+  'components' : Array<Component>,
+  'componentMovements' : Array<ComponentMovement>,
+  'bench' : TestBench,
+  'benchDocuments' : Array<Document>,
+}
+export interface ExportPayload {
+  'userMapping' : Array<[Principal, UserProfile]>,
+  'allDocuments' : Array<Document>,
+  'perBenchHistoryEntries' : Array<[string, Array<HistoryEntry>]>,
+  'perBenchComponents' : Array<[string, Array<Component>]>,
+  'benches' : Array<TestBench>,
+}
 export type ExternalBlob = Uint8Array;
 export interface HistoryEntry {
   'action' : string,
@@ -143,7 +161,12 @@ export interface _SERVICE {
     ],
     undefined
   >,
+  'deleteBenchDocument' : ActorMethod<[string, string], undefined>,
   'documentExists' : ActorMethod<[string], boolean>,
+  'duplicateBenchDocument' : ActorMethod<
+    [string, string, Array<string>],
+    undefined
+  >,
   'duplicateComponentToBench' : ActorMethod<
     [string, Component, string],
     undefined
@@ -152,6 +175,12 @@ export interface _SERVICE {
     [Component, Array<string>],
     undefined
   >,
+  'editBenchDocument' : ActorMethod<
+    [string, string, string, string, ExternalBlob],
+    undefined
+  >,
+  'exportData' : ActorMethod<[], ExportPayload>,
+  'exportExpertData' : ActorMethod<[string], ExportExpertPayload>,
   'filterDocumentsByTags' : ActorMethod<[Array<Tag>], Array<Document>>,
   'findExpiringDocuments' : ActorMethod<[[] | [bigint]], Array<Document>>,
   'getAllEntities' : ActorMethod<[], Array<string>>,
@@ -171,6 +200,7 @@ export interface _SERVICE {
   'getUsersByEntity' : ActorMethod<[string], Array<UserProfile>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isOnline' : ActorMethod<[Principal], boolean>,
+  'moveComponentToBench' : ActorMethod<[Component, string, string], undefined>,
   'removeDocumentFromBench' : ActorMethod<[string, string], undefined>,
   'removeTestBench' : ActorMethod<[string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,

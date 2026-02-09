@@ -1,440 +1,312 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { useNavigate } from '@tanstack/react-router';
-import { useGetAllTestBenches, useGetCallerUserProfile, useGetAllBenchComponents, useGetAllDocuments, useUpdateDashboardSectionsOrder } from '../hooks/useQueries';
-import { getEffectiveThreshold, computeExpirationStatus } from '../utils/expirationSettings';
-import { TestTube2, FileText, Activity, TrendingUp, Plus, AlertTriangle, Download, ArrowUp, ArrowDown, Edit } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, GripVertical, Download } from 'lucide-react';
+import { useI18n } from '../i18n/useI18n';
+import { useActor } from '../hooks/useActor';
+import { useGetCallerUserProfile, useUpdateDashboardSectionsOrder } from '../hooks/useQueries';
+import { StatisticsSection } from './Dashboard/components/StatisticsSection';
+import { MovementFlowSection } from './Dashboard/components/MovementFlowSection';
 import { downloadDocument } from '../utils/download';
 import { toast } from 'sonner';
-import { ExpiredByBenchChartCard } from './Dashboard/components/StatisticsCharts/ExpiredByBenchChartCard';
-import { ExpirationTrendChartCard } from './Dashboard/components/StatisticsCharts/ExpirationTrendChartCard';
-import { HealthGaugeCard } from './Dashboard/components/StatisticsCharts/HealthGaugeCard';
-import { DocumentsByCategoryPieCard } from './Dashboard/components/StatisticsCharts/DocumentsByCategoryPieCard';
-import { ComponentsByStatusPieCard } from './Dashboard/components/StatisticsCharts/ComponentsByStatusPieCard';
-import { useDashboardChartType, type ChartType } from '../hooks/useDashboardChartType';
-import { useI18n } from '../i18n/useI18n';
+import type { TestBench, Component, Document, HistoryEntry } from '../backend';
 
-const DEFAULT_SECTIONS = ['statistics', 'charts', 'criticalComponents', 'expiringComponents', 'documents', 'quickActions'];
-
-export default function DashboardPage() {
-  const navigate = useNavigate();
-  const { data: benches = [], isLoading } = useGetAllTestBenches();
-  const { data: profile } = useGetCallerUserProfile();
-  const { data: allBenchComponents = [] } = useGetAllBenchComponents();
-  const { data: allDocuments = [] } = useGetAllDocuments();
-  const updateSectionsOrder = useUpdateDashboardSectionsOrder();
-  const { chartType, setChartType } = useDashboardChartType();
+export function DashboardPage() {
   const { t } = useI18n();
+  const { actor } = useActor();
+  const { data: profile } = useGetCallerUserProfile();
+  const updateOrder = useUpdateDashboardSectionsOrder();
 
+  const [benches, setBenches] = useState<TestBench[]>([]);
+  const [allComponents, setAllComponents] = useState<Component[]>([]);
+  const [allDocuments, setAllDocuments] = useState<Document[]>([]);
+  const [allHistory, setAllHistory] = useState<Array<[string, HistoryEntry[]]>>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isReordering, setIsReordering] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState<string[]>(DEFAULT_SECTIONS);
+  const [draggedSection, setDraggedSection] = useState<string | null>(null);
+  const [localOrder, setLocalOrder] = useState<string[]>([]);
+
+  const defaultSections = [
+    'statistics',
+    'movementFlow',
+    'documents',
+    'benches',
+    'quickActions',
+  ];
 
   useEffect(() => {
-    if (profile?.dashboardSectionsOrdered && profile.dashboardSectionsOrdered.length > 0) {
-      // Merge saved order with default sections to ensure all sections are present
-      const savedSections = profile.dashboardSectionsOrdered;
-      const missingDefaults = DEFAULT_SECTIONS.filter(section => !savedSections.includes(section));
-      setSectionOrder([...savedSections, ...missingDefaults]);
+    if (profile?.dashboardSectionsOrdered) {
+      setLocalOrder(profile.dashboardSectionsOrdered);
     } else {
-      setSectionOrder(DEFAULT_SECTIONS);
+      setLocalOrder(defaultSections);
     }
   }, [profile]);
 
-  const totalBenches = benches.length;
+  useEffect(() => {
+    async function fetchData() {
+      if (!actor) return;
+      setIsLoading(true);
+      try {
+        const [benchesData, exportData] = await Promise.all([
+          actor.getAllTestBenches(),
+          actor.exportData(),
+        ]);
 
-  const componentsWithStatus = allBenchComponents.flatMap((benchData) =>
-    benchData.components.map((comp) => {
-      const threshold = getEffectiveThreshold(profile ?? null, benchData.benchId);
-      const status = computeExpirationStatus(comp.expirationDate, threshold);
-      return {
-        componentName: comp.componentName,
-        benchName: benchData.benchName,
-        agileCode: benchData.agileCode,
-        status,
-      };
-    })
-  );
+        setBenches(benchesData);
 
-  const criticalComponents = componentsWithStatus.filter((c) => c.status === 'expired');
-  const expiringSoonComponents = componentsWithStatus.filter((c) => c.status === 'expiringSoon');
+        const componentsArray: Component[] = [];
+        exportData.perBenchComponents.forEach(([_, comps]) => {
+          componentsArray.push(...comps);
+        });
+        setAllComponents(componentsArray);
 
-  const handleDownload = async (doc: any) => {
-    try {
-      await downloadDocument(doc.document.fileReference, doc.document.productDisplayName);
-      toast.success(t('dashboard.downloaded'));
-    } catch (error: any) {
-      console.error('Failed to download document:', error);
-      toast.error(error.message || t('dashboard.downloadFailed'));
+        setAllDocuments(exportData.allDocuments);
+        setAllHistory(exportData.perBenchHistoryEntries);
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+        toast.error(t('dashboard.error'));
+      } finally {
+        setIsLoading(false);
+      }
     }
-  };
+    fetchData();
+  }, [actor, t]);
 
-  const moveSection = (index: number, direction: 'up' | 'down') => {
-    const newOrder = [...sectionOrder];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    
-    if (targetIndex < 0 || targetIndex >= newOrder.length) return;
-    
-    [newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]];
-    setSectionOrder(newOrder);
-  };
-
-  const handleSaveOrder = async () => {
+  const handleSaveLayout = async () => {
     try {
-      await updateSectionsOrder.mutateAsync(sectionOrder);
+      await updateOrder.mutateAsync(localOrder);
       toast.success(t('dashboard.layoutSaved'));
       setIsReordering(false);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to save layout:', error);
-      toast.error(error.message || t('dashboard.layoutSaveFailed'));
+      toast.error(t('dashboard.layoutSaveFailed'));
     }
   };
 
-  const renderSection = (sectionId: string, index: number) => {
-    const canMoveUp = index > 0;
-    const canMoveDown = index < sectionOrder.length - 1;
+  const handleDragStart = (sectionId: string) => {
+    setDraggedSection(sectionId);
+  };
 
-    const reorderControls = isReordering && (
-      <div className="flex gap-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => moveSection(index, 'up')}
-          disabled={!canMoveUp}
-        >
-          <ArrowUp className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => moveSection(index, 'down')}
-          disabled={!canMoveDown}
-        >
-          <ArrowDown className="h-4 w-4" />
-        </Button>
-      </div>
-    );
+  const handleDragOver = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedSection || draggedSection === targetId) return;
 
-    switch (sectionId) {
-      case 'statistics':
-        return (
-          <div key={sectionId} className="space-y-4">
-            {isReordering && (
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">{t('dashboard.statistics')}</h2>
-                {reorderControls}
-              </div>
-            )}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t('dashboard.totalBenches')}</CardTitle>
-                  <TestTube2 className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{totalBenches}</div>
-                  <p className="text-xs text-muted-foreground">{t('dashboard.activeBenches')}</p>
-                </CardContent>
-              </Card>
+    const newOrder = [...localOrder];
+    const draggedIndex = newOrder.indexOf(draggedSection);
+    const targetIndex = newOrder.indexOf(targetId);
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t('dashboard.criticalComponents')}</CardTitle>
-                  <AlertTriangle className="h-4 w-4 text-destructive" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-destructive">{criticalComponents.length}</div>
-                  <p className="text-xs text-muted-foreground">{t('dashboard.expiredComponents')}</p>
-                </CardContent>
-              </Card>
+    newOrder.splice(draggedIndex, 1);
+    newOrder.splice(targetIndex, 0, draggedSection);
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t('dashboard.expiringSoon')}</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-orange-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-orange-500">{expiringSoonComponents.length}</div>
-                  <p className="text-xs text-muted-foreground">{t('dashboard.basedOnThreshold')}</p>
-                </CardContent>
-              </Card>
+    setLocalOrder(newOrder);
+  };
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{t('dashboard.documents')}</CardTitle>
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{allDocuments.length}</div>
-                  <p className="text-xs text-muted-foreground">{t('dashboard.totalDocuments')}</p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        );
+  const handleDragEnd = () => {
+    setDraggedSection(null);
+  };
 
-      case 'charts':
-        return (
-          <div key={sectionId} className="space-y-4">
-            <div className="flex items-center justify-between">
-              {isReordering ? (
-                <>
-                  <h2 className="text-lg font-semibold">{t('dashboard.chartsAnalytics')}</h2>
-                  {reorderControls}
-                </>
-              ) : (
-                <>
-                  <h2 className="text-lg font-semibold">{t('dashboard.chartsAnalytics')}</h2>
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="chart-type" className="text-sm">{t('dashboard.chartType')}</Label>
-                    <Select value={chartType} onValueChange={(value) => setChartType(value as ChartType)}>
-                      <SelectTrigger id="chart-type" className="w-[120px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Bar">{t('dashboard.bar')}</SelectItem>
-                        <SelectItem value="Line">{t('dashboard.line')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <ExpiredByBenchChartCard data={allBenchComponents} profile={profile ?? null} chartType={chartType} />
-              <ExpirationTrendChartCard data={allBenchComponents} chartType={chartType} />
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <DocumentsByCategoryPieCard data={allDocuments} />
-              <ComponentsByStatusPieCard data={allBenchComponents} profile={profile ?? null} />
-            </div>
-            <HealthGaugeCard data={allBenchComponents} profile={profile ?? null} />
-          </div>
-        );
-
-      case 'criticalComponents':
-        return (
-          <Card key={sectionId}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-destructive" />
-                    {t('dashboard.criticalComponentsTitle')}
-                  </CardTitle>
-                  <CardDescription>{t('dashboard.criticalComponentsDesc')}</CardDescription>
-                </div>
-                {reorderControls}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {criticalComponents.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t('dashboard.noCritical')}</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('dashboard.equipmentName')}</TableHead>
-                      <TableHead>{t('dashboard.bench')}</TableHead>
-                      <TableHead>{t('dashboard.agileNumber')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {criticalComponents.map((comp, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell className="font-medium">{comp.componentName}</TableCell>
-                        <TableCell>{comp.benchName}</TableCell>
-                        <TableCell>{comp.agileCode}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        );
-
-      case 'expiringComponents':
-        return (
-          <Card key={sectionId}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-orange-500" />
-                    {t('dashboard.expiringSoonTitle')}
-                  </CardTitle>
-                  <CardDescription>{t('dashboard.expiringSoonDesc')}</CardDescription>
-                </div>
-                {reorderControls}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {expiringSoonComponents.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t('dashboard.noExpiring')}</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('dashboard.equipmentName')}</TableHead>
-                      <TableHead>{t('dashboard.bench')}</TableHead>
-                      <TableHead>{t('dashboard.agileNumber')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {expiringSoonComponents.map((comp, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell className="font-medium">{comp.componentName}</TableCell>
-                        <TableCell>{comp.benchName}</TableCell>
-                        <TableCell>{comp.agileCode}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        );
-
-      case 'documents':
-        return (
-          <Card key={sectionId}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    {t('dashboard.documentsTitle')}
-                  </CardTitle>
-                  <CardDescription>{t('dashboard.documentsDesc')}</CardDescription>
-                </div>
-                {reorderControls}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {allDocuments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t('dashboard.noDocuments')}</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('dashboard.documentName')}</TableHead>
-                      <TableHead>{t('dashboard.category')}</TableHead>
-                      <TableHead>{t('dashboard.version')}</TableHead>
-                      <TableHead>{t('dashboard.actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {allDocuments.slice(0, 10).map((doc, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell className="font-medium">{doc.document.productDisplayName}</TableCell>
-                        <TableCell>{doc.document.category}</TableCell>
-                        <TableCell>{doc.document.documentVersion || 'N/A'}</TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDownload(doc)}
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        );
-
-      case 'quickActions':
-        return (
-          <Card key={sectionId}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5" />
-                    {t('dashboard.quickActions')}
-                  </CardTitle>
-                  <CardDescription>{t('dashboard.quickActionsDesc')}</CardDescription>
-                </div>
-                {reorderControls}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={() => navigate({ to: '/benches/new' })}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  {t('dashboard.newBench')}
-                </Button>
-                <Button variant="outline" onClick={() => navigate({ to: '/benches' })}>
-                  {t('dashboard.viewAllBenches')}
-                </Button>
-                <Button variant="outline" onClick={() => navigate({ to: '/profile' })}>
-                  {t('dashboard.managePreferences')}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
-
-      default:
-        return null;
+  const handleDownloadDocument = async (doc: Document) => {
+    try {
+      await downloadDocument(doc);
+      toast.success(t('dashboard.downloaded'));
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error(t('dashboard.downloadFailed'));
     }
+  };
+
+  const getBenchNames = (benchIds: string[]): string => {
+    if (benchIds.length === 0) return '-';
+    const names = benchIds
+      .map((id) => benches.find((b) => b.id === id)?.name)
+      .filter(Boolean);
+    return names.length > 0 ? names.join(', ') : '-';
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">{t('dashboard.loading')}</p>
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
+  const sections: Record<string, React.ReactNode> = {
+    statistics: (
+      <StatisticsSection
+        key="statistics"
+        benches={benches}
+        allComponents={allComponents}
+        allDocuments={allDocuments}
+        profile={profile || null}
+      />
+    ),
+    movementFlow: (
+      <MovementFlowSection
+        key="movementFlow"
+        benches={benches}
+        history={allHistory}
+      />
+    ),
+    documents: (
+      <Card key="documents">
+        <CardHeader>
+          <CardTitle>{t('dashboard.documentsTitle')}</CardTitle>
+          <CardDescription>{t('dashboard.documentsDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {allDocuments.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              {t('dashboard.noDocuments')}
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {allDocuments.slice(0, 10).map((doc) => (
+                <div
+                  key={doc.id}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{doc.productDisplayName}</p>
+                    <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                      <span>{t('dashboard.category')}: {doc.category}</span>
+                      <span>•</span>
+                      <span>{t('dashboard.documentVersion')}: {doc.documentVersion || '-'}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t('dashboard.assignedBenches')}: {getBenchNames(doc.associatedBenches)}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDownloadDocument(doc)}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    ),
+    benches: (
+      <Card key="benches">
+        <CardHeader>
+          <CardTitle>{t('dashboard.totalBenches')}</CardTitle>
+          <CardDescription>{t('dashboard.activeBenches')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-4xl font-bold">{benches.length}</div>
+        </CardContent>
+      </Card>
+    ),
+    quickActions: (
+      <Card key="quickActions">
+        <CardHeader>
+          <CardTitle>{t('dashboard.quickActions')}</CardTitle>
+          <CardDescription>{t('dashboard.quickActionsDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Button className="w-full" onClick={() => (window.location.href = '/benches/new')}>
+            {t('dashboard.newBench')}
+          </Button>
+          <Button variant="outline" className="w-full" onClick={() => (window.location.href = '/benches')}>
+            {t('dashboard.viewAllBenches')}
+          </Button>
+        </CardContent>
+      </Card>
+    ),
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
-          <p className="text-muted-foreground mt-2">
-            {t('dashboard.description')}
-          </p>
+          <p className="text-muted-foreground">{t('dashboard.subtitle')}</p>
         </div>
-        <div className="flex gap-2">
-          {isReordering ? (
+        <Button
+          variant={isReordering ? 'default' : 'outline'}
+          onClick={() => {
+            if (isReordering) {
+              handleSaveLayout();
+            } else {
+              setIsReordering(true);
+            }
+          }}
+          disabled={updateOrder.isPending}
+        >
+          {updateOrder.isPending ? (
             <>
-              <Button variant="outline" onClick={() => setIsReordering(false)}>
-                {t('dashboard.cancel')}
-              </Button>
-              <Button onClick={handleSaveOrder}>
-                {t('dashboard.saveLayout')}
-              </Button>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {t('common.loading')}
             </>
+          ) : isReordering ? (
+            t('dashboard.saveLayout')
           ) : (
-            <Button variant="outline" onClick={() => setIsReordering(true)}>
-              <Edit className="h-4 w-4 mr-2" />
-              {t('dashboard.reorderLayout')}
-            </Button>
+            t('dashboard.reorderLayout')
           )}
-        </div>
+        </Button>
       </div>
 
-      {sectionOrder.map((sectionId, index) => renderSection(sectionId, index))}
+      {isReordering && (
+        <Card className="bg-muted/50">
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">{t('dashboard.description')}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="space-y-6">
+        {localOrder.map((sectionId) => {
+          const section = sections[sectionId];
+          if (!section) return null;
+
+          if (isReordering) {
+            return (
+              <div
+                key={sectionId}
+                draggable
+                onDragStart={() => handleDragStart(sectionId)}
+                onDragOver={(e) => handleDragOver(e, sectionId)}
+                onDragEnd={handleDragEnd}
+                className="relative cursor-move"
+              >
+                <div className="absolute left-2 top-2 z-10">
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <GripVertical className="h-3 w-3" />
+                    {t(`dashboard.${sectionId}` as any) || sectionId}
+                  </Badge>
+                </div>
+                <div className="pointer-events-none opacity-75">{section}</div>
+              </div>
+            );
+          }
+
+          return section;
+        })}
+      </div>
+
+      {isReordering && (
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setIsReordering(false)}>
+            {t('dashboard.cancel')}
+          </Button>
+          <Button onClick={handleSaveLayout} disabled={updateOrder.isPending}>
+            {updateOrder.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {t('common.loading')}
+              </>
+            ) : (
+              t('dashboard.saveLayout')
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

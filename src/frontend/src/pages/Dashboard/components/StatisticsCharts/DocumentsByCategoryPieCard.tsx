@@ -2,9 +2,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { FileText } from 'lucide-react';
 import { useI18n } from '../../../../i18n/useI18n';
+import type { Document } from '../../../../backend';
 
 interface DocumentsByCategoryPieCardProps {
-  data: Array<{ document: any; benchNames: string[] }>;
+  data: Document[];
 }
 
 const COLORS = {
@@ -17,8 +18,8 @@ const COLORS = {
 export function DocumentsByCategoryPieCard({ data }: DocumentsByCategoryPieCardProps) {
   const { t } = useI18n();
 
-  const categoryCounts = data.reduce((acc, item) => {
-    const category = item.document.category || 'Unknown';
+  const categoryCounts = data.reduce((acc, doc) => {
+    const category = doc.category || 'Unknown';
     acc[category] = (acc[category] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
