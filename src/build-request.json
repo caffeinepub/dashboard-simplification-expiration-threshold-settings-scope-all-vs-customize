@@ -1,112 +1,68 @@
 {
   "kind": "build_request",
-  "title": "Restore correct i18n, enhance document-as-component management, add dashboard assignment + movement visualization, and export full dashboard data",
+  "title": "Publish Draft Version 51 to Production",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Restore full-site translation behavior so that all user-visible UI strings render via the i18n translation system (useI18n.t) and correctly change when the language changes, matching the behavior of previous versions.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Gere la traduction du site proprement. Refais comme dans les.anhiennes versions ou toit le.site était correctement traduit."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Switching language updates all visible labels, headings, descriptions, button texts, empty states, and section titles without requiring a hard refresh.",
-        "No dashboard section contains hard-coded English strings when an i18n key exists/should exist (e.g., Dashboard and Statistics sections).",
-        "Missing translation keys do not display raw keys in the UI for supported languages; provide appropriate translations or fallbacks so the UI remains readable."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Ensure bench documents (HW/SW/Other(s)) can be managed with component-like operations: edit metadata, delete the document (not just unassign), download, and duplicate the document to reassign it to one or more other benches.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "assure toi qu'on puisse gérer un document HW, SW, ou autres comme un composant.Cest a dire : l'éditer, le.supprimer, le télécharger ou dupliqué pour le.reaffecter a un.autre banc."
-        ]
-      },
-      "acceptanceCriteria": [
-        "From the bench documents editor, a user can download a document file successfully.",
-        "From the bench documents editor, a user can edit a document’s metadata (and optionally replace the file) and see changes reflected when reloading the bench.",
-        "From the bench documents editor, the Delete action deletes the document entity and removes its associations across benches (distinct from an unassign/remove-from-bench action).",
-        "From the bench documents editor, Duplicate allows selecting destination bench(es) and results in a duplicated document that is associated to the selected bench(es) and appears in those benches’ document lists."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "In the dashboard recap, display for each document: (1) the bench(es) it is assigned to and (2) its document version.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "dans le.dashboard récapitulatif, j'aimerais avoir avoir les bancs auxquels chaque document est affecte et sa version."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Dashboard includes a documents recap view that lists documents and shows their documentVersion and the list of assigned benches (by bench name, not only IDs).",
-        "The displayed bench assignments are accurate and update after assigning/unassigning/deleting/duplicating documents.",
-        "If a document has no version, the UI displays an explicit empty state (e.g., '-') rather than breaking layout."
-      ]
-    },
-    {
       "id": "REQ-4",
-      "text": "Add a dedicated, visual dashboard section that shows a flow of components that moved from Bench A to Bench B (a chart/flow visualization based on recorded move events).",
+      "text": "Promote the currently deployed Draft Version 51 to the Internet Computer mainnet (production) by executing the production deployment checklist steps, including verifying production environment variables and targeting the `ic` network.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-4"
         ],
         "quotes": [
-          "fournis un chartflow des composants qui sont passés dun.banc A vers un Banc B. Il faut que se soit visuel. Tu affichera cette donnee dans le dashboard dans une section dédiée."
+          "Publish it."
         ]
       },
       "acceptanceCriteria": [
-        "Dashboard has a clearly labeled dedicated section for the component movement flow visualization.",
-        "The visualization is generated from actual component move history and shows at least: source bench, destination bench, and a count of moved components for each pair.",
-        "When there are no move events, the section shows a clear empty state message and does not error."
+        "Production deployment is executed against `DFX_NETWORK=ic`.",
+        "Production environment variables are verified before deployment, including `CANISTER_ID_BACKEND`, `CANISTER_ID_FRONTEND`, and `II_URL=https://identity.ic0.app` (per `frontend/README_PRODUCTION_ENV.md`).",
+        "Frontend assets are published to the production frontend canister and load successfully at `https://<CANISTER_ID_FRONTEND>.ic0.app`.",
+        "Backend canister is confirmed healthy before publishing the frontend (e.g., status/cycles and a basic query call succeeds)."
       ]
     },
     {
       "id": "REQ-5",
-      "text": "In the Export tab/dialog, add an option to export all data shown/needed by the dashboard, including documents (with version and bench assignments) and the component movement flow data.",
+      "text": "Run the production smoke test procedure after publishing to confirm authentication and core flows work in production, and record results in the existing smoke test results template file.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-4"
         ],
         "quotes": [
-          "dans l'onglet export, rajoute la.possibilote d'exporter toutes les données du dashboard."
+          "Publish it."
         ]
       },
       "acceptanceCriteria": [
-        "Export UI includes an explicit option labeled in English (via i18n) to export 'All dashboard data'.",
-        "The generated export includes the dashboard-relevant datasets: benches, components, documents (including version), document-to-bench assignments, history/move events sufficient to reproduce the movement flow.",
-        "Export succeeds without requiring users to manually select benches/components when the 'All dashboard data' option is chosen."
+        "Smoke tests are executed on the production URL after publishing (using the steps in `frontend/SMOKE_TEST_PRODUCTION_DRAFT_V48.md` as the baseline procedure).",
+        "Results are recorded in `frontend/SMOKE_TEST_PRODUCTION_RESULTS_V48.md`, including PASS/FAIL for each section and diagnostics for any failures.",
+        "If any critical issues are encountered (app fails to load, cannot sign in, data loss, security issue, or backend out-of-cycles/traps), publishing is treated as failed and the issue is documented in the results file."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; add migration.mo only if persistent state schema changes require it.",
-    "Do not edit files under frontend/src/components/ui or any frontend immutable paths listed in SYSTEM_CONTEXT.",
-    "Use English for any new user-facing text added to the app (via i18n keys)."
+    "No new product features or code changes are introduced as part of this request; this is a publish/promotion action only.",
+    "Use Internet Identity production URL exactly as `https://identity.ic0.app`.",
+    "Target Internet Computer mainnet only (`DFX_NETWORK=ic`)."
   ],
   "nonGoals": [
-    "Adding third-party translation services or external localization tooling.",
-    "Implementing real-time updates (e.g., websockets) for dashboard movement visualization.",
-    "Adding new authentication methods beyond Internet Identity."
+    "Implementing new frontend or backend functionality.",
+    "Changing UI design, routes, or translations as part of this publish request.",
+    "Introducing new canisters or external services."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

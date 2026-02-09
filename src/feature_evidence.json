@@ -2,82 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-restore-full-site-translation-behavior-so-that-all-user-visible-ui-strings-render-via-the-i18n-translation-system-usei18n-t-and-correctly-change-when-the-language-changes-matching-the-behavior-of-previous-versions",
-      "featureTitle": "Restore full-site translation behavior so that all user-visible UI strings render via the i18n translation system (useI18n.t) and correctly change when the language changes, matching the behavior of previous versions.",
+      "featureId": "feature-promote-the-currently-deployed-draft-version-51-to-the-internet-computer-mainnet-production-by-executing-the-production-deployment-checklist-steps-including-verifying-production-environment-variables-and-targeting-the-ic-network",
+      "featureTitle": "Promote the currently deployed Draft Version 51 to the Internet Computer mainnet (production) by executing the production deployment checklist steps, including verifying production environment variables and targeting the `ic` network.",
       "files": [
-        "frontend/src/components/export/ExportDialog.tsx",
-        "frontend/src/i18n/translations.ts",
-        "frontend/src/i18n/useI18n.ts",
-        "frontend/src/pages/Benches/components/DuplicateDocumentDialog.tsx",
-        "frontend/src/pages/Benches/components/EditBenchDocumentDialog.tsx",
-        "frontend/src/pages/Dashboard/components/StatisticsSection.tsx",
-        "frontend/src/pages/DashboardPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-bench-documents-hw-sw-other-s-can-be-managed-with-component-like-operations-edit-metadata-delete-the-document-not-just-unassign-download-and-duplicate-the-document-to-reassign-it-to-one-or-more-other-benches",
-      "featureTitle": "Ensure bench documents (HW/SW/Other(s)) can be managed with component-like operations: edit metadata, delete the document (not just unassign), download, and duplicate the document to reassign it to one or more other benches.",
-      "files": [
-        "frontend/src/i18n/translations.ts",
-        "frontend/src/pages/Benches/components/BenchDocumentsEditor.tsx",
-        "frontend/src/pages/Benches/components/DuplicateDocumentDialog.tsx",
-        "frontend/src/pages/Benches/components/EditBenchDocumentDialog.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-in-the-dashboard-recap-display-for-each-document-1-the-bench-es-it-is-assigned-to-and-2-its-document-version",
-      "featureTitle": "In the dashboard recap, display for each document: (1) the bench(es) it is assigned to and (2) its document version.",
-      "files": [
-        "frontend/src/i18n/translations.ts",
-        "frontend/src/pages/DashboardPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-dedicated-visual-dashboard-section-that-shows-a-flow-of-components-that-moved-from-bench-a-to-bench-b-a-chart-flow-visualization-based-on-recorded-move-events",
-      "featureTitle": "Add a dedicated, visual dashboard section that shows a flow of components that moved from Bench A to Bench B (a chart/flow visualization based on recorded move events).",
-      "files": [
-        "frontend/src/i18n/translations.ts",
-        "frontend/src/pages/Dashboard/components/MovementFlowSection.tsx",
-        "frontend/src/pages/DashboardPage.tsx"
+        "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V51.md"
       ],
       "components": [
         "authorization@4.0.0",
@@ -94,11 +22,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-in-the-export-tab-dialog-add-an-option-to-export-all-data-shown-needed-by-the-dashboard-including-documents-with-version-and-bench-assignments-and-the-component-movement-flow-data",
-      "featureTitle": "In the Export tab/dialog, add an option to export all data shown/needed by the dashboard, including documents (with version and bench assignments) and the component movement flow data.",
+      "featureId": "feature-run-the-production-smoke-test-procedure-after-publishing-to-confirm-authentication-and-core-flows-work-in-production-and-record-results-in-the-existing-smoke-test-results-template-file",
+      "featureTitle": "Run the production smoke test procedure after publishing to confirm authentication and core flows work in production, and record results in the existing smoke test results template file.",
       "files": [
-        "frontend/src/components/export/ExportDialog.tsx",
-        "frontend/src/i18n/translations.ts"
+        "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V51.md",
+        "frontend/SMOKE_TEST_PRODUCTION_RESULTS_V48.md"
       ],
       "components": [
         "authorization@4.0.0",

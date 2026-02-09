@@ -1,171 +1,43 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix i18n regressions, enhance document management UX, add dashboard document recap + movement flow section, and export full dashboard datasets",
+  "title": "Publish Draft Version 51 to Production (Frontend-only docs & runbooks)",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Restore full-site i18n behavior so all visible UI strings are translated via useI18n.t and update live on language change, with readable fallbacks for missing keys.",
-      "acceptanceCriteria": [
-        "Switching language updates all visible labels, headings, descriptions, button texts, empty states, and section titles without requiring a hard refresh.",
-        "No dashboard section contains hard-coded English strings when an i18n key exists/should exist (e.g., Dashboard and Statistics sections).",
-        "Missing translation keys do not display raw keys in the UI for supported languages; provide appropriate translations or fallbacks so the UI remains readable."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/i18n/useI18n.ts",
-          "operation": "modify",
-          "description": "Improve the translation function so missing keys fall back to a readable value (e.g., fallback to 'en-US' first, then a humanized label) instead of returning the raw key; ensure the function remains reactive to languageTag changes."
-        },
-        {
-          "path": "frontend/src/i18n/translations.ts",
-          "operation": "modify",
-          "description": "Add any missing i18n keys needed to remove hard-coded strings across dashboard/statistics, export, and document dialogs; ensure all new user-facing text is English and keyed."
-        },
-        {
-          "path": "frontend/src/pages/Dashboard/components/StatisticsSection.tsx",
-          "operation": "modify",
-          "description": "Replace all hard-coded visible strings (section title, helper text, stat card titles/descriptions) with useI18n.t keys so they update when the language changes."
-        },
-        {
-          "path": "frontend/src/pages/DashboardPage.tsx",
-          "operation": "modify",
-          "description": "Replace hard-coded section labels used during reordering (e.g., section name chips) with i18n keys via useI18n.t to ensure full dashboard translation coverage."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/EditBenchDocumentDialog.tsx",
-          "operation": "modify",
-          "description": "Replace hard-coded validation and dialog description strings with i18n keys via useI18n.t; ensure errors remain readable under missing-key fallback behavior."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/DuplicateDocumentDialog.tsx",
-          "operation": "modify",
-          "description": "Replace hard-coded dialog description and validation strings with i18n keys via useI18n.t; ensure the UI updates live on language changes."
-        },
-        {
-          "path": "frontend/src/components/export/ExportDialog.tsx",
-          "operation": "modify",
-          "description": "Replace the remaining hard-coded format label text (e.g., SQLite label) with i18n keys so format selection is fully translated and reacts to language changes."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Enhance bench documents editor to manage documents like components: edit metadata, delete the document entity (not only unassign), download, and duplicate to reassign to other benches.",
-      "acceptanceCriteria": [
-        "From the bench documents editor, a user can download a document file successfully.",
-        "From the bench documents editor, a user can edit a document’s metadata (and optionally replace the file) and see changes reflected when reloading the bench.",
-        "From the bench documents editor, the Delete action deletes the document entity and removes its associations across benches (distinct from an unassign/remove-from-bench action).",
-        "From the bench documents editor, Duplicate allows selecting destination bench(es) and results in a duplicated document that is associated to the selected bench(es) and appears in those benches’ document lists."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/Benches/components/BenchDocumentsEditor.tsx",
-          "operation": "modify",
-          "description": "Update document actions UX to clearly separate 'Unassign from bench' vs 'Delete document' and wire the destructive Delete action to the delete-document mutation (not the unassign mutation); ensure download uses the existing blob download utility. This feature relies on blob file handling; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/EditBenchDocumentDialog.tsx",
-          "operation": "modify",
-          "description": "Extend the edit dialog to support editing document metadata required by the product (including document version if supported by backend capability) and keep optional file replacement with upload progress. This feature relies on blob file handling; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/Benches/components/DuplicateDocumentDialog.tsx",
-          "operation": "modify",
-          "description": "Ensure duplicate flow supports selecting one or more destination benches and uses i18n for all strings; keep bench filtering behavior (exclude current bench and already-associated benches) and ensure the UI state resets cleanly after completion."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Adjust/extend the existing React Query mutations used by bench document editing/deleting/duplicating to match the required operations (including a true delete-document mutation distinct from unassign, and metadata edit support as required by the UI)."
-        },
-        {
-          "path": "frontend/src/i18n/translations.ts",
-          "operation": "modify",
-          "description": "Add i18n keys for any new/updated document management labels (e.g., separate 'Unassign' vs 'Delete document'), confirmations, dialog helper texts, and validation messages in English."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Update the dashboard documents recap to show each document’s assigned bench names and document version, with a safe empty state when version is missing.",
-      "acceptanceCriteria": [
-        "Dashboard includes a documents recap view that lists documents and shows their documentVersion and the list of assigned benches (by bench name, not only IDs).",
-        "The displayed bench assignments are accurate and update after assigning/unassigning/deleting/duplicating documents.",
-        "If a document has no version, the UI displays an explicit empty state (e.g., '-') rather than breaking layout."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/DashboardPage.tsx",
-          "operation": "modify",
-          "description": "Enhance the dashboard documents section into a recap list that includes: documentVersion (render '-' when missing) and assigned benches rendered by bench name (map associated bench IDs to the loaded benches list); ensure it refreshes based on existing queries after document operations."
-        },
-        {
-          "path": "frontend/src/i18n/translations.ts",
-          "operation": "modify",
-          "description": "Add i18n keys for the new dashboard document recap labels (e.g., 'Assigned benches', 'Document version', empty state '-') and any helper text in English."
-        }
-      ]
-    },
-    {
       "id": "REQ-4",
-      "summary": "Add a dedicated dashboard section with a visual component movement flow (Bench A → Bench B) aggregated from recorded move events, including empty state.",
+      "summary": "Document and follow the production deployment checklist steps for promoting Draft Version 51 to IC mainnet, including production env var verification and frontend asset publish order constraints.",
       "acceptanceCriteria": [
-        "Dashboard has a clearly labeled dedicated section for the component movement flow visualization.",
-        "The visualization is generated from actual component move history and shows at least: source bench, destination bench, and a count of moved components for each pair.",
-        "When there are no move events, the section shows a clear empty state message and does not error."
+        "Production deployment is executed against `DFX_NETWORK=ic`.",
+        "Production environment variables are verified before deployment, including `CANISTER_ID_BACKEND`, `CANISTER_ID_FRONTEND`, and `II_URL=https://identity.ic0.app` (per `frontend/README_PRODUCTION_ENV.md`).",
+        "Frontend assets are published to the production frontend canister and load successfully at `https://<CANISTER_ID_FRONTEND>.ic0.app`.",
+        "Backend canister is confirmed healthy before publishing the frontend (e.g., status/cycles and a basic query call succeeds)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/Dashboard/components/MovementFlowSection.tsx",
+          "path": "frontend/DEPLOYMENT_PRODUCTION_DRAFT_V51.md",
           "operation": "create",
-          "description": "Create a dashboard section component that aggregates component move history into (sourceBenchId, destinationBenchId) pairs with counts, resolves bench names, and renders a visual flow (e.g., ranked flow rows with directional styling and proportional bars) plus an empty state when no moves exist."
-        },
-        {
-          "path": "frontend/src/pages/DashboardPage.tsx",
-          "operation": "modify",
-          "description": "Wire the movement flow section into the dashboard: fetch the necessary bench histories via the existing actor capabilities, derive move pairs, add a new section id to the dashboard ordering, and render it within the existing section switch so it is navigable and reorderable (not orphaned)."
-        },
-        {
-          "path": "frontend/src/i18n/translations.ts",
-          "operation": "modify",
-          "description": "Add i18n keys for the movement flow section title, description, column labels (source/destination/count), and empty state message in English."
+          "description": "Create a Draft Version 51 production deployment checklist by adapting the existing Draft V47/V48 checklists: include explicit verification of `DFX_NETWORK=ic`, required env vars (`CANISTER_ID_BACKEND`, `CANISTER_ID_FRONTEND`, `II_URL=https://identity.ic0.app` per `frontend/README_PRODUCTION_ENV.md`), and the required order of operations (confirm backend health before publishing frontend assets). Ensure the checklist remains promotion-only (no code/product changes)."
         }
       ]
     },
     {
       "id": "REQ-5",
-      "summary": "Add an Export option to export all dashboard-relevant datasets (including documents with version + bench assignments, and movement flow/history data) without manual selection.",
+      "summary": "Update the production smoke test runbook for Draft Version 51 and record production smoke test results in the existing V48 results template after publishing.",
       "acceptanceCriteria": [
-        "Export UI includes an explicit option labeled in English (via i18n) to export 'All dashboard data'.",
-        "The generated export includes the dashboard-relevant datasets: benches, components, documents (including version), document-to-bench assignments, history/move events sufficient to reproduce the movement flow.",
-        "Export succeeds without requiring users to manually select benches/components when the 'All dashboard data' option is chosen."
+        "Smoke tests are executed on the production URL after publishing (using the steps in `frontend/SMOKE_TEST_PRODUCTION_DRAFT_V48.md` as the baseline procedure).",
+        "Results are recorded in `frontend/SMOKE_TEST_PRODUCTION_RESULTS_V48.md`, including PASS/FAIL for each section and diagnostics for any failures.",
+        "If any critical issues are encountered (app fails to load, cannot sign in, data loss, security issue, or backend out-of-cycles/traps), publishing is treated as failed and the issue is documented in the results file."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/export/ExportDialog.tsx",
-          "operation": "modify",
-          "description": "Add an explicit i18n-labeled option 'All dashboard data' that triggers export generation without requiring bench/component selection; keep existing export formats and validations coherent with the new option."
+          "path": "frontend/SMOKE_TEST_PRODUCTION_DRAFT_V51.md",
+          "operation": "create",
+          "description": "Create a Draft Version 51 production smoke test procedure by baselining from `frontend/SMOKE_TEST_PRODUCTION_DRAFT_V48.md` and updating version references and any Draft V51-specific notes, while keeping the same test scope (authentication, profile setup/persistence, sign-out/re-auth, language preferences, dashboard, benches/components) and diagnostics requirements."
         },
         {
-          "path": "frontend/src/utils/export/exportFilters.ts",
+          "path": "frontend/SMOKE_TEST_PRODUCTION_RESULTS_V48.md",
           "operation": "modify",
-          "description": "Extend export filtering to support a dashboard-export mode that includes the full set of dashboard datasets (benches, components, documents with version + bench assignments, and history-derived movement flow data) without relying on user selections."
-        },
-        {
-          "path": "frontend/src/utils/export/exportGenerators.ts",
-          "operation": "modify",
-          "description": "Update CSV/TXT/SQLite generators to include dashboard datasets (documents + assignments + movement flow derived from move history) when the 'All dashboard data' option is selected; ensure output remains deterministic and readable."
-        },
-        {
-          "path": "frontend/src/utils/export/sqliteExport.ts",
-          "operation": "modify",
-          "description": "Extend the SQLite export to include additional tables/records needed for dashboard data export (documents, document-to-bench assignments, and movement flow or sufficient history to reproduce it)."
-        },
-        {
-          "path": "frontend/src/i18n/translations.ts",
-          "operation": "modify",
-          "description": "Add i18n keys for the new export option label, helper/description text, and any related validation or success/error messages in English."
+          "description": "Update the existing smoke test results template to explicitly support recording a Draft Version 51 production run (e.g., clarify that the file is used for the V51 publish, update the version field guidance, and ensure there is space to record PASS/FAIL per section plus required diagnostics and critical-issue handling notes), while preserving the template structure used by the V48 baseline procedure."
         }
       ]
     }

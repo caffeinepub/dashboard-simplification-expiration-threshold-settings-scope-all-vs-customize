@@ -1,13 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Restore correct site-wide i18n behavior, improve bench document management, enrich dashboard recap with document assignment/version info, add a visual component-movement flow section, and enable exporting all dashboard data.
+**Goal:** Promote the currently deployed Draft Version 51 to Internet Computer mainnet (production) and validate it via production smoke tests.
 
 **Planned changes:**
-- Fix frontend i18n usage so all user-visible UI strings use the translation system (useI18n.t) and update immediately when the language changes, including dashboard/statistics and other sections with hard-coded text.
-- Extend bench document management to support component-like actions: edit document metadata (and optionally replace file), download, delete the document entity (not just unassign), and duplicate documents to assign to one or more other benches.
-- Update the dashboard documents recap to show each document’s version and the bench(es) it is assigned to (by bench name), with sensible empty states for missing versions.
-- Add a dedicated dashboard section with a visual flow/chart of component movements between benches, computed from recorded move history (source bench, destination bench, counts) and showing an empty state when no events exist.
-- Add an Export option to export all dashboard data in one action, including documents (with version and bench assignments) and component movement flow/move-event data.
+- Execute the production deployment checklist to deploy against `DFX_NETWORK=ic`.
+- Verify required production environment variables prior to deployment (`CANISTER_ID_BACKEND`, `CANISTER_ID_FRONTEND`, `II_URL=https://identity.ic0.app`) per `frontend/README_PRODUCTION_ENV.md`.
+- Confirm backend canister health before publishing the frontend (e.g., status/cycles and a basic query call).
+- Publish frontend assets to the production frontend canister and confirm the app loads at `https://<CANISTER_ID_FRONTEND>.ic0.app`.
+- Run the production smoke test procedure using `frontend/SMOKE_TEST_PRODUCTION_DRAFT_V48.md` as the baseline and record PASS/FAIL + diagnostics in `frontend/SMOKE_TEST_PRODUCTION_RESULTS_V48.md`.
 
-**User-visible outcome:** The UI remains fully translated when switching languages, users can fully manage bench documents (edit/download/delete/duplicate and reassign), the dashboard shows document version + bench assignments and a visual component-movement flow, and users can export all dashboard-related datasets via a single “All dashboard data” option.
+**User-visible outcome:** Draft Version 51 is live on production (IC mainnet) and verified working for authentication and core flows via recorded smoke test results.

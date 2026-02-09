@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import type { TestBench, Component, Document, HistoryEntry } from '../backend';
 
 export function DashboardPage() {
-  const { t } = useI18n();
+  const { t, languageTag } = useI18n();
   const { actor } = useActor();
   const { data: profile } = useGetCallerUserProfile();
   const updateOrder = useUpdateDashboardSectionsOrder();
@@ -23,6 +23,7 @@ export function DashboardPage() {
   const [allDocuments, setAllDocuments] = useState<Document[]>([]);
   const [allHistory, setAllHistory] = useState<Array<[string, HistoryEntry[]]>>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
   const [draggedSection, setDraggedSection] = useState<string | null>(null);
   const [localOrder, setLocalOrder] = useState<string[]>([]);
@@ -63,6 +64,7 @@ export function DashboardPage() {
 
         setAllDocuments(exportData.allDocuments);
         setAllHistory(exportData.perBenchHistoryEntries);
+        setHasLoadedOnce(true);
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
         toast.error(t('dashboard.error'));
@@ -71,7 +73,7 @@ export function DashboardPage() {
       }
     }
     fetchData();
-  }, [actor, t]);
+  }, [actor, languageTag, t]);
 
   const handleSaveLayout = async () => {
     try {
@@ -124,7 +126,8 @@ export function DashboardPage() {
     return names.length > 0 ? names.join(', ') : '-';
   };
 
-  if (isLoading) {
+  // Show loading spinner only on initial load
+  if (isLoading && !hasLoadedOnce) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

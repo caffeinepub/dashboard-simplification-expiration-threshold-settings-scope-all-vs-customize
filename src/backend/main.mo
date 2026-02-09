@@ -14,9 +14,9 @@ import AccessControl "authorization/access-control";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import MixinAuthorization "authorization/MixinAuthorization";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -1127,7 +1127,10 @@ actor {
       case (?doc) { doc };
     };
 
-    if (caller != existingDocument.uploader and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (caller != existingDocument.uploader and not AccessControl.isAdmin(
+      accessControlState,
+      caller,
+    )) {
       Runtime.trap("Unauthorized: Only the document uploader or admin can edit this document");
     };
 
@@ -1218,3 +1221,4 @@ actor {
     };
   };
 };
+

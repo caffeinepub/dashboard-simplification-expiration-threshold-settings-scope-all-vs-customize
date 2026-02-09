@@ -1,11 +1,11 @@
-# Production Smoke Test Results - Draft Version 48
+# Production Smoke Test Results - Draft Version 48 / Draft Version 51
 
 ## Test Execution Summary
 
 **Test Date:** _________________  
 **Tested By:** _________________  
 **Application URL:** `https://<CANISTER_ID_FRONTEND>.ic0.app`  
-**Version:** Draft Version 48  
+**Version Tested:** ☐ Draft Version 48 ☐ Draft Version 51 ☐ Other: _________________  
 **Browser(s) Tested:** _________________  
 **Operating System:** _________________  
 
