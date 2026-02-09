@@ -7,10 +7,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Menu, LogOut, User, Shield, Home, Package, Heart } from 'lucide-react';
+import { Menu, LogOut, User, Home, Package, Heart } from 'lucide-react';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
-import { useIsCallerAdmin } from '../../hooks/useQueries';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { useI18n } from '../../i18n/useI18n';
 
@@ -22,7 +21,6 @@ export default function AppShell({ children }: AppShellProps) {
   const { clear } = useInternetIdentity();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: isAdmin = false } = useIsCallerAdmin();
   const { t } = useI18n();
 
   const handleSignOut = async () => {
@@ -62,15 +60,6 @@ export default function AppShell({ children }: AppShellProps) {
             >
               {t('nav.benches')}
             </Link>
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className="transition-colors hover:text-foreground/80 text-foreground/60"
-                activeProps={{ className: 'text-foreground' }}
-              >
-                {t('nav.admin')}
-              </Link>
-            )}
           </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -93,12 +82,6 @@ export default function AppShell({ children }: AppShellProps) {
                   <User className="mr-2 h-4 w-4" />
                   {t('nav.profile')}
                 </DropdownMenuItem>
-                {isAdmin && (
-                  <DropdownMenuItem onClick={() => navigate({ to: '/admin' })}>
-                    <Shield className="mr-2 h-4 w-4" />
-                    {t('nav.admin')}
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />

@@ -5,28 +5,13 @@
   "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Safran logo wordmark on transparent background, tightly cropped and scaled to fit (safran-logo.dim_220x64.png)\n\n## Edit Images\n- Use the uploaded image as the source and produce the app asset (png-clipart-safran-electronics-defense-labinal-logo-aerospace-outils-text-logo-thumbnail.png > safran-logo.dim_220x64.png)",
   "existing_features": [
     {
-      "id": "feature-add-a-protected-user-profile-details-view-that-can-display-another-user-s-public-profile-information-username-bio-entity-and-a-large-profile-picture-when-provided-a-user-principal-id-in-the-route-e-g-users-userid",
-      "title": "Add a protected \"User Profile Details\" view that can display another user's public profile information (username, bio, entity, and a large profile picture) when provided a user principal ID in the route (e.g., /users/:userId).",
+      "id": "feature-replace-the-existing-safran-header-logo-asset-with-the-user-provided-image-keeping-the-public-path-unchanged-assets-generated-safran-logo-dim-220x64-png-as-used-by-frontend-src-components-layout-appshell-tsx-the-resulting-image-must-be-a-clean-properly-cropped-scaled-logo-that-fits-within-220x64-and-renders-clearly-on-both-light-and-dark-backgrounds-transparent-background-if-possible",
+      "title": "Replace the existing Safran header logo asset with the user-provided image, keeping the public path unchanged: `/assets/generated/safran-logo.dim_220x64.png` (as used by `frontend/src/components/layout/AppShell.tsx`). The resulting image must be a clean, properly cropped/scaled logo that fits within 220x64 and renders clearly on both light and dark backgrounds (transparent background if possible).",
       "reqIds": [
         "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-make-user-avatars-clickable-wherever-they-represent-another-user-at-minimum-in-the-bench-history-list-so-that-clicking-the-avatar-navigates-to-the-new-user-profile-details-route-for-that-user",
-      "title": "Make user avatars clickable wherever they represent another user (at minimum in the Bench History list), so that clicking the avatar navigates to the new \"User Profile Details\" route for that user.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-frontend-data-layer-to-consume-the-expanded-public-user-info-type-and-use-it-in-both-the-bench-history-display-where-applicable-and-the-new-user-profile-details-view",
-      "title": "Update the frontend data layer to consume the expanded public user info type and use it in both the bench history display (where applicable) and the new \"User Profile Details\" view.",
-      "reqIds": [
-        "REQ-4"
       ],
       "version": 1
     }
@@ -34,20 +19,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Open a user's profile details when clicking their profile photo (bio, entity, enlarged avatar, username, etc.)",
+      "summary": "Remplacer l'image « safran » par la nouvelle image fournie par l'utilisateur",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Extend the backend public user info API so it can return the fields needed by the \"User Profile Details\" view: username, bio, entity, and profilePicture for a given user principal, for any authenticated caller.",
-      "reqIds": [
-        "REQ-3"
-      ],
       "status": "pending"
     }
   ],
-  "projectName": "Add public user profile details view accessible by clicking a user's avatar",
+  "projectName": "Replace Safran logo image with user-provided file",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

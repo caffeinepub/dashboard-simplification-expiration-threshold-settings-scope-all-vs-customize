@@ -1,73 +1,33 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T22:11:43.251Z",
+  "generatedAt": "2026-02-09T09:04:52.122Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 3,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Add a protected \"User Profile Details\" view that can display another user's public profile information (username, bio, entity, and a large profile picture) when provided a user principal ID in the route (e.g., /users/:userId).",
+        "summary": "Replace the existing Safran header logo asset with the user-provided image, keeping the public path unchanged: `/assets/generated/safran-logo.dim_220x64.png` (as used by `frontend/src/components/layout/AppShell.tsx`). The resulting image must be a clean, properly cropped/scaled logo that fits within 220x64 and renders clearly on both light and dark backgrounds (transparent background if possible).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/Users/UserProfileDetailsPage.tsx",
-          "frontend/src/App.tsx"
+          "frontend/public/assets/generated/safran-logo.dim_220x64.png"
         ],
         "matchedFiles": [
-          "frontend/src/pages/Users/UserProfileDetailsPage.tsx",
-          "frontend/src/App.tsx"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Make user avatars clickable wherever they represent another user (at minimum in the Bench History list), so that clicking the avatar navigates to the new \"User Profile Details\" route for that user.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/Benches/components/BenchHistoryList.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/Benches/components/BenchHistoryList.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Extend the backend public user info API so it can return the fields needed by the \"User Profile Details\" view: username, bio, entity, and profilePicture for a given user principal, for any authenticated caller.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Update the frontend data layer to consume the expanded public user info type and use it in both the bench history display (where applicable) and the new \"User Profile Details\" view.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/backend.d.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/backend.d.ts"
+          "frontend/public/assets/generated/safran-logo.dim_220x64.png"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/pages/Benches/components/BenchHistoryList.tsx",
-    "frontend/src/pages/Users/UserProfileDetailsPage.tsx",
+    "frontend/public/assets/generated/safran-logo.dim_220x64.png",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Let authenticated users view another user’s public profile details by clicking their avatar, including a larger profile picture and basic public fields.
+**Goal:** Update the app header Safran logo by replacing the existing logo asset with the user-provided image, without changing the public asset path.
 
 **Planned changes:**
-- Add a protected frontend route (e.g., `/users/:userId`) for a “User Profile Details” page that displays username, entity, bio, and a larger profile picture, with loading and “User not found” states and English UI labels.
-- Make avatars clickable where they represent another user (at minimum in the Bench History list) to navigate to the corresponding user’s profile details route using that user’s principal ID.
-- Extend the backend public user info query to return `username`, `bio`, `entity`, and `profilePicture` for a given user Principal to any authenticated caller, returning a non-throwing “not found” result when the user doesn’t exist.
-- Update frontend data/types (including the existing React Query hook and candid/type updates) to consume the expanded public user info without breaking existing usage (including bench history rendering).
+- Edit the provided Safran logo image into a clean, tightly cropped wordmark sized to 220×64 (transparent background if possible).
+- Replace the existing public asset at `/assets/generated/safran-logo.dim_220x64.png` with the updated logo image.
+- Verify the header renders the new logo clearly on light/dark backgrounds with the existing `object-contain` sizing (no distortion or layout shift).
 
-**User-visible outcome:** After signing in, users can click another user’s avatar (at least from bench history) to open a dedicated profile details page showing that user’s username, entity, bio, and a larger profile picture, with clear feedback for loading and missing users.
+**User-visible outcome:** The application header displays the updated Safran logo automatically, with no code changes needed.

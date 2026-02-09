@@ -1,64 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Protected user profile details view and avatar-to-profile navigation",
+  "title": "Replace Safran header logo asset with user-provided image",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Add a protected user profile details page routed by principal ID that displays public profile info (username, entity, bio, large profile picture) with loading and not-found states, without edit capabilities.",
+      "summary": "Replace the Safran header logo file at the existing public path so the header renders the new logo without code changes.",
       "acceptanceCriteria": [
-        "A new protected route exists for viewing a user's public profile by principal ID (e.g., /users/$userId).",
-        "The page shows: username, entity, bio, and a larger version of the user's profile picture.",
-        "The page has clear English UI text for headings/labels and handles loading and \"user not found\" states gracefully.",
-        "The page does not allow editing another user's data."
+        "A file exists at `frontend/public/assets/generated/safran-logo.dim_220x64.png` and is based on the user-uploaded logo image.",
+        "The app header displays the updated Safran logo without layout shifts or distortion (maintains the current sizing behavior from the `h-4 w-auto object-contain` styling).",
+        "No code changes are required to the `<img src=\"/assets/generated/safran-logo.dim_220x64.png\" ... />` usage in `AppShell.tsx` for the new logo to appear."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/Users/UserProfileDetailsPage.tsx",
+          "path": "frontend/public/assets/generated/safran-logo.dim_220x64.png",
           "operation": "create",
-          "description": "Create the \"User Profile Details\" protected page that reads the route param (principal text), fetches public user info via the existing React Query hook, and renders username/entity/bio plus a large profile picture. Use the existing AuthGate/ActorGate protected layout (authorization component) implicitly via protected routing; use the existing UserAvatar component for consistent profile picture rendering (including blob-storage ExternalBlob direct URL handling for custom images). Include graceful UI for loading, invalid principal, and \"User not found\". Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Register a new protected route at /users/$userId that renders the new UserProfileDetailsPage within the existing protected route tree (ensuring it is behind AuthGate/ActorGate). Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Make avatars clickable (at minimum in Bench History) so clicking navigates to the profile details route for that user's principal ID without changing avatar styling/layout.",
-      "acceptanceCriteria": [
-        "In the bench history UI, clicking a user's avatar opens that user's profile details view.",
-        "Navigation uses the clicked history entry's user principal ID.",
-        "The avatar remains visually consistent with existing styling (no layout break)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/Benches/components/BenchHistoryList.tsx",
-          "operation": "modify",
-          "description": "Wrap the rendered UserAvatar (and optionally the username text) for each history entry in a router Link to /users/$userId using entry.user.toString() as the route param, while preserving existing size/className so layout remains unchanged. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Update the frontend data layer and types to consume the expanded PublicUserInfo fields and use them in bench history and the new profile details view without breaking existing call sites.",
-      "acceptanceCriteria": [
-        "The React Query hook used to fetch public user info supports the expanded fields and does not break existing call sites.",
-        "Bench history continues to render usernames/avatars as before, and can optionally show additional info only where designed, without errors.",
-        "TypeScript types compile cleanly after candid/type updates."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Ensure useGetPublicUserInfo continues to return the expanded PublicUserInfo shape (username, bio, entity, profilePicture) and remains backward-compatible for existing callers (e.g., bench history). Add any small helper(s) needed for route-param usage (e.g., principal parsing) without changing existing hook signatures. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/backend.d.ts",
-          "operation": "modify",
-          "description": "Align frontend TypeScript declarations with the expanded PublicUserInfo type (username, bio, entity, profilePicture) as consumed by the UI and hooks, ensuring the actor method typing for getPublicUserInfo remains consistent so TypeScript compiles cleanly."
+          "description": "Create/replace the logo asset using the provided source image (`png-clipart-safran-electronics-defense-labinal-logo-aerospace-outils-text-logo-thumbnail.png`) as input; export as a tightly cropped, clean wordmark PNG with transparent background if possible, scaled to fit 220x64 and remain legible on both light/dark backgrounds while preserving the existing header sizing behavior."
         }
       ]
     }

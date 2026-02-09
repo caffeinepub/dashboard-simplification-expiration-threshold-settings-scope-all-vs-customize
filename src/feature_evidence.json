@@ -2,49 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-protected-user-profile-details-view-that-can-display-another-user-s-public-profile-information-username-bio-entity-and-a-large-profile-picture-when-provided-a-user-principal-id-in-the-route-e-g-users-userid",
-      "featureTitle": "Add a protected \"User Profile Details\" view that can display another user's public profile information (username, bio, entity, and a large profile picture) when provided a user principal ID in the route (e.g., /users/:userId).",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/pages/Users/UserProfileDetailsPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-make-user-avatars-clickable-wherever-they-represent-another-user-at-minimum-in-the-bench-history-list-so-that-clicking-the-avatar-navigates-to-the-new-user-profile-details-route-for-that-user",
-      "featureTitle": "Make user avatars clickable wherever they represent another user (at minimum in the Bench History list), so that clicking the avatar navigates to the new \"User Profile Details\" route for that user.",
-      "files": [
-        "frontend/src/pages/Benches/components/BenchHistoryList.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-the-frontend-data-layer-to-consume-the-expanded-public-user-info-type-and-use-it-in-both-the-bench-history-display-where-applicable-and-the-new-user-profile-details-view",
-      "featureTitle": "Update the frontend data layer to consume the expanded public user info type and use it in both the bench history display (where applicable) and the new \"User Profile Details\" view.",
+      "featureId": "feature-replace-the-existing-safran-header-logo-asset-with-the-user-provided-image-keeping-the-public-path-unchanged-assets-generated-safran-logo-dim-220x64-png-as-used-by-frontend-src-components-layout-appshell-tsx-the-resulting-image-must-be-a-clean-properly-cropped-scaled-logo-that-fits-within-220x64-and-renders-clearly-on-both-light-and-dark-backgrounds-transparent-background-if-possible",
+      "featureTitle": "Replace the existing Safran header logo asset with the user-provided image, keeping the public path unchanged: `/assets/generated/safran-logo.dim_220x64.png` (as used by `frontend/src/components/layout/AppShell.tsx`). The resulting image must be a clean, properly cropped/scaled logo that fits within 220x64 and renders clearly on both light and dark backgrounds (transparent background if possible).",
       "files": [],
       "components": [
         "authorization@4.0.0",
@@ -56,7 +15,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-4"
+        "REQ-1"
       ],
       "confidence": "high"
     }
